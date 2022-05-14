@@ -1,0 +1,38 @@
+{
+  "name": "ffly-client",
+  "version": "1.0.0",
+  "description": "Firefly client library for creating signed orders and placing on exchange",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "lint": "npx eslint src/*/** --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fireflyprotocol/ffly-client.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fireflyprotocol/ffly-client/issues"
+  },
+  "homepage": "https://github.com/fireflyprotocol/ffly-client#readme",
+  "devDependencies": {
+    "@types/es6-promisify": "^6.0.1",
+    "@typescript-eslint/eslint-plugin": "^5.23.0",
+    "@typescript-eslint/parser": "^5.23.0",
+    "eslint": "^7.32.0 || ^8.2.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-import-resolver-node": "^0.3.6",
+    "eslint-plugin-import": "^2.25.2"
+  },
+  "dependencies": {
+    "bignumber.js": "^9.0.2",
+    "es6-promisify": "^7.0.0",
+    "ethers": "^5.6.5",
+    "typescript": "^4.6.4",
+    "web3": "^1.7.3",
+    "web3-core": "^1.7.3",
+    "web3-core-helpers": "^1.7.3"
+  }
+}
