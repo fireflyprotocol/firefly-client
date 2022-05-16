@@ -19,6 +19,10 @@
         "@typescript-eslint"
     ],
     "rules": {
+        "no-param-reassign": 0,
+        "no-bitwise": 0,
+        "no-case-declarations":0,
+        "import/prefer-default-export": 1,
         "import/extensions": [
             "error",
             "ignorePackages",
@@ -28,6 +32,8 @@
               "ts": "never",
               "tsx": "never"
             }
-         ]
+         ],
+        "max-len": ["error", { "ignoreComments": true,  "code": 120 }],
+        "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }]
     }
 }

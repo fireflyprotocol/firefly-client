@@ -6,7 +6,7 @@ import { SIGNATURE_TYPES, SigningMethod } from '../types';
 import { createTypedSignature } from '../helpers/signature';
 import { stripHexPrefix } from '../helpers/bytes';
 
-abstract class Signer {
+export abstract class Signer {
   protected readonly web3: Web3;
 
   // ============ Constructor ============
@@ -133,5 +133,3 @@ abstract class Signer {
       return createTypedSignature(response.result, SIGNATURE_TYPES.PERSONAL);
     }
 }
-
-export default Signer;

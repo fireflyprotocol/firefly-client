@@ -15,26 +15,7 @@ import {
   SIGNATURE_TYPES,
 } from '../types';
 
-export const PREPEND_DEC: string = '\x19Ethereum Signed Message:\n32';
-
-export const PREPEND_HEX: string = '\x19Ethereum Signed Message:\n\x20';
-
-export const EIP712_DOMAIN_STRING: string = 'EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)';
-
-export const EIP712_DOMAIN_STRING_NO_CONTRACT: string = 'EIP712Domain(string name,string version,uint256 chainId)';
-
-export const EIP712_DOMAIN_STRUCT_NO_CONTRACT = [
-  { name: 'name', type: 'string' },
-  { name: 'version', type: 'string' },
-  { name: 'chainId', type: 'uint256' },
-];
-
-export const EIP712_DOMAIN_STRUCT = [
-  { name: 'name', type: 'string' },
-  { name: 'version', type: 'string' },
-  { name: 'chainId', type: 'uint256' },
-  { name: 'verifyingContract', type: 'address' },
-];
+import { PREPEND_DEC, PREPEND_HEX } from '../constants';
 
 export function isValidSigType(
   sigType: number,
