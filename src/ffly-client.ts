@@ -26,9 +26,13 @@ export class FFLYClient{
         // if orders contract address is not provided read 
         // from deployed contracts addresses if possible
         if(!ordersContractAddress){
-            ordersContractAddress = (contracts as any)[this.network.chainId][market]["Orders"];
+            try {
+                ordersContractAddress = (contracts as any)[this.network.chainId][market]["Orders"];
+            } catch(e){
+                // orders contract address for given network and market name was not found
+            }
         }
-
+        
         // if orders contract address is empty or undefined return false
         if(ordersContractAddress == "" || ordersContractAddress == undefined){
             return false;

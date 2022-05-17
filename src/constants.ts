@@ -9,10 +9,6 @@ const ONE_YEAR_IN_SECONDS = ONE_DAY_IN_SECONDS.times(365);
 
 // ============ P1TraderConstants.sol ============
 
-export const TRADER_FLAG_ORDERS = new BigNumber(1);
-export const TRADER_FLAG_LIQUIDATION = new BigNumber(2);
-export const TRADER_FLAG_DELEVERAGING = new BigNumber(4);
-
 export const ORDER_FLAGS = {
     IS_BUY: 1,
     IS_DECREASE_ONLY: 2,
@@ -20,22 +16,6 @@ export const ORDER_FLAGS = {
 };
 
 export const ZERO_REPEAT_60 = '000000000000000000000000000000000000000000000000000000000000';
-
-export const ADDRESSES = {
-    ZERO: '0x0000000000000000000000000000000000000000',
-    TEST: [
-        '0x06012c8cf97bead5deae237070f9587f8e7a266d',
-        '0x22012c8cf97bead5deae237070f9587f8e7a266d',
-        '0x33012c8cf97bead5deae237070f9587f8e7a266d',
-        '0x44012c8cf97bead5deae237070f9587f8e7a266d',
-        '0x55012c8cf97bead5deae237070f9587f8e7a266d',
-        '0x66012c8cf97bead5deae237070f9587f8e7a266d',
-        '0x77012c8cf97bead5deae237070f9587f8e7a266d',
-        '0x88012c8cf97bead5deae237070f9587f8e7a266d',
-        '0x99012c8cf97bead5deae237070f9587f8e7a266d',
-        '0xaa012c8cf97bead5deae237070f9587f8e7a266d',
-    ],
-};
 
 export const EIP712_ORDER_STRUCT = [
     { type: 'bytes32', name: 'flags' },
