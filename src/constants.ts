@@ -1,8 +1,6 @@
 import BigNumber from "bignumber.js";
-import { Price } from "./types";
 
 export const ARGS_SEPERATOR = '{||}';
-
 
 const ONE_MINUTE_IN_SECONDS = new BigNumber(60);
 const ONE_HOUR_IN_SECONDS = ONE_MINUTE_IN_SECONDS.times(60);
@@ -19,11 +17,6 @@ export const ORDER_FLAGS = {
     IS_BUY: 1,
     IS_DECREASE_ONLY: 2,
     IS_NEGATIVE_LIMIT_FEE: 4,
-};
-
-export const PRICES = {
-    NONE: new Price(0),
-    ONE: new Price(1),
 };
 
 export const ZERO_REPEAT_60 = '000000000000000000000000000000000000000000000000000000000000';
