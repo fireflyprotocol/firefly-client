@@ -1,7 +1,14 @@
-export function shortenAddress(address: string) {
-  return `${address.slice(0, 4)}...${address.slice(address.length - 4, address.length)}`;
+import BigNumber from 'bignumber.js';
+import { BIGNUMBER_BASE } from '../constants';
+
+export function toBigNumber(val: number | string): BigNumber {
+  return new BigNumber(val).multipliedBy(BIGNUMBER_BASE);
 }
 
-export function sanitizeAccountAddress(addr: string) {
-  return `0x${('0'.repeat(40) + addr.toLowerCase()).slice(-40)}`;
+export function toBigNumberStr(val: number | string): string {
+  return toBigNumber(val).toFixed(0);
+}
+
+export function bnStrToNumber(val: number | string):number {
+  return Number(new BigNumber(val).dividedBy(BIGNUMBER_BASE).toFixed(0));
 }
