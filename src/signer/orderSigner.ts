@@ -42,7 +42,7 @@ import {
   EIP712_DOMAIN_STRUCT,
 } from '../constants';
 
-export class Orders {
+export class OrderSigner {
   private web3: Web3;
 
   private eip712DomainName: string;
@@ -101,7 +101,7 @@ export class Orders {
         : makerTokenFillAmounts[i];
 
       // Assume orders are filled at the limit price and limit fee.
-      const { debtDelta, sizeDelta } = Orders.getBalanceUpdatesAfterFillingOrder(
+      const { debtDelta, sizeDelta } = OrderSigner.getBalanceUpdatesAfterFillingOrder(
         fillAmount,
         order.limitPrice,
         order.limitFee,
@@ -149,8 +149,8 @@ export class Orders {
     for (let i = 0; i < orders.length; i++) {
       const order = orders[i];
 
-      const [collateralToUse, freedCollateral] = Orders.reduceMarginFromBank(
-        Orders.calculateFreedCollateralByTrade(
+      const [collateralToUse, freedCollateral] = OrderSigner.reduceMarginFromBank(
+        OrderSigner.calculateFreedCollateralByTrade(
           runningBalance,
           runningPositionMargin,
           new BigNumber(order.amount),
@@ -168,7 +168,7 @@ export class Orders {
       }
       runningWalletBalance = runningWalletBalance.minus(collateralToUse);
 
-      [runningBalance, runningPositionMargin, runningWalletBalance] = Orders.getUpdatedBalanceAndPositionMargin(
+      [runningBalance, runningPositionMargin, runningWalletBalance] = OrderSigner.getUpdatedBalanceAndPositionMargin(
         runningBalance,
         runningPositionMargin,
         runningWalletBalance,
@@ -176,7 +176,7 @@ export class Orders {
       );
 
       // Assume orders are filled at the limit price and limit fee.
-      const { debtDelta, sizeDelta } = Orders.getBalanceUpdatesAfterFillingOrder(
+      const { debtDelta, sizeDelta } = OrderSigner.getBalanceUpdatesAfterFillingOrder(
         fillAmount[i],
         new Price(new BigNumber(order.limitPrice).shiftedBy(-18)),
         new Fee(new BigNumber(order.limitFee).shiftedBy(-18)),
@@ -612,7 +612,7 @@ export class Orders {
     domainHash: string,
   ): boolean {
     return hashHasValidSignature(
-      Orders.getRawOrderHash(order, domainHash),
+      OrderSigner.getRawOrderHash(order, domainHash),
       order.typedSignature,
       order.maker,
     );
@@ -694,7 +694,7 @@ export class Orders {
   ): string {
     const structHash = Web3.utils.soliditySha3(
       { t: 'bytes32', v: hashString(EIP712_ORDER_STRUCT_STRING) || '' },
-      { t: 'bytes32', v: Orders.getOrderFlags(order) },
+      { t: 'bytes32', v: OrderSigner.getOrderFlags(order) },
       { t: 'uint256', v: order.amount.toFixed(0) },
       { t: 'uint256', v: order.limitPrice.toSolidity() },
       { t: 'uint256', v: order.triggerPrice.toSolidity() },
@@ -715,7 +715,7 @@ export class Orders {
   ): string {
     const structHash = Web3.utils.soliditySha3(
       { t: 'bytes32', v: hashString(EIP712_ORDER_STRUCT_STRING) || '' },
-      { t: 'bytes32', v: Orders.getOrderFlags(order) },
+      { t: 'bytes32', v: OrderSigner.getOrderFlags(order) },
       { t: 'uint256', v: order.amount.toFixed(0) },
       { t: 'uint256', v: order.limitPrice.toFixed(0) },
       { t: 'uint256', v: order.triggerPrice.toFixed(0) },
@@ -737,7 +737,7 @@ export class Orders {
   ): string {
     const structHash = Web3.utils.soliditySha3(
       { t: 'bytes32', v: hashString(EIP712_ORDER_STRUCT_STRING) || '' },
-      { t: 'bytes32', v: Orders.getOrderFlags(order) },
+      { t: 'bytes32', v: OrderSigner.getOrderFlags(order) },
       { t: 'uint256', v: order.amount },
       { t: 'uint256', v: order.limitPrice },
       { t: 'uint256', v: order.triggerPrice },
@@ -798,7 +798,7 @@ export class Orders {
   public orderToBytes(
     order: Order,
   ): string {
-    const solidityOrder = Orders.orderToSolidity(order);
+    const solidityOrder = OrderSigner.orderToSolidity(order);
     return this.web3.eth.abi.encodeParameters(
       EIP712_ORDER_STRUCT.map((arg) => arg.type),
       EIP712_ORDER_STRUCT.map((arg) => solidityOrder[arg.name]),
@@ -907,8 +907,8 @@ export class Orders {
       'bytes32',
       'bytes32',
     ], data);
-    const orderAFlags = Orders.parseFlags(res[0]);
-    const orderBFlags = Orders.parseFlags(res[9]);
+    const orderAFlags = OrderSigner.parseFlags(res[0]);
+    const orderBFlags = OrderSigner.parseFlags(res[9]);
     const orderAsalt = (res[0].slice(0, -1));
     const orderBsalt = (res[9].slice(0, -1));
     return {
@@ -962,7 +962,7 @@ export class Orders {
     return this.web3.eth.abi.encodeParameters(
       EIP712_ORDER_SIGNATURE_TYPE_ARR,
       [
-        Orders.getOrderFlags(order),
+        OrderSigner.getOrderFlags(order),
         order.amount.toFixed(0),
         order.limitPrice.toFixed(0),
         order.triggerPrice.toFixed(0),
@@ -981,7 +981,7 @@ export class Orders {
     return this.web3.eth.abi.encodeParameters(
       EIP712_ORDER_SIGNATURE_TYPE_ARR,
       [
-        Orders.getOrderFlags(order),
+        OrderSigner.getOrderFlags(order),
         order.amount,
         order.limitPrice,
         order.triggerPrice,
@@ -1000,7 +1000,7 @@ export class Orders {
     order: Order,
   ): any {
     return {
-      flags: Orders.getOrderFlags(order),
+      flags: OrderSigner.getOrderFlags(order),
       amount: order.amount.toFixed(0),
       limitPrice: order.limitPrice.toSolidity(),
       triggerPrice: order.triggerPrice.toSolidity(),
@@ -1025,7 +1025,7 @@ export class Orders {
     order: Order,
     signingMethod: SigningMethod,
   ): Promise<TypedSignature> {
-    const orderData = Orders.orderToSolidity(order);
+    const orderData = OrderSigner.orderToSolidity(order);
     const data = {
       types: {
         EIP712Domain: EIP712_DOMAIN_STRUCT,

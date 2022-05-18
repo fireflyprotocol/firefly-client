@@ -1,5 +1,13 @@
 {
     "1297": {
+        "Test_Token": {
+            "address": "0x57AB85a85f75fb4E9d2Ee85a28913F2DEe9aD283",
+            "transactionHash": "0x1ba9958a110e6550a59b698864c2e77214a4be1ee53793ceda3a7cd845609a5e"
+        },
+        "MarginBank": {
+            "address": "0xbDd8210d4F74fC97d4E93950a1FF201fe425C68f",
+            "transactionHash": "0xfb5d27a275c61610373facf07d37aee3c470f5937e937ab4d84cafc994cfacf8"
+        },
         "DOT-PERP": {
             "Test_Funder": {
                 "links": {},
@@ -42,12 +50,6 @@
                 "address": "0x52d92ebBe4122d8Ed5394819d302AD234001D2C7",
                 "transactionHash": "0xd860a1afdbf0c38d630ea5176ae1568ee16cea49427d663fccc971321c4e4355",
                 "type": "BaseProxy"
-            },
-            "MarginBank": {
-                "links": {},
-                "address": "0xbDd8210d4F74fC97d4E93950a1FF201fe425C68f",
-                "transactionHash": "0xfb5d27a275c61610373facf07d37aee3c470f5937e937ab4d84cafc994cfacf8",
-                "type": "Base"
             },
             "PriceOracle": {
                 "links": {},
