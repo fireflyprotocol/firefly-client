@@ -1,6 +1,6 @@
 import Web3 from "web3";
 import { Contract, Wallet, providers } from "ethers";
-import { toBigNumberStr, bnStrToNumber } from "./helpers/utils";
+import { toBigNumberStr, bnToString } from "./helpers/utils";
 import * as contracts from "../contracts/deployedContracts.json";
 import * as Test_Token from "../contracts/Test_Token.json";
 import { MarginBank__factory } from "../contracts/orderbook";
@@ -76,16 +76,16 @@ export class FFLYClient{
      * @param contract (optional) address of USDC contract
      * @returns Number representing balance of user
      */
-    async getUSDCBalance(contract?:address):Promise<number>{
+    async getUSDCBalance(contract?:address):Promise<string>{
 
         const tokenContract = this._getContract("Test_Token", contract);
 
-        if(tokenContract == false) { return 0; }
+        if(tokenContract == false) { return "-1"; }
 
         const balance = await (tokenContract as Contract).connect(this.wallet)
                         .balanceOf(this.wallet.address);
 
-        return bnStrToNumber(+balance);
+        return bnToString(+balance);
     }
 
 
@@ -94,17 +94,17 @@ export class FFLYClient{
      * @param contract (optional) address of Margin Bank contract
      * @returns Number representing balance of user
      */
-     async getMarginBankBalance(contract?:address):Promise<number>{
+     async getMarginBankBalance(contract?:address):Promise<string>{
 
         const marginBankContract = this._getContract("MarginBank", contract);
 
-        if(marginBankContract == false) { return 0; }
+        if(marginBankContract == false) { return "-1"; }
 
         const balance = await (marginBankContract as MarginBank)
                         .connect(this.wallet)
                         .getAccountBankBalance(this.wallet.address)
-
-        return bnStrToNumber(+balance);
+                        
+        return balance.toString();
     }
 
     /**
@@ -188,15 +188,16 @@ export class FFLYClient{
      * @param mbContract (address) address of Margin Bank contract
      * @returns boolean true if funds are transferred, false otherwise
      */
-     async moveUSDCFromMarginBank(amount?:number, usdcContract?:address, mbContract?:address):Promise<boolean>{
+     async withdrawUSDCFromMarginBank(amount?:number, usdcContract?:address, mbContract?:address):Promise<boolean>{
 
         const tokenContract = this._getContract("Test_Token", usdcContract);
         const marginBankContract = this._getContract("MarginBank", mbContract);
 
         if(tokenContract == false || marginBankContract == false ) { return false; }
 
-        const amountString = toBigNumberStr(
-            amount || await this.getMarginBankBalance((marginBankContract as MarginBank).address));
+        const amountString = amount 
+            ? toBigNumberStr(amount) 
+            : await this.getMarginBankBalance((marginBankContract as MarginBank).address);
 
         try {
 
@@ -204,7 +205,7 @@ export class FFLYClient{
             await (
                 await (marginBankContract as MarginBank)
                   .connect(this.wallet)
-                  .transferFromBank(
+                  .withdrawFromBank(
                       this.wallet.address, 
                       this.wallet.address, 
                       amountString)

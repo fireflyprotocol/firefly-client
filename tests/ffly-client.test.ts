@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Networks, MARKET_SYMBOLS, FFLYClient } from "../src/index";
+import { Networks, MARKET_SYMBOLS, FFLYClient, bnStrToBaseNumber } from "../src/index";
 
 const testAcctKey = "4ef06568055d528efdeb3a2e0c1a4b1a0f1fdf4f9e388f11f0a248228298c2b7";
 const testOrdersContract = "0x46ABa007B8c0ff7Da3132b52b81d2C15D2e8E815";
@@ -48,36 +48,28 @@ describe("FFLYClient", () => {
         expect(client.removeMarket(MARKET_SYMBOLS.DOT)).to.be.equal(false);
     });
 
-    it("should return USDC balance", async ()=>{
-        const client = new FFLYClient(Networks.TESTNET, testAcctKey);
-        expect(await client.getUSDCBalance()).to.be.greaterThanOrEqual(0);
-    });
-
-    it("should get Test USDCs", async ()=>{
+    it("should get 10K Test USDCs", async ()=>{
         const client = new FFLYClient(Networks.TESTNET, testAcctKey);
         expect(await client.getTestUSDC()).to.be.equal(true);
-    });
-
-    it("should return USDCs in Margin Bank", async ()=>{
-        const client = new FFLYClient(Networks.TESTNET, testAcctKey);
-        expect(await client.getMarginBankBalance()).to.be.greaterThanOrEqual(0);
+        expect(bnStrToBaseNumber(await client.getUSDCBalance())).to.be.greaterThanOrEqual(10000);
     });
 
     it("should move 1 USDC token to Margin Bank", async ()=>{
         const client = new FFLYClient(Networks.TESTNET, testAcctKey);
         expect(await client.moveUSDCToMarginBank(1)).to.be.equal(true);
-        expect(await client.getMarginBankBalance()).to.be.greaterThanOrEqual(1);
+        expect(bnStrToBaseNumber(await client.getMarginBankBalance())).to.be.greaterThanOrEqual(1);
     });
 
-    it("should move 1 USDC token from Margin Bank", async ()=>{
+
+    it("should withdraw 1 USDC token from Margin Bank", async ()=>{
         const client = new FFLYClient(Networks.TESTNET, testAcctKey);
-        expect(await client.moveUSDCFromMarginBank(1)).to.be.equal(true);
+        expect(await client.withdrawUSDCFromMarginBank(1)).to.be.equal(true);
     });
 
-
-    
-
-
-    
+    it("should move all USDC token from Margin Bank", async ()=>{
+        const client = new FFLYClient(Networks.TESTNET, testAcctKey);
+        expect(await client.withdrawUSDCFromMarginBank()).to.be.equal(true);
+        expect(await client.getMarginBankBalance()).to.be.eql("0");
+    });
     
 });

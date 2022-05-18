@@ -9,6 +9,10 @@ export function toBigNumberStr(val: number | string): string {
   return toBigNumber(val).toFixed(0);
 }
 
-export function bnStrToNumber(val: number | string):number {
+export function bnToString(val: number | string): string {
+  return new BigNumber(val).toFixed(0);
+}
+
+export function bnStrToBaseNumber(val: number | string):number {
   return Number(new BigNumber(val).dividedBy(BIGNUMBER_BASE).toFixed(0));
 }
