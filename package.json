@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "lint": "npx eslint src/*/** --fix",
-    "test": "ts-mocha tests/*.test.ts"
+    "test": "ts-mocha --timeout 100000 tests/*.test.ts"
   },
   "repository": {
     "type": "git",
