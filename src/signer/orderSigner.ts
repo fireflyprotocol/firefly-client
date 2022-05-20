@@ -21,19 +21,22 @@ import {
   Balance,
   BigNumberable,
   Fee,
-  Order,
   Price,
-  SignedOrder,
   SigningMethod,
   TypedSignature,
   address,
-  SignedSolidityOrder,
-  SolidityOrder,
-  RawOrder,
   FreedCollateral,
   ValidationError,
   SIGNATURE_TYPES,
 } from '../types';
+
+import {
+  Order,
+  SignedSolidityOrder,
+  SolidityOrder,
+  RawOrder,
+  SignedOrder,
+} from '../interfaces/order';
 
 import {
   ORDER_FLAGS, ZERO_REPEAT_60, BIGNUMBER_BASE, EIP712_DOMAIN_VERSION, EIP712_ORDER_STRUCT,

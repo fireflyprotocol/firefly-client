@@ -1,9 +1,6 @@
-import BigNumber from "bignumber.js";
-import { Price, Fee, address } from "../types";
+import BigNumber from 'bignumber.js';
+import { Price, Fee, address } from '../types';
 
-/**
- * Interface of order used to 
- */
 export interface Order {
     isBuy: boolean;
     isDecreaseOnly: boolean;
@@ -22,10 +19,6 @@ export interface SignedOrder extends Order {
     typedSignature: string;
 }
 
-export interface SignedSolidityOrder extends SolidityOrder {
-    typedSignature: string;
-}
-  
 export interface SolidityOrder {
     isBuy: boolean;
     isDecreaseOnly: boolean;
@@ -39,7 +32,11 @@ export interface SolidityOrder {
     expiration: BigNumber;
     salt: BigNumber;
 }
-  
+
+export interface SignedSolidityOrder extends SolidityOrder {
+    typedSignature: string;
+}
+
 export interface RawOrder {
     isBuy: boolean;
     isDecreaseOnly: boolean;
@@ -54,5 +51,3 @@ export interface RawOrder {
     salt: string;
     typedSignature: string;
 }
-
- 

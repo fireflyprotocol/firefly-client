@@ -1,20 +1,53 @@
-import Web3 from "web3";
-import { Contract, Wallet, providers } from "ethers";
-import axios from "axios"
-import { toBigNumberStr, bnToString, bigNumber, toBigNumber } from "./helpers/utils";
-import * as contracts from "../contracts/deployedContracts.json";
-import * as Test_Token from "../contracts/Test_Token.json";
-import { MarginBank__factory, MarginBank } from "../contracts/orderbook";
-import { SigningMethod, SignedOrder, Price, Fee, Network, MarketSymbol, OrderSigner, 
-    address, GetOrderResponse, GetOrderRequest, OrderSignatureRequest, OrderSignatureResponse,
-    Order, PlaceOrderRequest, PlaceOrderResponse } from "./index";
-import { ORDER_SIDE, ORDER_TYPE, TIME_IN_FORCE } from "./types";
+import Web3 from 'web3';
+import axios from 'axios';
+import { Contract, Wallet, providers } from 'ethers';
+import * as contracts from '../contracts/deployedContracts.json';
+import * as TestToken from '../contracts/Test_Token.json';
+import { MarginBank__factory, MarginBank } from '../contracts/orderbook';
+import {
+  toBigNumberStr,
+  bnToString,
+  bigNumber,
+  toBigNumber,
+} from './helpers/utils';
 
-export class FireflyClient{
-    protected readonly network:Network;
-    private web3:Web3;
-    private wallet:Wallet;
-    private orderSigners:Map<MarketSymbol, OrderSigner> = new Map();
+import {
+  ORDER_SIDE,
+  ORDER_TYPE,
+  TIME_IN_FORCE,
+  SigningMethod,
+  Network,
+  Fee,
+  Price,
+  MarketSymbol,
+  address,
+} from './types';
+
+import {
+  SignedOrder,
+  Order,
+} from './interfaces/order';
+
+import { OrderSigner } from './signer/orderSigner';
+
+import {
+  GetOrderResponse,
+  GetOrderRequest,
+  OrderSignatureRequest,
+  OrderSignatureResponse,
+  PlaceOrderRequest,
+  PlaceOrderResponse,
+} from './interfaces/routes';
+
+
+export class FireflyClient {
+  protected readonly network:Network;
+
+  private web3:Web3;
+
+  private wallet:Wallet;
+  
+  private orderSigners:Map<MarketSymbol, OrderSigner> = new Map();
     
     /**
      * 
@@ -40,14 +73,14 @@ export class FireflyClient{
         // from deployed contracts addresses if possible
         if(!ordersContract){
             try {
-                ordersContract = (contracts as any)[this.network.chainId][market]["Orders"]["address"];
+                ordersContract = (contracts as any)[this.network.chainId][market]['Orders']['address'];
             } catch(e){
                 // orders contract address for given network and market name was not found
             }
         }
         
         // if orders contract address is empty or undefined return false
-        if(ordersContract == "" || ordersContract == undefined){
+        if(ordersContract == '' || ordersContract == undefined){
             return false;
         }
 
@@ -80,9 +113,9 @@ export class FireflyClient{
      */
     async getUSDCBalance(contract?:address):Promise<string>{
 
-        const tokenContract = this._getContract("Test_Token", contract);
+        const tokenContract = this._getContract('Test_Token', contract);
 
-        if(tokenContract == false) { return "-1"; }
+        if(tokenContract == false) { return '-1'; }
 
         const balance = await (tokenContract as Contract).connect(this.wallet)
                         .balanceOf(this.wallet.address);
@@ -98,9 +131,9 @@ export class FireflyClient{
      */
      async getMarginBankBalance(contract?:address):Promise<string>{
 
-        const marginBankContract = this._getContract("MarginBank", contract);
+        const marginBankContract = this._getContract('MarginBank', contract);
 
-        if(marginBankContract == false) { return "-1"; }
+        if(marginBankContract == false) { return '-1'; }
 
         const balance = await (marginBankContract as MarginBank)
                         .connect(this.wallet)
@@ -116,7 +149,7 @@ export class FireflyClient{
      * @returns Boolean true if user is funded, false otherwise
      */
     async getTestUSDC(contract?:address):Promise<boolean>{
-        const tokenContract = this._getContract("Test_Token", contract);
+        const tokenContract = this._getContract('Test_Token', contract);
 
         if(tokenContract == false) { return false; }
 
@@ -143,8 +176,8 @@ export class FireflyClient{
      */
     async depositToMarginBank(amount:number, usdcContract?:address, mbContract?:address):Promise<boolean>{
 
-        const tokenContract = this._getContract("Test_Token", usdcContract);
-        const marginBankContract = this._getContract("MarginBank", mbContract);
+        const tokenContract = this._getContract('Test_Token', usdcContract);
+        const marginBankContract = this._getContract('MarginBank', mbContract);
 
         if(tokenContract == false || marginBankContract == false ) { return false; }
 
@@ -192,8 +225,8 @@ export class FireflyClient{
      */
      async withdrawFromMarginBank(amount?:number, usdcContract?:address, mbContract?:address):Promise<boolean>{
 
-        const tokenContract = this._getContract("Test_Token", usdcContract);
-        const marginBankContract = this._getContract("MarginBank", mbContract);
+        const tokenContract = this._getContract('Test_Token', usdcContract);
+        const marginBankContract = this._getContract('MarginBank', mbContract);
 
         if(tokenContract == false || marginBankContract == false ) { return false; }
 
@@ -264,7 +297,7 @@ export class FireflyClient{
             isDecreaseOnly: params.reduceOnly || false,
             triggerPrice: new Price(0),
             limitFee:new Fee(0),
-            taker: "0x0000000000000000000000000000000000000000",
+            taker: '0x0000000000000000000000000000000000000000',
             expiration: bigNumber(params.expiration || Math.floor(expiration.getTime()/1000)),
             salt: bigNumber(params.salt || Math.floor(Math.random() * 1_000_000)),
         };
@@ -333,17 +366,17 @@ export class FireflyClient{
     _getContract(contractName:string, contract?:address):Contract|boolean|MarginBank {
 
         if(!contract){
-            contract = (contracts as any)[this.network.chainId][contractName]["address"]
+            contract = (contracts as any)[this.network.chainId][contractName]['address']
         }
 
-        if(contract == "" || contract == undefined){
+        if(contract == '' || contract == undefined){
             return false;
         }
 
         switch(contractName){
-            case "Test_Token":
-                return new Contract(contract, Test_Token.abi);
-            case "MarginBank":
+            case 'Test_Token':
+                return new Contract(contract, TestToken.abi);
+            case 'MarginBank':
                 const marginBankFactory = new MarginBank__factory();
                 const marginBank = marginBankFactory.attach(contract);
                 return marginBank as any as MarginBank;
@@ -367,7 +400,7 @@ export class FireflyClient{
             isDecreaseOnly:params.reduceOnly || false,
             triggerPrice:new Price(0),
             limitFee:new Fee(0),
-            taker:"0x0000000000000000000000000000000000000000",
+            taker:'0x0000000000000000000000000000000000000000',
             expiration:bigNumber(params.expiration || Math.floor(expiration.getTime()/1000)),
             salt: bigNumber(params.salt || Math.floor(Math.random() * 1_000_000)),
         } as Order

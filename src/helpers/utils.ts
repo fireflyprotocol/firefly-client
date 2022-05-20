@@ -1,7 +1,7 @@
 import BigNumber from 'bignumber.js';
 import { BIGNUMBER_BASE } from '../constants';
 
-export function bigNumber(val: number | string): BigNumber{
+export function bigNumber(val: number | string): BigNumber {
   return new BigNumber(val);
 }
 
