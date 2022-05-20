@@ -1,14 +1,16 @@
 import Web3 from "web3";
 import { Contract, Wallet, providers } from "ethers";
-import { toBigNumberStr, bnToString } from "./helpers/utils";
+import axios from "axios"
+import { toBigNumberStr, bnToString, bigNumber, toBigNumber } from "./helpers/utils";
 import * as contracts from "../contracts/deployedContracts.json";
 import * as Test_Token from "../contracts/Test_Token.json";
-import { MarginBank__factory } from "../contracts/orderbook";
+import { MarginBank__factory, MarginBank } from "../contracts/orderbook";
+import { SigningMethod, SignedOrder, Price, Fee, Network, MarketSymbol, OrderSigner, 
+    address, GetOrderResponse, GetOrderRequest, OrderSignatureRequest, OrderSignatureResponse,
+    Order, PlaceOrderRequest, PlaceOrderResponse } from "./index";
+import { ORDER_SIDE, ORDER_TYPE, TIME_IN_FORCE } from "./types";
 
-import { Network, MarketSymbol, OrderSigner, address } from "./index";
-import { MarginBank } from "../contracts/orderbook";
-
-export class FFLYClient{
+export class FireflyClient{
     protected readonly network:Network;
     private web3:Web3;
     private wallet:Wallet;
@@ -139,7 +141,7 @@ export class FFLYClient{
      * @param mbContract (address) address of Margin Bank contract
      * @returns boolean true if funds are transferred, false otherwise
      */
-    async moveUSDCToMarginBank(amount:number, usdcContract?:address, mbContract?:address):Promise<boolean>{
+    async depositToMarginBank(amount:number, usdcContract?:address, mbContract?:address):Promise<boolean>{
 
         const tokenContract = this._getContract("Test_Token", usdcContract);
         const marginBankContract = this._getContract("MarginBank", mbContract);
@@ -188,7 +190,7 @@ export class FFLYClient{
      * @param mbContract (address) address of Margin Bank contract
      * @returns boolean true if funds are transferred, false otherwise
      */
-     async withdrawUSDCFromMarginBank(amount?:number, usdcContract?:address, mbContract?:address):Promise<boolean>{
+     async withdrawFromMarginBank(amount?:number, usdcContract?:address, mbContract?:address):Promise<boolean>{
 
         const tokenContract = this._getContract("Test_Token", usdcContract);
         const marginBankContract = this._getContract("MarginBank", mbContract);
@@ -218,6 +220,106 @@ export class FFLYClient{
         }
 
     }
+
+    /**
+     * Gets Orders placed by the user. Returns the first 50 orders by default.
+     * @param params of type OrderRequest,
+     * @returns OrderResponse array
+     */
+    async getOrders(params:GetOrderRequest): Promise<GetOrderResponse[]>{
+
+        let url = `${this.network.apiGateway}/orders?userAddress=${this.getPublicAddress()}`;
+        url += `&statuses=${params.status}`;
+
+        if(params.symbol) {
+            url += `&symbol=${params.symbol}`;
+        }
+
+        if(params.pageSize){
+            url += `&pageSize=${params.pageSize}`;
+        }
+
+        if(params.pageNumber){
+            url += `&pageNumber=${params.pageNumber}`;
+        }
+
+        const response = await axios.get(url);
+
+        // TODO: OrderResponse can be undefined if the status returned by DAPI is not 200
+        return response.data;
+
+    }
+
+    async createSignedOrder(params:OrderSignatureRequest):Promise<OrderSignatureResponse>{
+
+        const expiration = new Date();
+        expiration.setMonth(expiration.getMonth()+1);
+
+        const order:Order = {
+            limitPrice : new Price(bigNumber(params.price)),
+            isBuy: params.side == ORDER_SIDE.BUY,
+            amount: toBigNumber(params.quantity),
+            leverage: toBigNumber(params.leverage || 1),
+            maker: this.getPublicAddress().toLocaleLowerCase(),            
+            isDecreaseOnly: params.reduceOnly || false,
+            triggerPrice: new Price(0),
+            limitFee:new Fee(0),
+            taker: "0x0000000000000000000000000000000000000000",
+            expiration: bigNumber(params.expiration || Math.floor(expiration.getTime()/1000)),
+            salt: bigNumber(params.salt || Math.floor(Math.random() * 1_000_000)),
+        };
+
+        const signer = this.orderSigners.get(params.symbol);
+        if(!signer){
+            throw Error (`Provided Market Symbol(${params.symbol}) is not added to client library`);
+        }
+
+        const orderSignature =  await (signer as OrderSigner).signOrder(order, SigningMethod.Hash);   
+
+        const signedOrder:SignedOrder = {...order, typedSignature:orderSignature};
+
+        return {
+            symbol:params.symbol,
+            price:params.price,
+            quantity:params.quantity,
+            side:params.side,
+            leverage:params.leverage || 1,
+            reduceOnly: order.isDecreaseOnly,
+            salt:order.salt.toNumber(),
+            expiration: order.expiration.toNumber(),
+            orderSignatrue:signedOrder.typedSignature,
+        }
+    }
+ 
+    async placeOrder(params:PlaceOrderRequest):Promise<PlaceOrderResponse>{
+
+        const response = await axios.post(`${this.network.apiGateway}/orders`, {
+                symbol: params.symbol,
+                userAddress: this.getPublicAddress().toLocaleLowerCase(),
+                orderType: params.price == 0 ? ORDER_TYPE.MARKET: ORDER_TYPE.LIMIT,
+                price: toBigNumberStr(params.price),
+                quantity: toBigNumberStr(params.quantity),
+                leverage: toBigNumberStr(params.leverage),
+                side: params.side,
+                reduceOnly:params.reduceOnly,
+                salt: params.salt,
+                expiration: params.expiration,
+                orderSignature: params.orderSignatrue,
+                timeInForce: params.timeInForce || TIME_IN_FORCE.GOOD_TILL_CANCEL,
+                postOnly: params.postOnly || false
+            }, {headers:{'Content-Type': 'application/json'}, validateStatus: () => true});
+
+        return {status:response.status, data: response.data};
+    }
+
+    /**
+     * Returns the public address of account connected with the client
+     * @returns string | address
+     */
+    getPublicAddress():address{
+       return this.wallet.address; 
+    }
+
 
     //===============================================================//
     // INTERNAL HELPER FUNCTIONS
@@ -249,6 +351,26 @@ export class FFLYClient{
                 return false;
         }
 
+    }
+
+    _createOrderToSign(params:OrderSignatureRequest):Order{
+
+        const expiration = new Date();
+        expiration.setMonth(expiration.getMonth()+1);
+
+        return {
+            limitPrice : new Price(bigNumber(params.price)),
+            isBuy:params.side == ORDER_SIDE.BUY,
+            amount:toBigNumber(params.quantity),
+            leverage:toBigNumber(params.leverage || 1),
+            maker:this.getPublicAddress().toLocaleLowerCase(),            
+            isDecreaseOnly:params.reduceOnly || false,
+            triggerPrice:new Price(0),
+            limitFee:new Fee(0),
+            taker:"0x0000000000000000000000000000000000000000",
+            expiration:bigNumber(params.expiration || Math.floor(expiration.getTime()/1000)),
+            salt: bigNumber(params.salt || Math.floor(Math.random() * 1_000_000)),
+        } as Order
     }
 
 
