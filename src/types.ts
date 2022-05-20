@@ -236,23 +236,6 @@ export interface ValidationError {
   object?: any
 }
   
-export interface Order {
-    isBuy: boolean;
-    isDecreaseOnly: boolean;
-    amount: BigNumber;
-    limitPrice: Price;
-    triggerPrice: Price;
-    limitFee: Fee;
-    leverage: BigNumber;
-    maker: address;
-    taker: address;
-    expiration: BigNumber;
-    salt: BigNumber;
-  }
-
-export interface SignedOrder extends Order {
-    typedSignature: string;
-  }
 
 export interface SignedIntStruct {
     value: string;
@@ -262,6 +245,7 @@ export interface SignedIntStruct {
 export interface Network{
   url:string,
   chainId: number,
+  apiGateway: string
 }
 
 export interface BalanceStruct {
@@ -276,42 +260,6 @@ export interface PosAndNegValues {
   negativeValue: BigNumber;
 }
 
-export interface SignedOrder extends Order {
-  typedSignature: string;
-}
-
-export interface SignedSolidityOrder extends SolidityOrder {
-  typedSignature: string;
-}
-
-export interface SolidityOrder {
-  isBuy: boolean;
-  isDecreaseOnly: boolean;
-  amount: BigNumber;
-  limitPrice: BigNumber;
-  triggerPrice: BigNumber;
-  limitFee: BigNumber;
-  leverage: BigNumber;
-  maker: address;
-  taker: address;
-  expiration: BigNumber;
-  salt: BigNumber;
-}
-
-export interface RawOrder {
-  isBuy: boolean;
-  isDecreaseOnly: boolean;
-  amount: string;
-  limitPrice: string;
-  triggerPrice: string;
-  limitFee: string;
-  leverage: string;
-  maker: string;
-  taker: string;
-  expiration: number;
-  salt: string;
-  typedSignature: string;
-}
 
   
 /*
@@ -346,10 +294,30 @@ export enum MARKET_SYMBOLS {
   MOVR = "MOVR-PERP"
 }
 
+export enum ORDER_STATUS{
+  PENDING = "PENDING",
+  OPEN = "OPEN",
+  PARTIAL_FILLED = "PARTIAL_FILLED",
+  FILLED = "FILLED",
+  CANCELLING = "CANCELLING",
+  CANCELLED = "CANCELLED",
+  REJECTED = "REJECTED",
+  EXPIRED = "EXPIRED"
+}
 
-/*
- * ==================
- *      CONSTANTS
- * ==================
- */
 
+export enum ORDER_TYPE{
+  LIMIT = "LIMIT",
+  MARKET = "MARKET",
+}
+
+export enum ORDER_SIDE{
+  BUY = "BUY",
+  SELL = "SELL",
+}
+
+export enum TIME_IN_FORCE{
+  GOOD_TILL_CANCEL = "GTC",
+  FILL_OR_KILL = "FOK",
+  IMMEDIATE_OR_CANCEL = "IOC"
+}
