@@ -184,8 +184,8 @@ export const BASE_DECIMALS = 18;
 export const BIGNUMBER_BASE = new BigNumber(1).shiftedBy(BASE_DECIMALS);
 
 export const Networks = { 
-  TESTNET:  {url: 'https://bobabase.boba.network/', chainId: 1297 },
-  MAINNET:  {url: 'https://bobabeam.boba.network/', chainId: 1291 },
+  TESTNET:  {url: 'https://bobabase.boba.network/', chainId: 1297, apiGateway: "https://dapi-testnet.firefly.exchange"},
+  MAINNET:  {url: 'https://bobabeam.boba.network/', chainId: 1291, apiGateway: "https://dapi-mainnet.firefly.exchange"},
 }
 
 
