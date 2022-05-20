@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/fireflyprotocol/ffly-client#readme",
   "devDependencies": {
+    "@types/chai-as-promised": "^7.1.5",
     "@types/es6-promisify": "^6.0.1",
     "@typescript-eslint/eslint-plugin": "^5.23.0",
     "@typescript-eslint/parser": "^5.23.0",
@@ -31,8 +32,10 @@
     "@types/chai": "^4.3.0",
     "@types/expect": "^24.3.0",
     "@types/mocha": "^9.1.0",
+    "axios": "^0.27.2",
     "bignumber.js": "^9.0.2",
     "chai": "^4.3.6",
+    "chai-as-promised": "^7.1.1",
     "es6-promisify": "^7.0.0",
     "ethers": "^5.6.5",
     "mocha": "^10.0.0",
