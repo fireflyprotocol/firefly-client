@@ -22,7 +22,7 @@
         "no-param-reassign": 0,
         "no-bitwise": 0,
         "no-case-declarations":0,
-        "import/prefer-default-export": 1,
+        "import/prefer-default-export": 0,
         "import/extensions": [
             "error",
             "ignorePackages",
