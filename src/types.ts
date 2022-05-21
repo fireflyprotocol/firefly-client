@@ -1,13 +1,57 @@
-import BigNumber from 'bignumber.js';
-import { ethers } from 'ethers';
-import { BASE_DECIMALS } from "./constants"
-
+/* eslint-disable no-unused-vars */
+/* eslint-disable no-shadow */
+// eslint-disable-next-line max-classes-per-file
+import BigNumber from "bignumber.js";
+import { ethers } from "ethers";
+import { BASE_DECIMALS } from "./constants";
 
 export type address = string;
 export type TypedSignature = string;
 export type Provider = ethers.providers.JsonRpcProvider;
 export type BigNumberable = BigNumber | number | string;
 export type MarketSymbol = string;
+
+/*
+ * ==================
+ *      INTERFACES
+ * ==================
+ */
+
+export interface FreedCollateral {
+  flags: number;
+  collateral: BigNumber;
+  pnl: BigNumber;
+  fee: BigNumber;
+  openInterest: BigNumber;
+}
+
+export interface ValidationError {
+  error: string;
+  object?: any;
+}
+
+export interface SignedIntStruct {
+  value: string;
+  isPositive: boolean;
+}
+
+export interface Network {
+  url: string;
+  chainId: number;
+  apiGateway: string;
+}
+
+export interface BalanceStruct {
+  debtIsPositive: boolean;
+  sizeIsPositive: boolean;
+  debt: string;
+  size: string;
+}
+
+export interface PosAndNegValues {
+  positiveValue: BigNumber;
+  negativeValue: BigNumber;
+}
 
 /*
  * ==================
@@ -36,10 +80,15 @@ export class BaseValue {
     };
   }
 
-  static fromSolidity(solidityValue: BigNumberable, isPositive: boolean = true): BaseValue {
+  static fromSolidity(
+    solidityValue: BigNumberable,
+    isPositive: boolean = true
+  ): BaseValue {
     // Help to detect errors in the parsing and typing of Solidity data.
-    if (typeof isPositive !== 'boolean') {
-      throw new Error('Error in BaseValue.fromSolidity: isPositive was not a boolean');
+    if (typeof isPositive !== "boolean") {
+      throw new Error(
+        "Error in BaseValue.fromSolidity: isPositive was not a boolean"
+      );
     }
 
     let value = new BigNumber(solidityValue).shiftedBy(-BASE_DECIMALS);
@@ -53,7 +102,9 @@ export class BaseValue {
    * Return the BaseValue, rounded down to the nearest Solidity-representable value.
    */
   public roundedDown(): BaseValue {
-    return new BaseValue(this.value.decimalPlaces(BASE_DECIMALS, BigNumber.ROUND_DOWN));
+    return new BaseValue(
+      this.value.decimalPlaces(BASE_DECIMALS, BigNumber.ROUND_DOWN)
+    );
   }
 
   public times(value: BigNumberable): BaseValue {
@@ -89,30 +140,29 @@ export class BaseValue {
   }
 }
 
-export class Price extends BaseValue {
-}
+export class Price extends BaseValue {}
 
 export class Fee extends BaseValue {
-    static fromBips(value: BigNumberable): Fee {
-      return new Fee(new BigNumber('1e-4').times(value));
-    }
+  static fromBips(value: BigNumberable): Fee {
+    return new Fee(new BigNumber("1e-4").times(value));
+  }
 }
 
 export class FundingRate extends BaseValue {
-    /**
-     * Given a daily rate, returns funding rate represented as a per-second rate.
-     *
-     * Note: Funding interest does not compound, as the interest affects debt balances but
-     * is calculated based on size balances.
-     */
-    static fromEightHourRate(rate: BigNumberable): FundingRate {
-      return new FundingRate(new BigNumber(rate).div(8 * 60 * 60));
-    }
+  /**
+   * Given a daily rate, returns funding rate represented as a per-second rate.
+   *
+   * Note: Funding interest does not compound, as the interest affects debt balances but
+   * is calculated based on size balances.
+   */
+  static fromEightHourRate(rate: BigNumberable): FundingRate {
+    return new FundingRate(new BigNumber(rate).div(8 * 60 * 60));
+  }
 }
-
 
 export class Balance {
   public debt: BigNumber;
+
   public size: BigNumber;
 
   constructor(debt: BigNumberable, size: BigNumberable) {
@@ -125,7 +175,7 @@ export class Balance {
     const sizeBN = new BigNumber(struct.size);
     return new Balance(
       struct.debtIsPositive ? debtBN : debtBN.negated(),
-      struct.sizeIsPositive ? sizeBN : sizeBN.negated(),
+      struct.sizeIsPositive ? sizeBN : sizeBN.negated()
     );
   }
 
@@ -146,7 +196,9 @@ export class Balance {
   public calculateOpenInterest(positionMargin: BigNumber): BigNumber {
     let openInterest = this.debt.shiftedBy(18).abs();
     openInterest = this.size.gt(0)
-      ? (this.debt.gt(0) ? positionMargin.minus(openInterest) : openInterest.plus(positionMargin))
+      ? this.debt.gt(0)
+        ? positionMargin.minus(openInterest)
+        : openInterest.plus(positionMargin)
       : openInterest.minus(positionMargin);
     return openInterest;
   }
@@ -202,99 +254,54 @@ export class Balance {
     const sizeIsPositive = !new BigNumber(balance.substr(34, 2), 16).isZero();
     const result = new Balance(
       debtIsPositive ? debt : debt.negated(),
-      sizeIsPositive ? size : size.negated(),
+      sizeIsPositive ? size : size.negated()
     );
     (result as any).rawValue = balance;
     return result;
   }
 
-  public static parseDepositInfo(depositData: string): { makerDeposit: BigNumber, takerDeposit: BigNumber } {
+  public static parseDepositInfo(depositData: string): {
+    makerDeposit: BigNumber;
+    takerDeposit: BigNumber;
+  } {
     const makerDeposit = new BigNumber(depositData.substr(4, 30), 16);
     const takerDeposit = new BigNumber(depositData.substr(36, 30), 16);
-    return { makerDeposit, takerDeposit }
+    return { makerDeposit, takerDeposit };
   }
 }
 
-/*
- * ==================
- *      INTERFACES
- * ==================
- */
-
-
-export interface FreedCollateral {
-  flags: number
-  collateral: BigNumber
-  pnl: BigNumber
-  fee: BigNumber
-  openInterest: BigNumber
-}
-
-
-export interface ValidationError {
-  error: string,
-  object?: any
-}
-  
-
-export interface SignedIntStruct {
-    value: string;
-    isPositive: boolean;
-}
-
-export interface Network{
-  url:string,
-  chainId: number,
-  apiGateway: string
-}
-
-export interface BalanceStruct {
-  debtIsPositive: boolean;
-  sizeIsPositive: boolean;
-  debt: string;
-  size: string;
-}
-
-export interface PosAndNegValues {
-  positiveValue: BigNumber;
-  negativeValue: BigNumber;
-}
-
-
-  
 /*
  * ==================
  *      ENUMS
  * ==================
  */
 export enum SigningMethod {
-    Compatibility = 'Compatibility',   // picks intelligently between UnsafeHash and Hash
-    UnsafeHash = 'UnsafeHash',         // raw hash signed
-    Hash = 'Hash',                     // hash prepended according to EIP-191
-    TypedData = 'TypedData',           // order hashed according to EIP-712
-    MetaMask = 'MetaMask',             // order hashed according to EIP-712 (MetaMask-only)
-    MetaMaskLatest = 'MetaMaskLatest', // ... according to latest version of EIP-712 (MetaMask-only)
-    CoinbaseWallet = 'CoinbaseWallet', // ... according to latest version of EIP-712 (CoinbaseWallet)
-    Personal = 'Personal',             // message signed with personal_sign
-  }
-
-export enum SIGNATURE_TYPES {
-    NO_PREPEND = 0,
-    DECIMAL = 1,
-    HEXADECIMAL = 2,
-    PERSONAL = 3,
+  Compatibility = "Compatibility", // picks intelligently between UnsafeHash and Hash
+  UnsafeHash = "UnsafeHash", // raw hash signed
+  Hash = "Hash", // hash prepended according to EIP-191
+  TypedData = "TypedData", // order hashed according to EIP-712
+  MetaMask = "MetaMask", // order hashed according to EIP-712 (MetaMask-only)
+  MetaMaskLatest = "MetaMaskLatest", // ... according to latest version of EIP-712 (MetaMask-only)
+  CoinbaseWallet = "CoinbaseWallet", // ... according to latest version of EIP-712 (CoinbaseWallet)
+  Personal = "Personal", // message signed with personal_sign
 }
 
+export enum SIGNATURE_TYPES {
+  NO_PREPEND = 0,
+  DECIMAL = 1,
+  HEXADECIMAL = 2,
+  PERSONAL = 3,
+}
 
 export enum MARKET_SYMBOLS {
   BTC = "BTC-PERP",
   ETH = "ETH-PERP",
   DOT = "DOT-PERP",
   GLMR = "GLMR-PERP",
-  MOVR = "MOVR-PERP"
+  MOVR = "MOVR-PERP",
 }
 
-export enum ORDER_STATUS{
+export enum ORDER_STATUS {
   PENDING = "PENDING",
   OPEN = "OPEN",
   PARTIAL_FILLED = "PARTIAL_FILLED",
@@ -302,22 +309,21 @@ export enum ORDER_STATUS{
   CANCELLING = "CANCELLING",
   CANCELLED = "CANCELLED",
   REJECTED = "REJECTED",
-  EXPIRED = "EXPIRED"
+  EXPIRED = "EXPIRED",
 }
 
-
-export enum ORDER_TYPE{
+export enum ORDER_TYPE {
   LIMIT = "LIMIT",
   MARKET = "MARKET",
 }
 
-export enum ORDER_SIDE{
+export enum ORDER_SIDE {
   BUY = "BUY",
   SELL = "SELL",
 }
 
-export enum TIME_IN_FORCE{
+export enum TIME_IN_FORCE {
   GOOD_TILL_CANCEL = "GTC",
   FILL_OR_KILL = "FOK",
-  IMMEDIATE_OR_CANCEL = "IOC"
+  IMMEDIATE_OR_CANCEL = "IOC",
 }
