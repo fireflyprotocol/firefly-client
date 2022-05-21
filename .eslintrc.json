@@ -7,7 +7,8 @@
         "airbnb-base",
         "plugin:import/errors",
         "plugin:import/warnings",
-        "plugin:import/typescript"
+        "plugin:import/typescript",
+        "plugin:prettier/recommended"
     ],
     "parser": "@typescript-eslint/parser",
 
@@ -22,6 +23,7 @@
         "no-param-reassign": 0,
         "no-bitwise": 0,
         "no-case-declarations":0,
+        "no-nested-ternary":0,
         "import/prefer-default-export": 0,
         "import/extensions": [
             "error",
@@ -33,7 +35,7 @@
               "tsx": "never"
             }
          ],
-        "max-len": ["error", { "ignoreComments": true,  "code": 120 }],
+        "max-len": ["error", { "ignoreComments": true,  "code": 160 }],
         "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }]
     }
 }
