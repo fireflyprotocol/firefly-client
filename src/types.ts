@@ -327,3 +327,8 @@ export enum TIME_IN_FORCE {
   FILL_OR_KILL = "FOK",
   IMMEDIATE_OR_CANCEL = "IOC",
 }
+
+export enum MARGIN_TYPE {
+  ISOLATED = "ISOLATED",
+  CROSS = "CROSS", // atm exchange only supports isolated margin
+}

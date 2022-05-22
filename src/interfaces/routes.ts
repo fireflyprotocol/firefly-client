@@ -3,6 +3,8 @@ import {
   ORDER_STATUS,
   ORDER_SIDE,
   TIME_IN_FORCE,
+  address,
+  MARGIN_TYPE,
 } from "../types";
 
 export interface GetOrderResponse {
@@ -75,5 +77,36 @@ export interface PlaceOrderRequest extends OrderSignatureResponse {
 
 export interface PlaceOrderResponse {
   status: number; // status code - 201 is success
+  // TODO define proper interfaces for data
   data: any; // placed order data returned from dapi
+}
+
+export interface GetPositionRequest {
+  symbol?: MarketSymbol; // will fetch orders of provided market
+  pageSize?: number; // will fetch provided number of open positions <= 50
+  pageNumber?: number; // will fetch particular page records. A single page contains 50 records.
+}
+
+export interface GetPositionResponse {
+  userAddress: address;
+  symbol: MarketSymbol;
+  avgEntryPrice: string;
+  latestBlockNumber: number;
+  latestTxHash: string;
+  marginTypeID: number;
+  margin: string;
+  leverage: string;
+  quantity: string;
+  createdAt: number;
+  updatedAt: number;
+  positionSelectedLeverage: string;
+  marginType: MARGIN_TYPE;
+  indexPrice: string;
+  midMarketPrice: string;
+  debt: string;
+  liquidationPrice: string;
+  side: ORDER_SIDE;
+  positionValue: string;
+  unrealizedProfit: string;
+  unrealizedProfitPercent: string;
 }

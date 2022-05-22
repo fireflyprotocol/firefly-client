@@ -9,6 +9,7 @@ import {
   FireflyClient,
   bnStrToBaseNumber,
   ORDER_SIDE,
+  GetPositionRequest,
 } from "../src/index";
 
 chai.use(chaiAsPromised);
@@ -103,6 +104,14 @@ describe("FireflyClient", () => {
   describe("Get Orders", () => {
     const client = new FireflyClient(Networks.TESTNET, testAcctKey);
 
+    it("should get all open orders", async () => {
+      const data = await client.getOrders({
+        status: ORDER_STATUS.OPEN,
+        symbol: MARKET_SYMBOLS.DOT,
+      });
+      expect(data.length).to.be.greaterThanOrEqual(0);
+    });
+
     it("should get all cancelled orders", async () => {
       const data = await client.getOrders({
         status: ORDER_STATUS.CANCELLED,
@@ -186,6 +195,53 @@ describe("FireflyClient", () => {
       });
       const response = await client.placeOrder({ ...signedOrder });
       expect(response.status).to.be.equal(201);
+    });
+  });
+
+  describe.only("Get Position", () => {
+    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
+    client.addMarket(MARKET_SYMBOLS.DOT);
+
+    it("should return zero open positions for the user", async () => {
+      const clientTemp = new FireflyClient(
+        Networks.TESTNET,
+        "20049f9e228fc02b924e022533b92ddc07d0a1f125845d2caca14b8010943f63"
+      );
+      clientTemp.addMarket(MARKET_SYMBOLS.DOT);
+
+      const positions = await clientTemp.getPosition({});
+      expect((positions as GetPositionRequest[]).length).to.be.equal(0);
+    });
+
+    xit("should return no open position for user against BTC-PERP market", async () => {
+      const clientTemp = new FireflyClient(
+        Networks.TESTNET,
+        "20049f9e228fc02b924e022533b92ddc07d0a1f125845d2caca14b8010943f63"
+      );
+      // 0x5064A2a865DDbfFfCd621e600f5Cd5cE9D8c36af
+
+      clientTemp.addMarket(MARKET_SYMBOLS.DOT);
+
+      const position = await clientTemp.getPosition({
+        symbol: MARKET_SYMBOLS.DOT,
+      });
+      expect(position as GetPositionRequest).to.be.equal(undefined);
+    });
+
+    it("should get user's DOT-PERP Position", async () => {
+      const position = await client.getPosition({
+        symbol: MARKET_SYMBOLS.DOT,
+      });
+      expect((position as GetPositionRequest).symbol).to.be.equal(
+        MARKET_SYMBOLS.DOT
+      );
+    });
+
+    it("should get all open positions for the user across all markets", async () => {
+      const position = await client.getPosition({});
+      expect(
+        (position as GetPositionRequest[]).length
+      ).to.be.greaterThanOrEqual(1);
     });
   });
 });

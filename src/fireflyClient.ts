@@ -1,5 +1,3 @@
-/* eslint-disable camelcase */
-/* eslint-disable no-underscore-dangle */
 import Web3 from "web3";
 import axios from "axios";
 import { Contract, Wallet, providers } from "ethers";
@@ -36,6 +34,8 @@ import {
   OrderSignatureResponse,
   PlaceOrderRequest,
   PlaceOrderResponse,
+  GetPositionRequest,
+  GetPositionResponse,
 } from "./interfaces/routes";
 
 export class FireflyClient {
@@ -271,17 +271,7 @@ export class FireflyClient {
     }/orders?userAddress=${this.getPublicAddress()}`;
     url += `&statuses=${params.status}`;
 
-    if (params.symbol) {
-      url += `&symbol=${params.symbol}`;
-    }
-
-    if (params.pageSize) {
-      url += `&pageSize=${params.pageSize}`;
-    }
-
-    if (params.pageNumber) {
-      url += `&pageNumber=${params.pageNumber}`;
-    }
+    url = this._createAPIURL(url, params);
 
     const response = await axios.get(url);
 
@@ -289,6 +279,11 @@ export class FireflyClient {
     return response.data;
   }
 
+  /**
+   * Creates order signature and returns it. The signed order can be placed on exchange
+   * @param params OrderSignatureRequest params needed to be signed
+   * @returns OrderSignatureResponse with the payload signed on-chain along with order signature
+   */
   async createSignedOrder(
     params: OrderSignatureRequest
   ): Promise<OrderSignatureResponse> {
@@ -341,6 +336,11 @@ export class FireflyClient {
     };
   }
 
+  /**
+   * Places a signed order on firefly exchange
+   * @param params PlaceOrderRequest containing the signed order created using createSignedOrder
+   * @returns PlaceOrderResponse containing status and data. If status is not 201, order placement failed.
+   */
   async placeOrder(params: PlaceOrderRequest): Promise<PlaceOrderResponse> {
     const response = await axios.post(
       `${this.network.apiGateway}/orders`,
@@ -366,6 +366,20 @@ export class FireflyClient {
     );
 
     return { status: response.status, data: response.data };
+  }
+
+  async getPosition(
+    params: GetPositionRequest
+  ): Promise<GetPositionResponse | GetPositionResponse[]> {
+    let url = `${
+      this.network.apiGateway
+    }/userPosition?userAddress=${this.getPublicAddress()}`;
+
+    url = this._createAPIURL(url, params);
+
+    const response = await axios.get(url);
+
+    return response.data;
   }
 
   /**
@@ -428,5 +442,24 @@ export class FireflyClient {
       ),
       salt: bigNumber(params.salt || Math.floor(Math.random() * 1_000_000)),
     } as Order;
+  }
+
+  _createAPIURL(
+    url: string,
+    params: GetOrderRequest | GetPositionRequest
+  ): string {
+    if (params.symbol) {
+      url += `&symbol=${params.symbol}`;
+    }
+
+    if (params.pageSize) {
+      url += `&pageSize=${params.pageSize}`;
+    }
+
+    if (params.pageNumber) {
+      url += `&pageNumber=${params.pageNumber}`;
+    }
+
+    return url;
   }
 }
