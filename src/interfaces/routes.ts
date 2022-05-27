@@ -3,8 +3,9 @@ import {
   ORDER_STATUS,
   ORDER_SIDE,
   TIME_IN_FORCE,
-  address,
   MARGIN_TYPE,
+  ORDER_TYPE,
+  address,
 } from "../types";
 
 export interface GetOrderResponse {
@@ -75,10 +76,38 @@ export interface PlaceOrderRequest extends OrderSignatureResponse {
   postOnly?: boolean; // true/false, default is true
 }
 
-export interface PlaceOrderResponse {
+export type ServerOrderResponse = {
+  id: number;
+  clientId: string;
+  requestTime: number;
+  cancelReason: string;
+  orderStatus: ORDER_STATUS;
+  hash: string;
+  symbol: string;
+  orderType: ORDER_TYPE;
+  timeInForce: TIME_IN_FORCE;
+  userAddress: string;
+  side: ORDER_SIDE;
+  price: string;
+  quantity: string;
+  leverage: string;
+  reduceOnly: true;
+  expiration: number;
+  salt: number;
+  orderSignature: string;
+  filledQty: string;
+  avgFillPrice: string;
+  amountLeft: string;
+  makerFee: string;
+  takerFee: string;
+  createdAt: number;
+  updatedAt: number;
+};
+
+export interface PlaceCancelOrderResponse {
   status: number; // status code - 201 is success
   // TODO define proper interfaces for data
-  data: any; // placed order data returned from dapi
+  data: ServerOrderResponse; // placed order data returned from dapi
 }
 
 export interface GetPositionRequest {
@@ -109,4 +138,18 @@ export interface GetPositionResponse {
   positionValue: string;
   unrealizedProfit: string;
   unrealizedProfitPercent: string;
+}
+
+export interface OrderCancelSignatureRequest {
+  symbol: MarketSymbol;
+  hashes: string[];
+}
+
+export interface OrderCancellationRequest extends OrderCancelSignatureRequest {
+  signature: string;
+}
+
+export interface GetOrderbookRequest {
+  symbol: MarketSymbol;
+  limit: number; // number of bids/asks to retrieve, should be <= 50
 }

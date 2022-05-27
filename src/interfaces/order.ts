@@ -1,5 +1,6 @@
 import BigNumber from "bignumber.js";
-import { Price, Fee, address } from "../types";
+import { address } from "../types";
+import { Price, Fee } from "../signer/baseValue";
 
 export interface Order {
   isBuy: boolean;
