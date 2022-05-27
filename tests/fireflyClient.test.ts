@@ -16,7 +16,7 @@ chai.use(chaiAsPromised);
 
 const testAcctKey =
   "4ef06568055d528efdeb3a2e0c1a4b1a0f1fdf4f9e388f11f0a248228298c2b7";
-const testOrdersContract = "0x46ABa007B8c0ff7Da3132b52b81d2C15D2e8E815";
+const testAcctPubAddr = "0xe83515fEa858D4ac48278F27DF375fbF2bff441d";
 
 describe("FireflyClient", () => {
   it("should initialize the client", async () => {
@@ -26,9 +26,7 @@ describe("FireflyClient", () => {
 
   it("should return public address of account", async () => {
     const client = new FireflyClient(Networks.TESTNET, testAcctKey);
-    expect(client.getPublicAddress()).to.be.equal(
-      "0xe83515fEa858D4ac48278F27DF375fbF2bff441d"
-    );
+    expect(client.getPublicAddress()).to.be.equal(testAcctPubAddr);
   });
 
   describe("Market", () => {
@@ -39,9 +37,7 @@ describe("FireflyClient", () => {
 
     it("should add DOT-PERP market with custom orders contract address", async () => {
       const client = new FireflyClient(Networks.TESTNET, testAcctKey);
-      expect(
-        client.addMarket(MARKET_SYMBOLS.DOT, testOrdersContract)
-      ).to.be.equal(true);
+      expect(client.addMarket(MARKET_SYMBOLS.DOT, "0x000")).to.be.equal(true);
     });
 
     it("should return FALSE as there is no market for name TEST-PERP", async () => {
@@ -51,9 +47,7 @@ describe("FireflyClient", () => {
 
     it("should add market despite not existing in deployed contracts", async () => {
       const client = new FireflyClient(Networks.TESTNET, testAcctKey);
-      expect(client.addMarket("TEST-PERP", testOrdersContract)).to.be.equal(
-        true
-      );
+      expect(client.addMarket("TEST-PERP", "0x000")).to.be.equal(true);
     });
 
     it("should return False as DOT-PERP market is already added", async () => {
@@ -98,44 +92,6 @@ describe("FireflyClient", () => {
     it("should move all USDC token from Margin Bank", async () => {
       expect(await client.withdrawFromMarginBank()).to.be.equal(true);
       expect(await client.getMarginBankBalance()).to.be.eql("0");
-    });
-  });
-
-  describe("Get Orders", () => {
-    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
-
-    it("should get all open orders", async () => {
-      const data = await client.getOrders({
-        status: ORDER_STATUS.OPEN,
-        symbol: MARKET_SYMBOLS.DOT,
-      });
-      expect(data.length).to.be.greaterThanOrEqual(0);
-    });
-
-    it("should get all cancelled orders", async () => {
-      const data = await client.getOrders({
-        status: ORDER_STATUS.CANCELLED,
-        symbol: MARKET_SYMBOLS.DOT,
-      });
-      expect(data.length).to.be.greaterThanOrEqual(1);
-    });
-
-    it("should get 1 cancelled orders", async () => {
-      const data = await client.getOrders({
-        status: ORDER_STATUS.CANCELLED,
-        symbol: MARKET_SYMBOLS.DOT,
-        pageSize: 1,
-      });
-      expect(data.length).to.be.equals(1);
-    });
-
-    it("should get 0 expired orders as page 2 does not exist for expired orders", async () => {
-      const data = await client.getOrders({
-        status: ORDER_STATUS.EXPIRED,
-        symbol: MARKET_SYMBOLS.DOT,
-        pageNumber: 2,
-      });
-      expect(data.length).to.be.equals(0);
     });
   });
 
@@ -198,7 +154,73 @@ describe("FireflyClient", () => {
     });
   });
 
-  describe.only("Get Position", () => {
+  describe("Cancel Orders", () => {
+    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
+    client.addMarket(MARKET_SYMBOLS.DOT);
+
+    it("should cancel the open order", async () => {
+      const signedOrder = await client.createSignedOrder({
+        symbol: MARKET_SYMBOLS.DOT,
+        price: 11,
+        quantity: 0.5,
+        side: ORDER_SIDE.SELL,
+      });
+      const response = await client.placeOrder({ ...signedOrder });
+
+      const cancelSignature = await client.createOrderCancellationSignature({
+        symbol: MARKET_SYMBOLS.DOT,
+        hashes: [response.data.hash],
+      });
+
+      const cancellationResponse = await client.cancelOrders({
+        symbol: MARKET_SYMBOLS.DOT,
+        hashes: [response.data.hash],
+        signature: cancelSignature,
+      });
+
+      expect(cancellationResponse.status).to.be.equal(200);
+    });
+  });
+
+  describe("Get Orders", () => {
+    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
+
+    it("should get all open orders", async () => {
+      const data = await client.getOrders({
+        status: ORDER_STATUS.OPEN,
+        symbol: MARKET_SYMBOLS.DOT,
+      });
+      expect(data.length).to.be.greaterThanOrEqual(0);
+    });
+
+    it("should get all cancelled orders", async () => {
+      const data = await client.getOrders({
+        status: ORDER_STATUS.CANCELLED,
+        symbol: MARKET_SYMBOLS.DOT,
+      });
+      expect(data.length).to.be.greaterThanOrEqual(2);
+    });
+
+    it("should get 1 cancelled orders", async () => {
+      const data = await client.getOrders({
+        status: ORDER_STATUS.CANCELLED,
+        symbol: MARKET_SYMBOLS.DOT,
+        pageSize: 1,
+      });
+      expect(data.length).to.be.equals(1);
+    });
+
+    it("should get 0 expired orders as page 2 does not exist for expired orders", async () => {
+      const data = await client.getOrders({
+        status: ORDER_STATUS.EXPIRED,
+        symbol: MARKET_SYMBOLS.DOT,
+        pageNumber: 2,
+      });
+      expect(data.length).to.be.equals(0);
+    });
+  });
+
+  describe("Get Position", () => {
     const client = new FireflyClient(Networks.TESTNET, testAcctKey);
     client.addMarket(MARKET_SYMBOLS.DOT);
 
@@ -218,8 +240,6 @@ describe("FireflyClient", () => {
         Networks.TESTNET,
         "20049f9e228fc02b924e022533b92ddc07d0a1f125845d2caca14b8010943f63"
       );
-      // 0x5064A2a865DDbfFfCd621e600f5Cd5cE9D8c36af
-
       clientTemp.addMarket(MARKET_SYMBOLS.DOT);
 
       const position = await clientTemp.getPosition({
