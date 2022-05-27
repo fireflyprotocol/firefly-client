@@ -105,7 +105,7 @@ export type ServerOrderResponse = {
 };
 
 export interface PlaceCancelOrderResponse {
-  status: number; // status code - 201 is success
+  status: number; // status code - 201/200 is success
   // TODO define proper interfaces for data
   data: ServerOrderResponse; // placed order data returned from dapi
 }

@@ -7,3 +7,4 @@ export * from "../contracts/orderbook";
 export * from "./interfaces/routes";
 export * from "./interfaces/order";
 export * from "./interfaces/on-chain";
+export * from "./fireflyClient";
