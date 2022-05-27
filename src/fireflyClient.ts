@@ -16,12 +16,12 @@ import {
   ORDER_TYPE,
   TIME_IN_FORCE,
   SigningMethod,
-  Network,
-  Fee,
-  Price,
   MarketSymbol,
   address,
 } from "./types";
+import { Price, Fee } from "./signer/baseValue";
+
+import { Network } from "./interfaces/on-chain";
 
 import { SignedOrder, Order } from "./interfaces/order";
 
@@ -33,9 +33,12 @@ import {
   OrderSignatureRequest,
   OrderSignatureResponse,
   PlaceOrderRequest,
-  PlaceOrderResponse,
+  PlaceCancelOrderResponse,
   GetPositionRequest,
   GetPositionResponse,
+  OrderCancelSignatureRequest,
+  OrderCancellationRequest,
+  GetOrderbookRequest,
 } from "./interfaces/routes";
 
 export class FireflyClient {
@@ -92,7 +95,7 @@ export class FireflyClient {
     // else create order signer for market
     this.orderSigners.set(
       market,
-      new OrderSigner(this.web3, this.network.chainId, ordersContract)
+      new OrderSigner(this.web3, Number(this.network.chainId), ordersContract)
     );
     return true;
   }
@@ -266,12 +269,10 @@ export class FireflyClient {
    * @returns OrderResponse array
    */
   async getOrders(params: GetOrderRequest): Promise<GetOrderResponse[]> {
-    let url = `${
-      this.network.apiGateway
-    }/orders?userAddress=${this.getPublicAddress()}`;
-    url += `&statuses=${params.status}`;
-
-    url = this._createAPIURL(url, params);
+    const url = this._createAPIURL("/orders", {
+      ...params,
+      userAddress: this.getPublicAddress(),
+    });
 
     const response = await axios.get(url);
 
@@ -339,9 +340,11 @@ export class FireflyClient {
   /**
    * Places a signed order on firefly exchange
    * @param params PlaceOrderRequest containing the signed order created using createSignedOrder
-   * @returns PlaceOrderResponse containing status and data. If status is not 201, order placement failed.
+   * @returns PlaceCancelOrderResponse containing status and data. If status is not 201, order placement failed.
    */
-  async placeOrder(params: PlaceOrderRequest): Promise<PlaceOrderResponse> {
+  async placeOrder(
+    params: PlaceOrderRequest
+  ): Promise<PlaceCancelOrderResponse> {
     const response = await axios.post(
       `${this.network.apiGateway}/orders`,
       {
@@ -371,15 +374,70 @@ export class FireflyClient {
   async getPosition(
     params: GetPositionRequest
   ): Promise<GetPositionResponse | GetPositionResponse[]> {
-    let url = `${
-      this.network.apiGateway
-    }/userPosition?userAddress=${this.getPublicAddress()}`;
-
-    url = this._createAPIURL(url, params);
+    const url = this._createAPIURL("/userPosition", {
+      ...params,
+      userAddress: this.getPublicAddress(),
+    });
 
     const response = await axios.get(url);
 
     return response.data;
+  }
+
+  /**
+   * Creates signature for cancelling orders
+   * @param params OrderCancelSignatureRequest containing market symbol and order hashes to be cancelled
+   * @returns generated signature string
+   */
+  async createOrderCancellationSignature(
+    params: OrderCancelSignatureRequest
+  ): Promise<string> {
+    const signer = this.orderSigners.get(params.symbol);
+    if (!signer) {
+      throw Error(
+        `Provided Market Symbol(${params.symbol}) is not added to client library`
+      );
+    }
+
+    return signer.signCancelOrdersByHash(
+      params.hashes,
+      this.getPublicAddress().toLowerCase(),
+      SigningMethod.Hash
+    );
+  }
+
+  /**
+   * Posts to exchange for cancellation of provided orders
+   * @param params OrderCancellationRequest containing order hashes to be cancelled and cancellation signature
+   * @returns response from exchange server
+   */
+  async cancelOrders(
+    params: OrderCancellationRequest
+  ): Promise<PlaceCancelOrderResponse> {
+    try {
+      const response = await axios.delete(
+        `${this.network.apiGateway}/orders/hash`,
+        {
+          data: {
+            symbol: params.symbol,
+            userAddress: this.getPublicAddress(),
+            orderHashes: params.hashes,
+            cancelSignature: params.signature,
+          },
+        }
+      );
+      return { status: response.status, data: response.data };
+    } catch (e) {
+      console.log(e);
+      // return { status: response.status, data: response.data };
+    }
+
+    return false as any as PlaceCancelOrderResponse;
+  }
+
+  async getOrderbook(params: GetOrderbookRequest): Promise<string> {
+    const url = this._createAPIURL("/orderbook", params);
+    return url;
   }
 
   /**
@@ -444,10 +502,9 @@ export class FireflyClient {
     } as Order;
   }
 
-  _createAPIURL(
-    url: string,
-    params: GetOrderRequest | GetPositionRequest
-  ): string {
+  _createAPIURL(route: string, params: any): string {
+    let url = `${this.network.apiGateway}${route}?`;
+
     if (params.symbol) {
       url += `&symbol=${params.symbol}`;
     }
@@ -458,6 +515,18 @@ export class FireflyClient {
 
     if (params.pageNumber) {
       url += `&pageNumber=${params.pageNumber}`;
+    }
+
+    if (params.limit) {
+      url += `&limit=${params.limit}`;
+    }
+
+    if (params.userAddress) {
+      url += `&userAddress=${params.userAddress}`;
+    }
+
+    if (params.status) {
+      url += `&statuses=${params.status}`;
     }
 
     return url;
