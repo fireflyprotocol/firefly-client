@@ -9,7 +9,6 @@ import {
   FireflyClient,
   bnStrToBaseNumber,
   ORDER_SIDE,
-  GetPositionRequest,
 } from "../src/index";
 
 chai.use(chaiAsPromised);
@@ -139,7 +138,7 @@ describe("FireflyClient", () => {
       });
 
       const response = await client.placeOrder({ ...signedOrder });
-      expect(response.status).to.be.equal(201);
+      expect(response.ok).to.be.equal(true);
     });
 
     it("should place a MARKET BUY order on exchange", async () => {
@@ -150,7 +149,7 @@ describe("FireflyClient", () => {
         side: ORDER_SIDE.BUY,
       });
       const response = await client.placeOrder({ ...signedOrder });
-      expect(response.status).to.be.equal(201);
+      expect(response.ok).to.be.equal(true);
     });
   });
 
@@ -169,16 +168,37 @@ describe("FireflyClient", () => {
 
       const cancelSignature = await client.createOrderCancellationSignature({
         symbol: MARKET_SYMBOLS.DOT,
-        hashes: [response.data.hash],
+        hashes: [response.response.data.hash],
       });
 
-      const cancellationResponse = await client.cancelOrders({
+      const cancellationResponse = await client.placeCancelOrder({
         symbol: MARKET_SYMBOLS.DOT,
-        hashes: [response.data.hash],
+        hashes: [response.response.data.hash],
         signature: cancelSignature,
       });
 
-      expect(cancellationResponse.status).to.be.equal(200);
+      expect(cancellationResponse.ok).to.be.equal(true);
+    });
+
+    it("should get Invalid Order Signature error", async () => {
+      const signedOrder = await client.createSignedOrder({
+        symbol: MARKET_SYMBOLS.DOT,
+        price: 11,
+        quantity: 0.5,
+        side: ORDER_SIDE.SELL,
+      });
+      const response = await client.placeOrder({ ...signedOrder });
+
+      const cancellationResponse = await client.placeCancelOrder({
+        symbol: MARKET_SYMBOLS.DOT,
+        hashes: [response.response.data.hash],
+        signature: "0xSomeRandomStringWhichIsNotACorrectSignature",
+      });
+
+      expect(cancellationResponse.ok).to.be.equal(false);
+      expect(cancellationResponse.response.message).to.be.equal(
+        "Invalid Order Signature."
+      );
     });
   });
 
@@ -187,36 +207,37 @@ describe("FireflyClient", () => {
 
     it("should get all open orders", async () => {
       const data = await client.getOrders({
-        status: ORDER_STATUS.OPEN,
+        statuses: ORDER_STATUS.OPEN,
         symbol: MARKET_SYMBOLS.DOT,
       });
-      expect(data.length).to.be.greaterThanOrEqual(0);
+      expect(data.ok).to.be.equals(true);
+      expect(data.response.data.length).to.be.greaterThanOrEqual(0);
     });
 
     it("should get all cancelled orders", async () => {
       const data = await client.getOrders({
-        status: ORDER_STATUS.CANCELLED,
+        statuses: ORDER_STATUS.CANCELLED,
         symbol: MARKET_SYMBOLS.DOT,
       });
-      expect(data.length).to.be.greaterThanOrEqual(2);
+      expect(data.response.data.length).to.be.greaterThanOrEqual(2);
     });
 
     it("should get 1 cancelled orders", async () => {
       const data = await client.getOrders({
-        status: ORDER_STATUS.CANCELLED,
+        statuses: ORDER_STATUS.CANCELLED,
         symbol: MARKET_SYMBOLS.DOT,
         pageSize: 1,
       });
-      expect(data.length).to.be.equals(1);
+      expect(data.response.data.length).to.be.equals(1);
     });
 
-    it("should get 0 expired orders as page 2 does not exist for expired orders", async () => {
+    it("should get 0 expired orders as page 10 does not exist for expired orders", async () => {
       const data = await client.getOrders({
-        status: ORDER_STATUS.EXPIRED,
+        statuses: ORDER_STATUS.EXPIRED,
         symbol: MARKET_SYMBOLS.DOT,
-        pageNumber: 2,
+        pageNumber: 10,
       });
-      expect(data.length).to.be.equals(0);
+      expect(data.response.data.length).to.be.equals(0);
     });
   });
 
@@ -231,37 +252,33 @@ describe("FireflyClient", () => {
       );
       clientTemp.addMarket(MARKET_SYMBOLS.DOT);
 
-      const positions = await clientTemp.getPosition({});
-      expect((positions as GetPositionRequest[]).length).to.be.equal(0);
+      const response = await clientTemp.getPosition({});
+      expect(response.ok).to.be.equal(true);
+      expect(response.response.data.length).to.be.equal(0);
     });
 
-    xit("should return no open position for user against BTC-PERP market", async () => {
+    it("should return no open position for user against BTC-PERP market", async () => {
       const clientTemp = new FireflyClient(
         Networks.TESTNET,
         "20049f9e228fc02b924e022533b92ddc07d0a1f125845d2caca14b8010943f63"
       );
       clientTemp.addMarket(MARKET_SYMBOLS.DOT);
 
-      const position = await clientTemp.getPosition({
-        symbol: MARKET_SYMBOLS.DOT,
-      });
-      expect(position as GetPositionRequest).to.be.equal(undefined);
+      const response = await clientTemp.getPosition({});
+      expect(response.ok).to.be.equal(true);
+      expect(response.response.data.length).to.be.equal(0);
     });
 
     it("should get user's DOT-PERP Position", async () => {
-      const position = await client.getPosition({
+      const response = await client.getPosition({
         symbol: MARKET_SYMBOLS.DOT,
       });
-      expect((position as GetPositionRequest).symbol).to.be.equal(
-        MARKET_SYMBOLS.DOT
-      );
+      expect(response.response.data.symbol).to.be.equal(MARKET_SYMBOLS.DOT);
     });
 
     it("should get all open positions for the user across all markets", async () => {
-      const position = await client.getPosition({});
-      expect(
-        (position as GetPositionRequest[]).length
-      ).to.be.greaterThanOrEqual(1);
+      const response = await client.getPosition({});
+      expect(response.response.data.length).to.be.greaterThanOrEqual(1);
     });
   });
 });

@@ -1,5 +1,5 @@
 import Web3 from "web3";
-import axios from "axios";
+
 import { Contract, Wallet, providers } from "ethers";
 import * as contracts from "../contracts/deployedContracts.json";
 import * as TestToken from "../contracts/Test_Token.json";
@@ -33,13 +33,15 @@ import {
   OrderSignatureRequest,
   OrderSignatureResponse,
   PlaceOrderRequest,
-  PlaceCancelOrderResponse,
+  PlaceOrderResponse,
   GetPositionRequest,
   GetPositionResponse,
   OrderCancelSignatureRequest,
   OrderCancellationRequest,
   GetOrderbookRequest,
 } from "./interfaces/routes";
+
+import { APIService, SERVICE_URLS } from "./api";
 
 export class FireflyClient {
   protected readonly network: Network;
@@ -49,6 +51,8 @@ export class FireflyClient {
   private wallet: Wallet;
 
   private orderSigners: Map<MarketSymbol, OrderSigner> = new Map();
+
+  private apiService: APIService;
 
   /**
    *
@@ -63,6 +67,7 @@ export class FireflyClient {
       _acctPvtKey,
       new providers.JsonRpcProvider(_network.url)
     );
+    this.apiService = new APIService(this.network.apiGateway);
   }
 
   /**
@@ -115,7 +120,7 @@ export class FireflyClient {
    * @returns Number representing balance of user
    */
   async getUSDCBalance(contract?: address): Promise<string> {
-    const tokenContract = this._getContract("Test_Token", contract);
+    const tokenContract = this.getContract("Test_Token", contract);
 
     if (tokenContract === false) {
       return "-1";
@@ -134,10 +139,10 @@ export class FireflyClient {
    * @returns Number representing balance of user
    */
   async getMarginBankBalance(contract?: address): Promise<string> {
-    const marginBankContract = this._getContract("MarginBank", contract);
+    const marginBankContract = this.getContract("MarginBank", contract);
 
     if (marginBankContract === false) {
-      return "-1";
+      throw Error("Margin Bank contract address is invalid");
     }
 
     const balance = await (marginBankContract as MarginBank)
@@ -154,22 +159,18 @@ export class FireflyClient {
    * @returns Boolean true if user is funded, false otherwise
    */
   async getTestUSDC(contract?: address): Promise<boolean> {
-    const tokenContract = this._getContract("Test_Token", contract);
+    const tokenContract = this.getContract("Test_Token", contract);
 
     if (tokenContract === false) {
       return false;
     }
 
-    try {
-      // mint 10K USDC token
-      await (
-        await (tokenContract as Contract)
-          .connect(this.wallet)
-          .mint(this.wallet.address, toBigNumberStr(10000))
-      ).wait();
-    } catch (e) {
-      return false;
-    }
+    // mint 10K USDC token
+    await (
+      await (tokenContract as Contract)
+        .connect(this.wallet)
+        .mint(this.wallet.address, toBigNumberStr(10000))
+    ).wait();
 
     return true;
   }
@@ -187,8 +188,8 @@ export class FireflyClient {
     usdcContract?: address,
     mbContract?: address
   ): Promise<boolean> {
-    const tokenContract = this._getContract("Test_Token", usdcContract);
-    const marginBankContract = this._getContract("MarginBank", mbContract);
+    const tokenContract = this.getContract("Test_Token", usdcContract);
+    const marginBankContract = this.getContract("MarginBank", mbContract);
 
     if (tokenContract === false || marginBankContract === false) {
       return false;
@@ -196,26 +197,21 @@ export class FireflyClient {
 
     const amountString = toBigNumberStr(amount);
 
-    try {
-      // approve usdc contract to allow margin bank to take funds out for user's behalf
-      await (
-        await (tokenContract as Contract)
-          .connect(this.wallet)
-          .approve((marginBankContract as MarginBank).address, amountString, {})
-      ).wait();
+    // approve usdc contract to allow margin bank to take funds out for user's behalf
+    await (
+      await (tokenContract as Contract)
+        .connect(this.wallet)
+        .approve((marginBankContract as MarginBank).address, amountString, {})
+    ).wait();
 
-      // deposit `amount` usdc to margin bank
-      await (
-        await (marginBankContract as MarginBank)
-          .connect(this.wallet)
-          .depositToBank(this.wallet.address, amountString, {})
-      ).wait();
+    // deposit `amount` usdc to margin bank
+    await (
+      await (marginBankContract as MarginBank)
+        .connect(this.wallet)
+        .depositToBank(this.wallet.address, amountString, {})
+    ).wait();
 
-      return true;
-    } catch (e) {
-      console.log(e);
-      return false;
-    }
+    return true;
   }
 
   /**
@@ -231,8 +227,8 @@ export class FireflyClient {
     usdcContract?: address,
     mbContract?: address
   ): Promise<boolean> {
-    const tokenContract = this._getContract("Test_Token", usdcContract);
-    const marginBankContract = this._getContract("MarginBank", mbContract);
+    const tokenContract = this.getContract("Test_Token", usdcContract);
+    const marginBankContract = this.getContract("MarginBank", mbContract);
 
     if (tokenContract === false || marginBankContract === false) {
       return false;
@@ -244,23 +240,17 @@ export class FireflyClient {
           (marginBankContract as MarginBank).address
         );
 
-    try {
-      // transfer amount back to USDC contract
-      await (
-        await (marginBankContract as MarginBank)
-          .connect(this.wallet)
-          .withdrawFromBank(
-            this.wallet.address,
-            this.wallet.address,
-            amountString
-          )
-      ).wait();
+    await (
+      await (marginBankContract as MarginBank)
+        .connect(this.wallet)
+        .withdrawFromBank(
+          this.wallet.address,
+          this.wallet.address,
+          amountString
+        )
+    ).wait();
 
-      return true;
-    } catch (e) {
-      console.log(e);
-      return false;
-    }
+    return true;
   }
 
   /**
@@ -268,16 +258,11 @@ export class FireflyClient {
    * @param params of type OrderRequest,
    * @returns OrderResponse array
    */
-  async getOrders(params: GetOrderRequest): Promise<GetOrderResponse[]> {
-    const url = this._createAPIURL("/orders", {
+  async getOrders(params: GetOrderRequest) {
+    return this.apiService.get<GetOrderResponse[]>(SERVICE_URLS.USER.ORDERS, {
       ...params,
       userAddress: this.getPublicAddress(),
     });
-
-    const response = await axios.get(url);
-
-    // TODO: OrderResponse can be undefined if the status returned by DAPI is not 200
-    return response.data;
   }
 
   /**
@@ -288,24 +273,7 @@ export class FireflyClient {
   async createSignedOrder(
     params: OrderSignatureRequest
   ): Promise<OrderSignatureResponse> {
-    const expiration = new Date();
-    expiration.setMonth(expiration.getMonth() + 1);
-
-    const order: Order = {
-      limitPrice: new Price(bigNumber(params.price)),
-      isBuy: params.side === ORDER_SIDE.BUY,
-      amount: toBigNumber(params.quantity),
-      leverage: toBigNumber(params.leverage || 1),
-      maker: this.getPublicAddress().toLocaleLowerCase(),
-      isDecreaseOnly: params.reduceOnly || false,
-      triggerPrice: new Price(0),
-      limitFee: new Fee(0),
-      taker: "0x0000000000000000000000000000000000000000",
-      expiration: bigNumber(
-        params.expiration || Math.floor(expiration.getTime() / 1000)
-      ),
-      salt: bigNumber(params.salt || Math.floor(Math.random() * 1_000_000)),
-    };
+    const order = this.createOrderToSign(params);
 
     const signer = this.orderSigners.get(params.symbol);
     if (!signer) {
@@ -340,13 +308,11 @@ export class FireflyClient {
   /**
    * Places a signed order on firefly exchange
    * @param params PlaceOrderRequest containing the signed order created using createSignedOrder
-   * @returns PlaceCancelOrderResponse containing status and data. If status is not 201, order placement failed.
+   * @returns PlaceOrderResponse containing status and data. If status is not 201, order placement failed.
    */
-  async placeOrder(
-    params: PlaceOrderRequest
-  ): Promise<PlaceCancelOrderResponse> {
-    const response = await axios.post(
-      `${this.network.apiGateway}/orders`,
+  async placeOrder(params: PlaceOrderRequest) {
+    const response = await this.apiService.post<PlaceOrderResponse>(
+      SERVICE_URLS.ORDERS.ORDERS,
       {
         symbol: params.symbol,
         userAddress: this.getPublicAddress().toLocaleLowerCase(),
@@ -361,27 +327,22 @@ export class FireflyClient {
         orderSignature: params.orderSignatrue,
         timeInForce: params.timeInForce || TIME_IN_FORCE.GOOD_TILL_CANCEL,
         postOnly: params.postOnly || false,
-      },
-      {
-        headers: { "Content-Type": "application/json" },
-        validateStatus: () => true,
       }
     );
 
-    return { status: response.status, data: response.data };
+    return response;
   }
 
-  async getPosition(
-    params: GetPositionRequest
-  ): Promise<GetPositionResponse | GetPositionResponse[]> {
-    const url = this._createAPIURL("/userPosition", {
-      ...params,
-      userAddress: this.getPublicAddress(),
-    });
+  // async postOrder(params:PostOrderRequest){
 
-    const response = await axios.get(url);
+  // };
 
-    return response.data;
+  async getPosition(params: GetPositionRequest) {
+    const response = await this.apiService.get<GetPositionResponse[]>(
+      SERVICE_URLS.USER.USER_POSITIONS,
+      { ...params, userAddress: this.getPublicAddress() }
+    );
+    return response;
   }
 
   /**
@@ -411,28 +372,17 @@ export class FireflyClient {
    * @param params OrderCancellationRequest containing order hashes to be cancelled and cancellation signature
    * @returns response from exchange server
    */
-  async cancelOrders(
-    params: OrderCancellationRequest
-  ): Promise<PlaceCancelOrderResponse> {
-    try {
-      const response = await axios.delete(
-        `${this.network.apiGateway}/orders/hash`,
-        {
-          data: {
-            symbol: params.symbol,
-            userAddress: this.getPublicAddress(),
-            orderHashes: params.hashes,
-            cancelSignature: params.signature,
-          },
-        }
-      );
-      return { status: response.status, data: response.data };
-    } catch (e) {
-      console.log(e);
-      // return { status: response.status, data: response.data };
-    }
-
-    return false as any as PlaceCancelOrderResponse;
+  async placeCancelOrder(params: OrderCancellationRequest) {
+    const response = await this.apiService.delete<PlaceOrderResponse>(
+      SERVICE_URLS.ORDERS.ORDERS_HASH,
+      {
+        symbol: params.symbol,
+        userAddress: this.getPublicAddress(),
+        orderHashes: params.hashes,
+        cancelSignature: params.signature,
+      }
+    );
+    return response;
   }
 
   async getOrderbook(params: GetOrderbookRequest): Promise<string> {
@@ -449,15 +399,15 @@ export class FireflyClient {
   }
 
   //= ==============================================================//
-  // INTERNAL HELPER FUNCTIONS
+  // PRIVATE HELPER FUNCTIONS
   //= ==============================================================//
 
   /**
-   * Internal function to return a global(Test USDC Token / Margin Bank) contract
+   * Private function to return a global(Test USDC Token / Margin Bank) contract
    * @param contract address of contract
    * @returns contract or false
    */
-  _getContract(
+  private getContract(
     contractName: string,
     contract?: address
   ): Contract | boolean | MarginBank {
@@ -481,7 +431,7 @@ export class FireflyClient {
     }
   }
 
-  _createOrderToSign(params: OrderSignatureRequest): Order {
+  private createOrderToSign(params: OrderSignatureRequest): Order {
     const expiration = new Date();
     expiration.setMonth(expiration.getMonth() + 1);
 

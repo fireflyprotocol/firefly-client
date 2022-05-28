@@ -6,44 +6,40 @@ import {
   MARGIN_TYPE,
   ORDER_TYPE,
   address,
+  CANCEL_REASON,
 } from "../types";
 
-export interface GetOrderResponse {
+export type GetOrderResponse = {
   id: number;
   clientId: string;
-  requestTime: number;
-  cancelReason: string;
-  orderStatus: string;
-  hash: string;
   symbol: string;
-  orderType: string;
-  orderTypeID: number;
-  timeInForce: string;
-  timeInForceTypeID: number;
-  userAddress: string;
-  side: string;
+  userAddress: address;
+  hash: string;
+
   price: string;
-  limitPrice: string;
-  triggerPrice: string;
   quantity: string;
-  leverage: string;
-  reduceOnly: boolean;
-  expiration: number;
-  salt: string;
-  orderSignature: string;
   filledQty: string;
   avgFillPrice: string;
-  amountLeft: string;
-  makerFee: string;
-  takerFee: string;
+  leverage: string;
+  fee: string;
+  side: ORDER_SIDE;
+  reduceOnly: false;
+  orderType: ORDER_TYPE;
+  timeInForce: TIME_IN_FORCE;
+  orderStatus: ORDER_STATUS;
+  cancelReason: CANCEL_REASON;
+  postOnly: boolean;
+
+  salt: number;
+  expiration: number;
   updatedAt: number;
   createdAt: number;
-  postOnly: boolean;
-  fee: string;
-}
+
+  cancelling?: boolean;
+};
 
 export interface GetOrderRequest {
-  status: ORDER_STATUS; // status of orders to be fetched
+  statuses: ORDER_STATUS; // status of orders to be fetched
   symbol?: MarketSymbol; // will fetch orders of provided market
   pageSize?: number; // will get only provided number of orders must be <= 50
   pageNumber?: number; // will fetch particular page records. A single page contains 50 records.
@@ -104,7 +100,7 @@ export type ServerOrderResponse = {
   updatedAt: number;
 };
 
-export interface PlaceCancelOrderResponse {
+export interface PlaceOrderResponse {
   status: number; // status code - 201/200 is success
   // TODO define proper interfaces for data
   data: ServerOrderResponse; // placed order data returned from dapi
@@ -114,30 +110,6 @@ export interface GetPositionRequest {
   symbol?: MarketSymbol; // will fetch orders of provided market
   pageSize?: number; // will fetch provided number of open positions <= 50
   pageNumber?: number; // will fetch particular page records. A single page contains 50 records.
-}
-
-export interface GetPositionResponse {
-  userAddress: address;
-  symbol: MarketSymbol;
-  avgEntryPrice: string;
-  latestBlockNumber: number;
-  latestTxHash: string;
-  marginTypeID: number;
-  margin: string;
-  leverage: string;
-  quantity: string;
-  createdAt: number;
-  updatedAt: number;
-  positionSelectedLeverage: string;
-  marginType: MARGIN_TYPE;
-  indexPrice: string;
-  midMarketPrice: string;
-  debt: string;
-  liquidationPrice: string;
-  side: ORDER_SIDE;
-  positionValue: string;
-  unrealizedProfit: string;
-  unrealizedProfitPercent: string;
 }
 
 export interface OrderCancelSignatureRequest {
@@ -153,3 +125,30 @@ export interface GetOrderbookRequest {
   symbol: MarketSymbol;
   limit: number; // number of bids/asks to retrieve, should be <= 50
 }
+
+export type GetPositionResponse = {
+  userAddress: address;
+  symbol: string;
+  marketAddress: string;
+  marginType: MARGIN_TYPE;
+
+  side: ORDER_SIDE;
+  avgEntryPrice: string;
+  quantity: string;
+  margin: string;
+  leverage: string;
+  positionSelectedLeverage: string;
+  liquidationPrice: string;
+  positionValue: string;
+  unrealizedProfit: string;
+  unrealizedProfitPercent: string;
+
+  midMarketPrice: string;
+  indexPrice: string;
+
+  createdTime: string;
+  updateTime: string;
+
+  closing?: boolean;
+  closingType?: ORDER_TYPE;
+};
