@@ -2,7 +2,7 @@ import Web3 from "web3";
 
 import { Contract, Wallet, providers } from "ethers";
 import * as contracts from "../contracts/deployedContracts.json";
-import * as USDCToken from "../contracts/usdcToken.json";
+import * as USDTToken from "../contracts/usdtToken.json";
 import { MarginBank__factory, MarginBank } from "../contracts/orderbook";
 import {
   toBigNumberStr,
@@ -127,7 +127,7 @@ export class FireflyClient {
    * @returns Number representing balance of user
    */
   async getUSDCBalance(contract?: address): Promise<string> {
-    const tokenContract = this.getContract("USDCToken", contract);
+    const tokenContract = this.getContract("USDTToken", contract);
 
     if (tokenContract === false) {
       return "-1";
@@ -166,7 +166,7 @@ export class FireflyClient {
    * @returns Boolean true if user is funded, false otherwise
    */
   async getTestUSDC(contract?: address): Promise<boolean> {
-    const tokenContract = this.getContract("USDCToken", contract);
+    const tokenContract = this.getContract("USDTToken", contract);
 
     if (tokenContract === false) {
       return false;
@@ -195,7 +195,7 @@ export class FireflyClient {
     usdcContract?: address,
     mbContract?: address
   ): Promise<boolean> {
-    const tokenContract = this.getContract("USDCToken", usdcContract);
+    const tokenContract = this.getContract("USDTToken", usdcContract);
     const marginBankContract = this.getContract("MarginBank", mbContract);
 
     if (tokenContract === false || marginBankContract === false) {
@@ -234,7 +234,7 @@ export class FireflyClient {
     usdcContract?: address,
     mbContract?: address
   ): Promise<boolean> {
-    const tokenContract = this.getContract("USDCToken", usdcContract);
+    const tokenContract = this.getContract("USDTToken", usdcContract);
     const marginBankContract = this.getContract("MarginBank", mbContract);
 
     if (tokenContract === false || marginBankContract === false) {
@@ -508,8 +508,8 @@ export class FireflyClient {
     }
 
     switch (contractName) {
-      case "USDCToken":
-        return new Contract(contract, USDCToken.abi);
+      case "USDTToken":
+        return new Contract(contract, USDTToken.abi);
       case "MarginBank":
         const marginBankFactory = new MarginBank__factory();
         const marginBank = marginBankFactory.attach(contract);
