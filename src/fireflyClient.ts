@@ -18,7 +18,9 @@ import {
   SigningMethod,
   MarketSymbol,
   address,
+  DAPIKlineResponse,
 } from "./types";
+
 import { Price, Fee } from "./signer/baseValue";
 
 import { Network } from "./interfaces/on-chain";
@@ -46,6 +48,13 @@ import {
   GetAccountDataResponse,
   GetTransactionHistoryRequest,
   GetUserTransactionHistoryResponse,
+  GetMarketRecentTradesRequest,
+  GetMarketRecentTradesResponse,
+  GetCandleStickRequest,
+  MarketInfo,
+  MiniTickerData,
+  MarketMeta,
+  StatusResponse,
 } from "./interfaces/routes";
 
 import { APIService, SERVICE_URLS } from "./api";
@@ -475,6 +484,82 @@ export class FireflyClient {
       ...params,
       userAddress: this.getPublicAddress(),
     });
+    return response;
+  }
+
+  /**
+   * Gets market recent trades
+   * @param params GetMarketRecentTradesRequest
+   * @returns GetMarketRecentTradesResponse
+   */
+  async getMarketRecentTrades(params: GetMarketRecentTradesRequest) {
+    const response = await this.apiService.get<GetMarketRecentTradesResponse>(
+      SERVICE_URLS.MARKET.RECENT_TRADE,
+      params
+    );
+    return response;
+  }
+
+  /**
+   * Gets market candle stick data
+   * @param params GetMarketRecentTradesRequest
+   * @returns DAPIKlineResponse
+   */
+  async getMarketCandleStickData(params: GetCandleStickRequest) {
+    const response = await this.apiService.get<DAPIKlineResponse>(
+      SERVICE_URLS.MARKET.CANDLE_STICK_DATA,
+      params
+    );
+    return response;
+  }
+
+  /**
+   * Gets publically available market info about market(s)
+   * @param symbol (optional) market symbol get information about, by default fetches info on all available markets
+   * @returns MarketInfo or MarketInfo[] in case no market was provided as input
+   */
+  async getExchangeInfo(symbol?: MarketSymbol) {
+    const response = await this.apiService.get<MarketInfo>(
+      SERVICE_URLS.MARKET.EXCHANGE_INFO,
+      { symbol }
+    );
+    return response;
+  }
+
+  /**
+   * Gets MiniTickerData data for market(s)
+   * @param symbol (optional) market symbol get information about, by default fetches info on all available markets
+   * @returns MiniTickerData or MiniTickerData[] in case no market was provided as input
+   */
+  async getMarketData(symbol?: MarketSymbol) {
+    const response = await this.apiService.get<MiniTickerData>(
+      SERVICE_URLS.MARKET.MARKET_DATA,
+      { symbol }
+    );
+    return response;
+  }
+
+  /**
+   * Gets Meta data of the market(s)
+   * @param symbol (optional) market symbol get information about, by default fetches info on all available markets
+   * @returns MarketMeta or MarketMeta[] in case no market was provided as input
+   */
+  async getMarketMetaInfo(symbol?: MarketSymbol) {
+    const response = await this.apiService.get<MarketMeta>(
+      SERVICE_URLS.MARKET.META,
+      { symbol }
+    );
+    return response;
+  }
+
+  /**
+   * Gets status of the exchange
+   * @returns StatusResponse
+   */
+  async getExchangeStatus() {
+    const response = await this.apiService.get<StatusResponse>(
+      SERVICE_URLS.MARKET.STATUS
+    );
     return response;
   }
 

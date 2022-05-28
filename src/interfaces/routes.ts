@@ -7,12 +7,14 @@ import {
   ORDER_TYPE,
   address,
   CANCEL_REASON,
+  MARKET_STATUS,
+  Interval,
 } from "../types";
 
 export interface GetOrderResponse {
   id: number;
   clientId: string;
-  symbol: string;
+  symbol: MarketSymbol;
   userAddress: address;
   hash: string;
 
@@ -37,6 +39,7 @@ export interface GetOrderResponse {
 
   cancelling?: boolean;
 }
+
 export interface GetTransactionHistoryRequest {
   symbol?: MarketSymbol; // will fetch orders of provided market
   pageSize?: number; // will get only provided number of orders must be <= 50
@@ -88,7 +91,7 @@ export type PlaceOrderResponse = {
   cancelReason: string;
   orderStatus: ORDER_STATUS;
   hash: string;
-  symbol: string;
+  symbol: MarketSymbol;
   orderType: ORDER_TYPE;
   timeInForce: TIME_IN_FORCE;
   userAddress: string;
@@ -125,7 +128,7 @@ export interface GetOrderbookRequest {
 
 export interface GetPositionResponse {
   userAddress: address;
-  symbol: string;
+  symbol: MarketSymbol;
   marketAddress: string;
   marginType: MARGIN_TYPE;
 
@@ -156,7 +159,7 @@ export interface GetOrderBookResponse {
   highestBid: string;
   lowestAsk: string;
   midPrice: string;
-  symbol: string;
+  symbol: MarketSymbol;
   loading?: boolean;
   lastUpdatedAt: number;
   orderbookUpdateId: number;
@@ -165,7 +168,7 @@ export interface GetOrderBookResponse {
 }
 
 export interface GetUserTradesRequest {
-  symbol?: string;
+  symbol?: MarketSymbol;
   maker?: boolean;
   fromId?: number;
   startTime?: number;
@@ -177,7 +180,7 @@ export interface GetUserTradesRequest {
 
 export interface GetUserTradesResponse {
   id: number;
-  symbol: string;
+  symbol: MarketSymbol;
   commission: string;
   commissionAsset: string;
   maker: boolean;
@@ -190,7 +193,7 @@ export interface GetUserTradesResponse {
 }
 
 export interface MarketAccountData {
-  symbol: string;
+  symbol: MarketSymbol;
   openOrderMargin: string;
   reducingOpenOrderMargin: string;
   positionQtyReduced: string;
@@ -221,7 +224,7 @@ export interface GetAccountDataResponse {
 
 export interface GetUserTransactionHistoryResponse {
   id: number;
-  symbol: string;
+  symbol: MarketSymbol;
   commission: string;
   commissionAsset: string;
   maker: boolean;
@@ -233,4 +236,106 @@ export interface GetUserTransactionHistoryResponse {
   time: number;
   orderHash: string;
   traderType: string;
+}
+
+export interface GetMarketRecentTradesRequest {
+  symbol: MarketSymbol;
+  pageSize?: number;
+  pageNumber?: number;
+  traders?: address;
+}
+
+export interface GetMarketRecentTradesResponse {
+  symbol: MarketSymbol;
+  id: number;
+  price: string;
+  quantity: string;
+  quoteQty: string;
+  time: number;
+  side: ORDER_SIDE;
+}
+
+export interface GetCandleStickRequest {
+  symbol: MarketSymbol;
+  interval: Interval;
+  startTime?: number;
+  endTime?: number;
+  limit?: number;
+}
+
+/* Market Endpoints */
+export interface MarketInfo {
+  symbol: MarketSymbol;
+  ContractType: string;
+  maintMarginReq: string;
+  inititalMarginReq: string;
+  baseAssetSymbol: string;
+  baseAssetName: string;
+  quoteAssetSymbol: string;
+  quoteAssetName: string;
+  pricePrecision: number;
+  sizePrecision: number;
+  baseAssetPrecision: number;
+  quoteAssetPrecision: number;
+  minOrderSize: number;
+  maxMarketOrderSize: string;
+  maxLimitOrderSize: string;
+  minOrderPrice: string;
+  maxOrderPrice: string;
+  defaultMakerFee: string;
+  defaultTakerFee: string;
+  liquidationFee: string;
+  marketTakeBound: string;
+  defaultLeverage: string;
+}
+
+export interface MiniTickerData {
+  symbol: MarketSymbol;
+  bestAskPrice: string;
+  bestAskQty: string;
+  bestBidPrice: string;
+  bestBidQty: string;
+  midMarketPrice: string;
+  midMarketPriceDirection: number;
+  indexPrice: string;
+  time: string;
+  lastFundingRate: string;
+  nextFundingTime: string;
+  lastPrice: string;
+  lastQty: string;
+  lastTime: string;
+  _24hrPriceChange: string;
+  _24hrPriceChangePercent: string;
+  _24hrOpenPrice: string;
+  _24hrHighPrice: string;
+  _24hrLowPrice: string;
+  _24hrClosePrice: string;
+  _24hrVolume: string;
+  _24hrQuoteVolume: string;
+  _24hrOpenTime: string;
+  _24hrCloseTime: string;
+  _24hrFirstId: number;
+  _24hrLastId: number;
+  _24hrCount: string;
+
+  marketAddress?: string;
+  loading?: boolean;
+}
+
+export interface MarketMeta {
+  symbol: MarketSymbol;
+  rpcURI: string;
+  onboardingWebsiteUrl: string;
+  orderAddress: address;
+  perpetualAddress: address;
+  marginBankAddress: address;
+  orderbookQueuePort: string;
+  orderbookStatePort: string;
+  orderbookServerIP: string;
+  status: MARKET_STATUS;
+}
+
+export interface StatusResponse {
+  isAlive: boolean;
+  serverTime: number;
 }

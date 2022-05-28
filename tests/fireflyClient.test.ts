@@ -291,7 +291,7 @@ describe("FireflyClient", () => {
       );
       clientTemp.addMarket(MARKET_SYMBOLS.DOT);
 
-      const response = await clientTemp.getPosition({});
+      const response = await clientTemp.getUserPosition({});
       expect(response.ok).to.be.equal(true);
       expect(response.response.data.length).to.be.equal(0);
     });
@@ -368,5 +368,55 @@ describe("FireflyClient", () => {
     });
     expect(response.ok).to.be.equal(true);
     expect(response.data?.length).to.be.equal(2);
+  });
+
+  it("should get recent market trades of DOT-PERP Market", async () => {
+    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
+    const response = await client.getMarketRecentTrades({
+      symbol: MARKET_SYMBOLS.DOT,
+    });
+    expect(response.ok).to.be.equal(true);
+  });
+
+  it("should get candle stick data", async () => {
+    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
+    const response = await client.getMarketCandleStickData({
+      symbol: MARKET_SYMBOLS.DOT,
+      interval: "1m",
+    });
+    expect(response.ok).to.be.equal(true);
+  });
+
+  it("should get exchange info for DOT Market", async () => {
+    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
+    const response = await client.getExchangeInfo(MARKET_SYMBOLS.DOT);
+    expect(response.ok).to.be.equal(true);
+    expect(response.data?.symbol).to.be.equal(MARKET_SYMBOLS.DOT);
+  });
+
+  it("should get exchange info for all markets", async () => {
+    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
+    const response = await client.getExchangeInfo();
+    expect(response.ok).to.be.equal(true);
+    expect(response.response.data.length).to.be.greaterThanOrEqual(1);
+  });
+
+  it("should get market data for DOT Market", async () => {
+    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
+    const response = await client.getMarketData(MARKET_SYMBOLS.DOT);
+    expect(response.ok).to.be.equal(true);
+  });
+
+  it("should get market meta info for DOT Market", async () => {
+    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
+    const response = await client.getMarketMetaInfo(MARKET_SYMBOLS.DOT);
+    expect(response.ok).to.be.equal(true);
+  });
+
+  it("should get status of exchange to be alive", async () => {
+    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
+    const response = await client.getExchangeStatus();
+    expect(response.ok).to.be.equal(true);
+    expect(response.data?.isAlive).to.be.equal(true);
   });
 });

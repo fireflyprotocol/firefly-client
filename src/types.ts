@@ -9,6 +9,39 @@ export type TypedSignature = string;
 export type Provider = ethers.providers.JsonRpcProvider;
 export type BigNumberable = BigNumber | number | string;
 export type MarketSymbol = string;
+export type Interval =
+  | "1m"
+  | "3m"
+  | "5m"
+  | "15m"
+  | "30m"
+  | "1h"
+  | "2h"
+  | "4h"
+  | "6h"
+  | "8h"
+  | "12h"
+  | "1d"
+  | "3d"
+  | "1w"
+  | "1M";
+
+export type MinifiedCandleStick = [
+  number, // Open time
+  string, // Open price
+  string, // High price
+  string, // Low price
+  string, // Close price
+  string, // Volume
+  number, // Close time
+  string, // Quote asset volume
+  number, // Number of trades
+  string, // Taker buy base asset volume
+  string, // Taker buy quote asset volume
+  string // Symbol
+];
+
+export type DAPIKlineResponse = Array<MinifiedCandleStick>;
 
 /*
  * ==================
@@ -86,4 +119,10 @@ export enum CANCEL_REASON {
   POST_ONLY_FAIL = "POST_ONLY_FAIL",
   FAILED = "FAILED",
   NETWORK_DOWN = "NETWORK_DOWN",
+}
+
+export enum MARKET_STATUS {
+  ACTIVE = "ACTIVE",
+  INACTIVE = "INACTIVE",
+  TRADES_INACTIVE = "TRADES_INACTIVE",
 }
