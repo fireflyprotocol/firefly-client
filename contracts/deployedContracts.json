@@ -1,8 +1,7 @@
 {
     "1297": {
-        "Test_Token": {
-            "address": "0x57AB85a85f75fb4E9d2Ee85a28913F2DEe9aD283",
-            "transactionHash": "0x1ba9958a110e6550a59b698864c2e77214a4be1ee53793ceda3a7cd845609a5e"
+        "USDCToken": {
+            "address": "0x57AB85a85f75fb4E9d2Ee85a28913F2DEe9aD283"
         },
         "MarginBank": {
             "address": "0xbDd8210d4F74fC97d4E93950a1FF201fe425C68f",

@@ -2,7 +2,7 @@ import Web3 from "web3";
 
 import { Contract, Wallet, providers } from "ethers";
 import * as contracts from "../contracts/deployedContracts.json";
-import * as TestToken from "../contracts/Test_Token.json";
+import * as USDCToken from "../contracts/usdcToken.json";
 import { MarginBank__factory, MarginBank } from "../contracts/orderbook";
 import {
   toBigNumberStr,
@@ -127,7 +127,7 @@ export class FireflyClient {
    * @returns Number representing balance of user
    */
   async getUSDCBalance(contract?: address): Promise<string> {
-    const tokenContract = this.getContract("Test_Token", contract);
+    const tokenContract = this.getContract("USDCToken", contract);
 
     if (tokenContract === false) {
       return "-1";
@@ -166,7 +166,7 @@ export class FireflyClient {
    * @returns Boolean true if user is funded, false otherwise
    */
   async getTestUSDC(contract?: address): Promise<boolean> {
-    const tokenContract = this.getContract("Test_Token", contract);
+    const tokenContract = this.getContract("USDCToken", contract);
 
     if (tokenContract === false) {
       return false;
@@ -195,7 +195,7 @@ export class FireflyClient {
     usdcContract?: address,
     mbContract?: address
   ): Promise<boolean> {
-    const tokenContract = this.getContract("Test_Token", usdcContract);
+    const tokenContract = this.getContract("USDCToken", usdcContract);
     const marginBankContract = this.getContract("MarginBank", mbContract);
 
     if (tokenContract === false || marginBankContract === false) {
@@ -234,7 +234,7 @@ export class FireflyClient {
     usdcContract?: address,
     mbContract?: address
   ): Promise<boolean> {
-    const tokenContract = this.getContract("Test_Token", usdcContract);
+    const tokenContract = this.getContract("USDCToken", usdcContract);
     const marginBankContract = this.getContract("MarginBank", mbContract);
 
     if (tokenContract === false || marginBankContract === false) {
@@ -436,6 +436,11 @@ export class FireflyClient {
     return response;
   }
 
+  /**
+   * Gets user trades
+   * @param params PlaceOrderResponse
+   * @returns GetUserTradesResponse
+   */
   async getUserTrades(params: GetUserTradesRequest) {
     const response = await this.apiService.get<GetUserTradesResponse>(
       SERVICE_URLS.USER.USER_TRADES,
@@ -445,6 +450,11 @@ export class FireflyClient {
     return response;
   }
 
+  /**
+   * Gets user Account Data
+   * @param symbol (optional) market for which to fetch data
+   * @returns GetAccountDataResponse
+   */
   async getUserAccountData(symbol?: MarketSymbol) {
     const response = await this.apiService.get<GetAccountDataResponse>(
       SERVICE_URLS.USER.ACCOUNT,
@@ -453,6 +463,11 @@ export class FireflyClient {
     return response;
   }
 
+  /**
+   * Gets user transaction history
+   * @param params GetTransactionHistoryRequest
+   * @returns GetUserTransactionHistoryResponse
+   */
   async getUserTransactionHistory(params: GetTransactionHistoryRequest) {
     const response = await this.apiService.get<
       GetUserTransactionHistoryResponse[]
@@ -493,8 +508,8 @@ export class FireflyClient {
     }
 
     switch (contractName) {
-      case "Test_Token":
-        return new Contract(contract, TestToken.abi);
+      case "USDCToken":
+        return new Contract(contract, USDCToken.abi);
       case "MarginBank":
         const marginBankFactory = new MarginBank__factory();
         const marginBank = marginBankFactory.attach(contract);
