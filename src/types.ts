@@ -1,6 +1,5 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-shadow */
-// eslint-disable-next-line max-classes-per-file
 import BigNumber from "bignumber.js";
 import { ethers } from "ethers";
 
