@@ -1,4 +1,3 @@
-export * from "./signer/signer";
 export * from "./signer/orderSigner";
 export * from "./helpers/utils";
 export * from "./types";

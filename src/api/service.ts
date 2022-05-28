@@ -1,7 +1,6 @@
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosInstance } from "axios";
 import { getValue, isEmpty } from "../helpers/utils";
 
-// TODO: should be made singleton
 export class APIService {
   apiService: AxiosInstance;
 
