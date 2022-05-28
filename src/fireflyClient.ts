@@ -57,7 +57,8 @@ import {
   StatusResponse,
 } from "./interfaces/routes";
 
-import { APIService, SERVICE_URLS } from "./api";
+import { APIService } from "./api/service";
+import { SERVICE_URLS } from "./api/urls";
 
 export class FireflyClient {
   protected readonly network: Network;
