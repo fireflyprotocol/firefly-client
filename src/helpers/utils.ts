@@ -1,4 +1,5 @@
 import BigNumber from "bignumber.js";
+import _ from "lodash";
 import { BIGNUMBER_BASE } from "../constants";
 
 export function bigNumber(val: number | string): BigNumber {
@@ -20,3 +21,9 @@ export function bnToString(val: number | string): string {
 export function bnStrToBaseNumber(val: number | string): number {
   return Number(new BigNumber(val).dividedBy(BIGNUMBER_BASE).toFixed(0));
 }
+
+export function getValue(object: object, path: string, defaultValue: any) {
+  return _.get(object, path, defaultValue);
+}
+
+export const { isEmpty } = _;
