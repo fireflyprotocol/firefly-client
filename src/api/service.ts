@@ -85,7 +85,7 @@ export class APIService {
   }
 
   //= ==============================================================//
-  // INTERNAL HELPER FUNCTIONS
+  //                    PRIVATE HELPER FUNCTIONS
   //= ==============================================================//
 
   private transformRequest(data: any) {
