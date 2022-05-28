@@ -39,6 +39,13 @@ import {
   OrderCancelSignatureRequest,
   OrderCancellationRequest,
   GetOrderbookRequest,
+  GetOrderBookResponse,
+  PostOrderRequest,
+  GetUserTradesRequest,
+  GetUserTradesResponse,
+  GetAccountDataResponse,
+  GetTransactionHistoryRequest,
+  GetUserTransactionHistoryResponse,
 } from "./interfaces/routes";
 
 import { APIService, SERVICE_URLS } from "./api";
@@ -258,11 +265,15 @@ export class FireflyClient {
    * @param params of type OrderRequest,
    * @returns OrderResponse array
    */
-  async getOrders(params: GetOrderRequest) {
-    return this.apiService.get<GetOrderResponse[]>(SERVICE_URLS.USER.ORDERS, {
-      ...params,
-      userAddress: this.getPublicAddress(),
-    });
+  async getUserOrders(params: GetOrderRequest) {
+    const response = await this.apiService.get<GetOrderResponse[]>(
+      SERVICE_URLS.USER.ORDERS,
+      {
+        ...params,
+        userAddress: this.getPublicAddress(),
+      }
+    );
+    return response;
   }
 
   /**
@@ -310,7 +321,7 @@ export class FireflyClient {
    * @param params PlaceOrderRequest containing the signed order created using createSignedOrder
    * @returns PlaceOrderResponse containing status and data. If status is not 201, order placement failed.
    */
-  async placeOrder(params: PlaceOrderRequest) {
+  async placeSignedOrder(params: PlaceOrderRequest) {
     const response = await this.apiService.post<PlaceOrderResponse>(
       SERVICE_URLS.ORDERS.ORDERS,
       {
@@ -333,11 +344,28 @@ export class FireflyClient {
     return response;
   }
 
-  // async postOrder(params:PostOrderRequest){
+  /**
+   * Given an order payload, signs it on chain and submits to exchange for placement
+   * @param params PostOrderRequest
+   * @returns PlaceOrderResponse
+   */
+  async postOrder(params: PostOrderRequest) {
+    const signedOrder = await this.createSignedOrder(params);
+    const response = await this.placeSignedOrder({
+      ...signedOrder,
+      timeInForce: params.timeInForce,
+      postOnly: params.postOnly,
+    });
 
-  // };
+    return response;
+  }
 
-  async getPosition(params: GetPositionRequest) {
+  /**
+   * Gets user open position. If the market is not specified then will return first 50 open positions for 50 markets.
+   * @param params GetPositionRequest
+   * @returns GetPositionResponse
+   */
+  async getUserPosition(params: GetPositionRequest) {
     const response = await this.apiService.get<GetPositionResponse[]>(
       SERVICE_URLS.USER.USER_POSITIONS,
       { ...params, userAddress: this.getPublicAddress() }
@@ -385,9 +413,54 @@ export class FireflyClient {
     return response;
   }
 
-  async getOrderbook(params: GetOrderbookRequest): Promise<string> {
-    const url = this._createAPIURL("/orderbook", params);
-    return url;
+  async postCancelOrder(params: OrderCancelSignatureRequest) {
+    const signature = await this.createOrderCancellationSignature(params);
+    const response = await this.placeCancelOrder({
+      ...params,
+      signature,
+    });
+    return response;
+  }
+
+  /**
+   * Gets state of orderbook for provided market. At max top 50 bids/asks are retrievable
+   * @param params GetOrdebookRequest
+   * @returns GetOrderbookResponse
+   */
+  async getOrderbook(params: GetOrderbookRequest) {
+    const response = await this.apiService.get<GetOrderBookResponse>(
+      SERVICE_URLS.MARKET.ORDER_BOOK,
+      params
+    );
+
+    return response;
+  }
+
+  async getUserTrades(params: GetUserTradesRequest) {
+    const response = await this.apiService.get<GetUserTradesResponse>(
+      SERVICE_URLS.USER.USER_TRADES,
+      { ...params, userAddress: this.getPublicAddress() }
+    );
+
+    return response;
+  }
+
+  async getUserAccountData(symbol?: MarketSymbol) {
+    const response = await this.apiService.get<GetAccountDataResponse>(
+      SERVICE_URLS.USER.ACCOUNT,
+      { symbol, userAddress: this.getPublicAddress() }
+    );
+    return response;
+  }
+
+  async getUserTransactionHistory(params: GetTransactionHistoryRequest) {
+    const response = await this.apiService.get<
+      GetUserTransactionHistoryResponse[]
+    >(SERVICE_URLS.USER.USER_TRANSACTION_HISTORY, {
+      ...params,
+      userAddress: this.getPublicAddress(),
+    });
+    return response;
   }
 
   /**
@@ -431,6 +504,11 @@ export class FireflyClient {
     }
   }
 
+  /**
+   * Private function to create order payload that is to be signed on-chain
+   * @param params OrderSignatureRequest
+   * @returns Order
+   */
   private createOrderToSign(params: OrderSignatureRequest): Order {
     const expiration = new Date();
     expiration.setMonth(expiration.getMonth() + 1);
@@ -450,35 +528,5 @@ export class FireflyClient {
       ),
       salt: bigNumber(params.salt || Math.floor(Math.random() * 1_000_000)),
     } as Order;
-  }
-
-  _createAPIURL(route: string, params: any): string {
-    let url = `${this.network.apiGateway}${route}?`;
-
-    if (params.symbol) {
-      url += `&symbol=${params.symbol}`;
-    }
-
-    if (params.pageSize) {
-      url += `&pageSize=${params.pageSize}`;
-    }
-
-    if (params.pageNumber) {
-      url += `&pageNumber=${params.pageNumber}`;
-    }
-
-    if (params.limit) {
-      url += `&limit=${params.limit}`;
-    }
-
-    if (params.userAddress) {
-      url += `&userAddress=${params.userAddress}`;
-    }
-
-    if (params.status) {
-      url += `&statuses=${params.status}`;
-    }
-
-    return url;
   }
 }

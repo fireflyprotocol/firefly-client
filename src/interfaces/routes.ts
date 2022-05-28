@@ -9,7 +9,7 @@ import {
   CANCEL_REASON,
 } from "../types";
 
-export type GetOrderResponse = {
+export interface GetOrderResponse {
   id: number;
   clientId: string;
   symbol: string;
@@ -36,14 +36,18 @@ export type GetOrderResponse = {
   createdAt: number;
 
   cancelling?: boolean;
-};
-
-export interface GetOrderRequest {
-  statuses: ORDER_STATUS; // status of orders to be fetched
+}
+export interface GetTransactionHistoryRequest {
   symbol?: MarketSymbol; // will fetch orders of provided market
   pageSize?: number; // will get only provided number of orders must be <= 50
   pageNumber?: number; // will fetch particular page records. A single page contains 50 records.
 }
+
+export interface GetOrderRequest extends GetTransactionHistoryRequest {
+  statuses: ORDER_STATUS; // status of orders to be fetched
+}
+
+export interface GetPositionRequest extends GetTransactionHistoryRequest {}
 
 export interface RequiredOrderFields {
   symbol: MarketSymbol; // market for which to create order
@@ -72,7 +76,12 @@ export interface PlaceOrderRequest extends OrderSignatureResponse {
   postOnly?: boolean; // true/false, default is true
 }
 
-export type ServerOrderResponse = {
+export interface PostOrderRequest extends OrderSignatureRequest {
+  timeInForce?: TIME_IN_FORCE;
+  postOnly?: boolean;
+}
+
+export type PlaceOrderResponse = {
   id: number;
   clientId: string;
   requestTime: number;
@@ -100,18 +109,6 @@ export type ServerOrderResponse = {
   updatedAt: number;
 };
 
-export interface PlaceOrderResponse {
-  status: number; // status code - 201/200 is success
-  // TODO define proper interfaces for data
-  data: ServerOrderResponse; // placed order data returned from dapi
-}
-
-export interface GetPositionRequest {
-  symbol?: MarketSymbol; // will fetch orders of provided market
-  pageSize?: number; // will fetch provided number of open positions <= 50
-  pageNumber?: number; // will fetch particular page records. A single page contains 50 records.
-}
-
 export interface OrderCancelSignatureRequest {
   symbol: MarketSymbol;
   hashes: string[];
@@ -126,7 +123,7 @@ export interface GetOrderbookRequest {
   limit: number; // number of bids/asks to retrieve, should be <= 50
 }
 
-export type GetPositionResponse = {
+export interface GetPositionResponse {
   userAddress: address;
   symbol: string;
   marketAddress: string;
@@ -151,4 +148,89 @@ export type GetPositionResponse = {
 
   closing?: boolean;
   closingType?: ORDER_TYPE;
-};
+}
+
+export interface GetOrderBookResponse {
+  asks: string[][];
+  bids: string[][];
+  highestBid: string;
+  lowestAsk: string;
+  midPrice: string;
+  symbol: string;
+  loading?: boolean;
+  lastUpdatedAt: number;
+  orderbookUpdateId: number;
+  responseSentAt: number;
+  limit: number;
+}
+
+export interface GetUserTradesRequest {
+  symbol?: string;
+  maker?: boolean;
+  fromId?: number;
+  startTime?: number;
+  endTime?: number;
+  pageSize?: number;
+  pageNumber?: number;
+  type?: ORDER_TYPE;
+}
+
+export interface GetUserTradesResponse {
+  id: number;
+  symbol: string;
+  commission: string;
+  commissionAsset: string;
+  maker: boolean;
+  side: ORDER_SIDE;
+  price: string;
+  quantity: string;
+  quoteQty: string;
+  realizedPnl: string;
+  time: number;
+}
+
+export interface MarketAccountData {
+  symbol: string;
+  openOrderMargin: string;
+  reducingOpenOrderMargin: string;
+  positionQtyReduced: string;
+  positionQtyReducible: string;
+  unrealizedProfit: string;
+  positionMargin: string;
+  expectedPnl: string;
+  selectedLeverage: string;
+}
+
+export interface GetAccountDataResponse {
+  address: address;
+  feeTier: string;
+  canTrade: boolean;
+  totalOpenOrderMargin: string;
+  totalReducingOpenOrderMargin: string;
+  totalPositionMargin: string;
+  totalPositionQtyReduced: string;
+  totalPositionQtyReducible: string;
+  totalExpectedPnl: string;
+  totalUnrealizedProfit: string;
+  walletBalance: string;
+  freeCollateral: string;
+  accountValue: string;
+  accountDataByMarket: MarketAccountData[];
+  updateTime: number;
+}
+
+export interface GetUserTransactionHistoryResponse {
+  id: number;
+  symbol: string;
+  commission: string;
+  commissionAsset: string;
+  maker: boolean;
+  side: ORDER_SIDE;
+  price: string;
+  quantity: string;
+  quoteQty: string;
+  realizedPnl: string;
+  time: number;
+  orderHash: string;
+  traderType: string;
+}

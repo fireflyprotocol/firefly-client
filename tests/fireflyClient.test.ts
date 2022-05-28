@@ -94,7 +94,7 @@ describe("FireflyClient", () => {
     });
   });
 
-  describe("Create/Post Orders", () => {
+  describe("Create/Place/Post Orders", () => {
     const client = new FireflyClient(Networks.TESTNET, testAcctKey);
     client.addMarket(MARKET_SYMBOLS.DOT);
 
@@ -137,7 +137,7 @@ describe("FireflyClient", () => {
         side: ORDER_SIDE.SELL,
       });
 
-      const response = await client.placeOrder({ ...signedOrder });
+      const response = await client.placeSignedOrder({ ...signedOrder });
       expect(response.ok).to.be.equal(true);
     });
 
@@ -148,7 +148,17 @@ describe("FireflyClient", () => {
         quantity: 0.5,
         side: ORDER_SIDE.BUY,
       });
-      const response = await client.placeOrder({ ...signedOrder });
+      const response = await client.placeSignedOrder({ ...signedOrder });
+      expect(response.ok).to.be.equal(true);
+    });
+
+    it("should post a LIMIT order on exchange", async () => {
+      const response = await client.postOrder({
+        symbol: MARKET_SYMBOLS.DOT,
+        price: 11,
+        quantity: 0.5,
+        side: ORDER_SIDE.BUY,
+      });
       expect(response.ok).to.be.equal(true);
     });
   });
@@ -164,7 +174,7 @@ describe("FireflyClient", () => {
         quantity: 0.5,
         side: ORDER_SIDE.SELL,
       });
-      const response = await client.placeOrder({ ...signedOrder });
+      const response = await client.placeSignedOrder({ ...signedOrder });
 
       const cancelSignature = await client.createOrderCancellationSignature({
         symbol: MARKET_SYMBOLS.DOT,
@@ -187,7 +197,7 @@ describe("FireflyClient", () => {
         quantity: 0.5,
         side: ORDER_SIDE.SELL,
       });
-      const response = await client.placeOrder({ ...signedOrder });
+      const response = await client.placeSignedOrder({ ...signedOrder });
 
       const cancellationResponse = await client.placeCancelOrder({
         symbol: MARKET_SYMBOLS.DOT,
@@ -200,13 +210,30 @@ describe("FireflyClient", () => {
         "Invalid Order Signature."
       );
     });
+
+    it("should post a cancel order on exchange", async () => {
+      const response = await client.postOrder({
+        symbol: MARKET_SYMBOLS.DOT,
+        price: 15,
+        quantity: 0.5,
+        side: ORDER_SIDE.SELL,
+      });
+      expect(response.ok).to.be.equal(true);
+
+      const cancelResponse = await client.postCancelOrder({
+        symbol: MARKET_SYMBOLS.DOT,
+        hashes: [response?.data?.hash as string],
+      });
+
+      expect(cancelResponse.ok).to.be.equal(true);
+    });
   });
 
-  describe("Get Orders", () => {
+  describe("Get User Orders", () => {
     const client = new FireflyClient(Networks.TESTNET, testAcctKey);
 
     it("should get all open orders", async () => {
-      const data = await client.getOrders({
+      const data = await client.getUserOrders({
         statuses: ORDER_STATUS.OPEN,
         symbol: MARKET_SYMBOLS.DOT,
       });
@@ -215,7 +242,7 @@ describe("FireflyClient", () => {
     });
 
     it("should get all cancelled orders", async () => {
-      const data = await client.getOrders({
+      const data = await client.getUserOrders({
         statuses: ORDER_STATUS.CANCELLED,
         symbol: MARKET_SYMBOLS.DOT,
       });
@@ -223,7 +250,7 @@ describe("FireflyClient", () => {
     });
 
     it("should get 1 cancelled orders", async () => {
-      const data = await client.getOrders({
+      const data = await client.getUserOrders({
         statuses: ORDER_STATUS.CANCELLED,
         symbol: MARKET_SYMBOLS.DOT,
         pageSize: 1,
@@ -232,7 +259,7 @@ describe("FireflyClient", () => {
     });
 
     it("should get 0 expired orders as page 10 does not exist for expired orders", async () => {
-      const data = await client.getOrders({
+      const data = await client.getUserOrders({
         statuses: ORDER_STATUS.EXPIRED,
         symbol: MARKET_SYMBOLS.DOT,
         pageNumber: 10,
@@ -241,7 +268,7 @@ describe("FireflyClient", () => {
     });
   });
 
-  describe("Get Position", () => {
+  describe("Get User Position", () => {
     const client = new FireflyClient(Networks.TESTNET, testAcctKey);
     client.addMarket(MARKET_SYMBOLS.DOT);
 
@@ -252,7 +279,7 @@ describe("FireflyClient", () => {
       );
       clientTemp.addMarket(MARKET_SYMBOLS.DOT);
 
-      const response = await clientTemp.getPosition({});
+      const response = await clientTemp.getUserPosition({});
       expect(response.ok).to.be.equal(true);
       expect(response.response.data.length).to.be.equal(0);
     });
@@ -270,15 +297,76 @@ describe("FireflyClient", () => {
     });
 
     it("should get user's DOT-PERP Position", async () => {
-      const response = await client.getPosition({
+      const response = await client.getUserPosition({
         symbol: MARKET_SYMBOLS.DOT,
       });
       expect(response.response.data.symbol).to.be.equal(MARKET_SYMBOLS.DOT);
     });
 
     it("should get all open positions for the user across all markets", async () => {
-      const response = await client.getPosition({});
+      const response = await client.getUserPosition({});
       expect(response.response.data.length).to.be.greaterThanOrEqual(1);
     });
+  });
+
+  describe("Get User Trades", () => {
+    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
+    client.addMarket(MARKET_SYMBOLS.DOT);
+
+    it("should return zero trades for the user", async () => {
+      const clientTemp = new FireflyClient(
+        Networks.TESTNET,
+        "20049f9e228fc02b924e022533b92ddc07d0a1f125845d2caca14b8010943f63"
+      );
+      clientTemp.addMarket(MARKET_SYMBOLS.DOT);
+
+      const response = await clientTemp.getUserTrades({});
+      expect(response.ok).to.be.equal(true);
+      expect(response.response.data.length).to.be.equal(0);
+    });
+
+    it("should get user's DOT-PERP Trades", async () => {
+      const response = await client.getUserTrades({
+        symbol: MARKET_SYMBOLS.DOT,
+      });
+      expect(response.response.data.length).to.be.greaterThanOrEqual(1);
+    });
+  });
+  describe("Get Market Orderbook", () => {
+    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
+    it("should get DOT orderbook with best ask and bid", async () => {
+      const response = await client.getOrderbook({
+        symbol: MARKET_SYMBOLS.DOT,
+        limit: 1,
+      });
+      expect(response.ok).to.be.equal(true);
+      expect(response?.data?.limit).to.be.equal(1);
+      expect(response?.data?.symbol).to.be.equal(MARKET_SYMBOLS.DOT);
+    });
+
+    it("should get no orderbook data as market for DOGE-PERP does not exist", async () => {
+      const response = await client.getOrderbook({
+        symbol: "DODGE-PERP",
+        limit: 1,
+      });
+      expect(response.ok).to.be.equal(false);
+    });
+  });
+
+  it("should get User Account Data", async () => {
+    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
+    const response = await client.getUserAccountData(MARKET_SYMBOLS.DOT);
+    expect(response.ok).to.be.equal(true);
+  });
+
+  it("should get 2 Transaction History records for user", async () => {
+    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
+    const response = await client.getUserTransactionHistory({
+      symbol: MARKET_SYMBOLS.DOT,
+      pageSize: 2,
+      pageNumber: 1,
+    });
+    expect(response.ok).to.be.equal(true);
+    expect(response.data?.length).to.be.equal(2);
   });
 });

@@ -4,7 +4,10 @@ export const SERVICE_URLS = {
   },
   USER: {
     USER_POSITIONS: "/userPosition",
+    USER_TRADES: "/userTrades",
     ORDERS: "/orders",
+    ACCOUNT: "/account",
+    USER_TRANSACTION_HISTORY: "/userTransactionHistory",
   },
   ORDERS: {
     ORDERS: "/orders",
