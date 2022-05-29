@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-import chai, { expect } from "chai";
+import chai, { assert, expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 
 import {
@@ -17,59 +17,74 @@ const testAcctKey =
   "4ef06568055d528efdeb3a2e0c1a4b1a0f1fdf4f9e388f11f0a248228298c2b7";
 const testAcctPubAddr = "0xe83515fEa858D4ac48278F27DF375fbF2bff441d";
 
+let client: FireflyClient;
+
 describe("FireflyClient", () => {
+  beforeEach(() => {
+    client = new FireflyClient(Networks.TESTNET, testAcctKey);
+  });
+
+  afterEach(() => {
+    client.sockets.close();
+  });
+
   it("should initialize the client", async () => {
-    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
     expect(client).to.be.not.eq(undefined);
   });
 
   it("should return public address of account", async () => {
-    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
     expect(client.getPublicAddress()).to.be.equal(testAcctPubAddr);
   });
 
   describe("Market", () => {
     it("should add DOT-PERP market", async () => {
-      const client = new FireflyClient(Networks.TESTNET, testAcctKey);
       expect(client.addMarket(MARKET_SYMBOLS.DOT)).to.be.equal(true);
     });
 
     it("should add DOT-PERP market with custom orders contract address", async () => {
-      const client = new FireflyClient(Networks.TESTNET, testAcctKey);
-      expect(client.addMarket(MARKET_SYMBOLS.DOT, "0x000")).to.be.equal(true);
+      expect(
+        client.addMarket(
+          MARKET_SYMBOLS.DOT,
+          "0x36AAc8c385E5FA42F6A7F62Ee91b5C2D813C451C"
+        )
+      ).to.be.equal(true);
     });
 
-    it("should return FALSE as there is no market for name TEST-PERP", async () => {
-      const client = new FireflyClient(Networks.TESTNET, testAcctKey);
-      expect(client.addMarket("TEST-PERP")).to.be.equal(false);
+    it("should throw error as there is no market by name of TEST-PERP in deployedContracts", async () => {
+      assert.throws(
+        () => {
+          client.addMarket("TEST-PERP");
+        },
+        Error,
+        `Contract "Orders" not found in deployedContracts.json for network id 1297`
+      );
     });
 
     it("should add market despite not existing in deployed contracts", async () => {
-      const client = new FireflyClient(Networks.TESTNET, testAcctKey);
-      expect(client.addMarket("TEST-PERP", "0x000")).to.be.equal(true);
+      expect(
+        client.addMarket(
+          "TEST-PERP",
+          "0x36AAc8c385E5FA42F6A7F62Ee91b5C2D813C451C"
+        )
+      ).to.be.equal(true);
     });
 
     it("should return False as DOT-PERP market is already added", async () => {
-      const client = new FireflyClient(Networks.TESTNET, testAcctKey);
       expect(client.addMarket(MARKET_SYMBOLS.DOT)).to.be.equal(true);
       expect(client.addMarket(MARKET_SYMBOLS.DOT)).to.be.equal(false);
     });
 
     it("should remove the DOT market", async () => {
-      const client = new FireflyClient(Networks.TESTNET, testAcctKey);
       expect(client.addMarket(MARKET_SYMBOLS.DOT)).to.be.equal(true);
       expect(client.removeMarket(MARKET_SYMBOLS.DOT)).to.be.equal(true);
     });
 
     it("should return false when trying to remove a non-existent market", async () => {
-      const client = new FireflyClient(Networks.TESTNET, testAcctKey);
       expect(client.removeMarket(MARKET_SYMBOLS.DOT)).to.be.equal(false);
     });
   });
 
   describe("Balance", () => {
-    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
-
     it("should get 10K Test USDCs", async () => {
       expect(await client.getTestUSDC()).to.be.equal(true);
       expect(
@@ -95,10 +110,11 @@ describe("FireflyClient", () => {
   });
 
   describe("Create/Place/Post Orders", () => {
-    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
-    client.addMarket(MARKET_SYMBOLS.DOT);
+    beforeEach(async () => {
+      client.addMarket(MARKET_SYMBOLS.DOT);
+    });
 
-    before(async () => {
+    it("should put 10K in margin bank", async () => {
       await client.getTestUSDC();
       await client.depositToMarginBank(10000);
     });
@@ -164,8 +180,9 @@ describe("FireflyClient", () => {
   });
 
   describe("Cancel Orders", () => {
-    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
-    client.addMarket(MARKET_SYMBOLS.DOT);
+    beforeEach(async () => {
+      client.addMarket(MARKET_SYMBOLS.DOT);
+    });
 
     it("should cancel the open order", async () => {
       const signedOrder = await client.createSignedOrder({
@@ -230,8 +247,6 @@ describe("FireflyClient", () => {
   });
 
   describe("Get User Orders", () => {
-    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
-
     it("should get all open orders", async () => {
       const data = await client.getUserOrders({
         statuses: ORDER_STATUS.OPEN,
@@ -269,8 +284,9 @@ describe("FireflyClient", () => {
   });
 
   describe("Get User Position", () => {
-    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
-    client.addMarket(MARKET_SYMBOLS.DOT);
+    beforeEach(async () => {
+      client.addMarket(MARKET_SYMBOLS.DOT);
+    });
 
     it("should return zero open positions for the user", async () => {
       const clientTemp = new FireflyClient(
@@ -282,6 +298,8 @@ describe("FireflyClient", () => {
       const response = await clientTemp.getUserPosition({});
       expect(response.ok).to.be.equal(true);
       expect(response.response.data.length).to.be.equal(0);
+
+      clientTemp.sockets.close();
     });
 
     it("should return no open position for user against BTC-PERP market", async () => {
@@ -294,6 +312,7 @@ describe("FireflyClient", () => {
       const response = await clientTemp.getUserPosition({});
       expect(response.ok).to.be.equal(true);
       expect(response.response.data.length).to.be.equal(0);
+      clientTemp.sockets.close();
     });
 
     it("should get user's DOT-PERP Position", async () => {
@@ -310,8 +329,9 @@ describe("FireflyClient", () => {
   });
 
   describe("Get User Trades", () => {
-    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
-    client.addMarket(MARKET_SYMBOLS.DOT);
+    beforeEach(async () => {
+      client.addMarket(MARKET_SYMBOLS.DOT);
+    });
 
     it("should return zero trades for the user", async () => {
       const clientTemp = new FireflyClient(
@@ -323,6 +343,7 @@ describe("FireflyClient", () => {
       const response = await clientTemp.getUserTrades({});
       expect(response.ok).to.be.equal(true);
       expect(response.response.data.length).to.be.equal(0);
+      clientTemp.sockets.close();
     });
 
     it("should get user's DOT-PERP Trades", async () => {
@@ -332,8 +353,8 @@ describe("FireflyClient", () => {
       expect(response.response.data.length).to.be.greaterThanOrEqual(1);
     });
   });
+
   describe("Get Market Orderbook", () => {
-    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
     it("should get DOT orderbook with best ask and bid", async () => {
       const response = await client.getOrderbook({
         symbol: MARKET_SYMBOLS.DOT,
@@ -354,13 +375,11 @@ describe("FireflyClient", () => {
   });
 
   it("should get User Account Data", async () => {
-    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
     const response = await client.getUserAccountData(MARKET_SYMBOLS.DOT);
     expect(response.ok).to.be.equal(true);
   });
 
   it("should get 2 Transaction History records for user", async () => {
-    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
     const response = await client.getUserTransactionHistory({
       symbol: MARKET_SYMBOLS.DOT,
       pageSize: 2,
@@ -371,7 +390,6 @@ describe("FireflyClient", () => {
   });
 
   it("should get recent market trades of DOT-PERP Market", async () => {
-    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
     const response = await client.getMarketRecentTrades({
       symbol: MARKET_SYMBOLS.DOT,
     });
@@ -379,7 +397,6 @@ describe("FireflyClient", () => {
   });
 
   it("should get candle stick data", async () => {
-    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
     const response = await client.getMarketCandleStickData({
       symbol: MARKET_SYMBOLS.DOT,
       interval: "1m",
@@ -388,33 +405,28 @@ describe("FireflyClient", () => {
   });
 
   it("should get exchange info for DOT Market", async () => {
-    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
     const response = await client.getExchangeInfo(MARKET_SYMBOLS.DOT);
     expect(response.ok).to.be.equal(true);
     expect(response.data?.symbol).to.be.equal(MARKET_SYMBOLS.DOT);
   });
 
   it("should get exchange info for all markets", async () => {
-    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
     const response = await client.getExchangeInfo();
     expect(response.ok).to.be.equal(true);
     expect(response.response.data.length).to.be.greaterThanOrEqual(1);
   });
 
   it("should get market data for DOT Market", async () => {
-    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
     const response = await client.getMarketData(MARKET_SYMBOLS.DOT);
     expect(response.ok).to.be.equal(true);
   });
 
   it("should get market meta info for DOT Market", async () => {
-    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
     const response = await client.getMarketMetaInfo(MARKET_SYMBOLS.DOT);
     expect(response.ok).to.be.equal(true);
   });
 
   it("should get status of exchange to be alive", async () => {
-    const client = new FireflyClient(Networks.TESTNET, testAcctKey);
     const response = await client.getExchangeStatus();
     expect(response.ok).to.be.equal(true);
     expect(response.data?.isAlive).to.be.equal(true);
