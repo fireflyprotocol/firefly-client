@@ -72,7 +72,7 @@ export class FireflyClient {
   private apiService: APIService;
 
   /**
-   *
+   * initializes the class instance
    * @param _network containing network rpc url and chain id
    * @param _acctPvtKey private key for the account to be used for placing orders
    */
@@ -88,7 +88,7 @@ export class FireflyClient {
   }
 
   /**
-   *
+   * Allows caller to add a market, internally creates order signer for the provided market
    * @param market Symbol of MARKET BTC-USDT
    * @param ordersContractAddress (Optional) address of orders contract address for market
    * @returns boolean true if market is added else false

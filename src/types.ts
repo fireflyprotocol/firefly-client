@@ -47,6 +47,7 @@ export type DAPIKlineResponse = Array<MinifiedCandleStick>;
  *      ENUMS
  * ==================
  */
+
 export enum SigningMethod {
   Compatibility = "Compatibility", // picks intelligently between UnsafeHash and Hash
   UnsafeHash = "UnsafeHash", // raw hash signed
