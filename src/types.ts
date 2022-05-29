@@ -2,6 +2,10 @@
 /* eslint-disable no-shadow */
 import BigNumber from "bignumber.js";
 import { ethers } from "ethers";
+import { Socket } from "socket.io-client";
+// @ts-ignores
+// eslint-disable-next-line import/no-unresolved
+import { DefaultEventsMap } from "socket.io-client/build/typed-events";
 
 export type address = string;
 export type TypedSignature = string;
@@ -24,6 +28,8 @@ export type Interval =
   | "3d"
   | "1w"
   | "1M";
+
+export type SocketInstance = Socket<DefaultEventsMap, DefaultEventsMap>;
 
 export type MinifiedCandleStick = [
   number, // Open time
@@ -125,4 +131,28 @@ export enum MARKET_STATUS {
   ACTIVE = "ACTIVE",
   INACTIVE = "INACTIVE",
   TRADES_INACTIVE = "TRADES_INACTIVE",
+}
+
+export enum SOCKET_EVENTS {
+  GET_LAST_KLINE_WITH_INTERVAL = "{symbol}@kline@{interval}",
+  // Global
+  GLOBAL_UPDATES_ROOM = "globalUpdates",
+
+  // Global
+  GlobalUpdatesRoom = "globalUpdates",
+  MarketDataUpdateKey = "MarketDataUpdate",
+  RecentTradesKey = "RecentTrades",
+  OrderbookUpdateKey = "OrderbookUpdate",
+  AdjustMarginKey = "AdjustMargin",
+  MarketHealthKey = "MarketHealth",
+  ExchangeHealthKey = "ExchangeHealth",
+
+  // User
+  UserUpdatesRoom = "userUpdates",
+  OrderUpdateKey = "OrderUpdate",
+  OrderCancelledKey = "OrderCancelled",
+  PositionUpdateKey = "PositionUpdate",
+  UserTradeKey = "UserTrade",
+  UserTransaction = "UserTransaction",
+  AccountDataUpdateKey = "AccountDataUpdate",
 }

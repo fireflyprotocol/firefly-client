@@ -22,6 +22,7 @@ export interface Network {
   url: string;
   chainId: number;
   apiGateway: string;
+  socketURL: string;
 }
 
 export interface BalanceStruct {

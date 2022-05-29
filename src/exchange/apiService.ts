@@ -2,7 +2,7 @@ import axios, { AxiosRequestConfig, AxiosResponse, AxiosInstance } from "axios";
 import { getValue, isEmpty } from "../helpers/utils";
 
 export class APIService {
-  apiService: AxiosInstance;
+  private apiService: AxiosInstance;
 
   constructor(url: string) {
     this.apiService = axios.create({

@@ -92,6 +92,7 @@ export class Fee extends BaseValue {
   }
 }
 
+// TODO: remove this class, not being used
 export class FundingRate extends BaseValue {
   /**
    * Given a daily rate, returns funding rate represented as a per-second rate.

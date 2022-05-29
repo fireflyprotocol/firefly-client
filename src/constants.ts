@@ -7,8 +7,6 @@ const ONE_HOUR_IN_SECONDS = ONE_MINUTE_IN_SECONDS.times(60);
 const ONE_DAY_IN_SECONDS = ONE_HOUR_IN_SECONDS.times(24);
 const ONE_YEAR_IN_SECONDS = ONE_DAY_IN_SECONDS.times(365);
 
-// ============ P1TraderConstants.sol ============
-
 export const ORDER_FLAGS = {
   IS_BUY: 1,
   IS_DECREASE_ONLY: 2,
@@ -113,10 +111,12 @@ export const Networks = {
     url: "https://bobabase.boba.network/",
     chainId: 1297,
     apiGateway: "https://dapi-testnet.firefly.exchange",
+    socketURL: "http://18.213.136.198:3002",
   },
   MAINNET: {
     url: "https://bobabeam.boba.network/",
     chainId: 1291,
     apiGateway: "https://dapi-mainnet.firefly.exchange",
+    socketURL: "http://18.213.136.198:3002",
   },
 };

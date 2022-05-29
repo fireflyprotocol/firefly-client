@@ -14,8 +14,8 @@ export * from "./helpers/bytes";
 export * from "./helpers/signature";
 
 // api
-export * from "./api/service";
-export * from "./api/urls";
+export * from "./exchange/apiService";
+export * from "./exchange/apiUrls";
 
 // firefly client
 export * from "./fireflyClient";

@@ -3,7 +3,12 @@ import Web3 from "web3";
 import { Contract, Wallet, providers } from "ethers";
 import * as contracts from "../contracts/deployedContracts.json";
 import * as USDTToken from "../contracts/usdtToken.json";
-import { MarginBank__factory, MarginBank } from "../contracts/orderbook";
+import {
+  MarginBank__factory,
+  Orders__factory,
+  MarginBank,
+  Orders,
+} from "../contracts/orderbook";
 import {
   toBigNumberStr,
   bnToString,
@@ -57,8 +62,9 @@ import {
   StatusResponse,
 } from "./interfaces/routes";
 
-import { APIService } from "./api/service";
-import { SERVICE_URLS } from "./api/urls";
+import { APIService } from "./exchange/apiService";
+import { SERVICE_URLS } from "./exchange/apiUrls";
+import { Sockets } from "./exchange/sockets";
 
 export class FireflyClient {
   protected readonly network: Network;
@@ -70,6 +76,8 @@ export class FireflyClient {
   private orderSigners: Map<MarketSymbol, OrderSigner> = new Map();
 
   private apiService: APIService;
+
+  public sockets: Sockets;
 
   /**
    * initializes the class instance
@@ -85,40 +93,39 @@ export class FireflyClient {
       new providers.JsonRpcProvider(_network.url)
     );
     this.apiService = new APIService(this.network.apiGateway);
+
+    this.sockets = new Sockets(this.network.socketURL);
   }
 
   /**
    * Allows caller to add a market, internally creates order signer for the provided market
-   * @param market Symbol of MARKET BTC-USDT
+   * @param marksymbolet Symbol of MARKET in form of DOT-PERP, BTC-PERP etc.
    * @param ordersContractAddress (Optional) address of orders contract address for market
+   * @param subscribe (true by default) subscribes to market events upon addition
    * @returns boolean true if market is added else false
    */
-  addMarket(market: MarketSymbol, ordersContract?: address): boolean {
-    // if orders contract address is not provided read
-    // from deployed contracts addresses if possible
-    if (!ordersContract) {
-      try {
-        ordersContract = (contracts as any)[this.network.chainId][market].Orders
-          .address;
-      } catch (e) {
-        // orders contract address for given network and market name was not found
-      }
-    }
-
-    // if orders contract address is empty or undefined return false
-    if (ordersContract === "" || ordersContract === undefined) {
-      return false;
-    }
-
+  addMarket(
+    symbol: MarketSymbol,
+    ordersContract?: address,
+    subscribe: boolean = true
+  ): boolean {
     // if signer for market already exists return false
-    if (this.orderSigners.get(market)) {
+    if (this.orderSigners.get(symbol)) {
       return false;
     }
-    // else create order signer for market
+
+    const contract = this.getContract("Orders", ordersContract, symbol);
+
     this.orderSigners.set(
-      market,
-      new OrderSigner(this.web3, Number(this.network.chainId), ordersContract)
+      symbol,
+      new OrderSigner(this.web3, Number(this.network.chainId), contract.address)
     );
+
+    // if asked for socket subscription
+    if (subscribe) {
+      this.sockets.subscribeGlobalUpdatesBySymbol(symbol);
+    }
+
     return true;
   }
 
@@ -138,11 +145,6 @@ export class FireflyClient {
    */
   async getUSDCBalance(contract?: address): Promise<string> {
     const tokenContract = this.getContract("USDTToken", contract);
-
-    if (tokenContract === false) {
-      return "-1";
-    }
-
     const balance = await (tokenContract as Contract)
       .connect(this.wallet)
       .balanceOf(this.wallet.address);
@@ -157,11 +159,6 @@ export class FireflyClient {
    */
   async getMarginBankBalance(contract?: address): Promise<string> {
     const marginBankContract = this.getContract("MarginBank", contract);
-
-    if (marginBankContract === false) {
-      throw Error("Margin Bank contract address is invalid");
-    }
-
     const balance = await (marginBankContract as MarginBank)
       .connect(this.wallet)
       .getAccountBankBalance(this.wallet.address);
@@ -177,11 +174,6 @@ export class FireflyClient {
    */
   async getTestUSDC(contract?: address): Promise<boolean> {
     const tokenContract = this.getContract("USDTToken", contract);
-
-    if (tokenContract === false) {
-      return false;
-    }
-
     // mint 10K USDC token
     await (
       await (tokenContract as Contract)
@@ -207,11 +199,6 @@ export class FireflyClient {
   ): Promise<boolean> {
     const tokenContract = this.getContract("USDTToken", usdcContract);
     const marginBankContract = this.getContract("MarginBank", mbContract);
-
-    if (tokenContract === false || marginBankContract === false) {
-      return false;
-    }
-
     const amountString = toBigNumberStr(amount);
 
     // approve usdc contract to allow margin bank to take funds out for user's behalf
@@ -241,15 +228,9 @@ export class FireflyClient {
    */
   async withdrawFromMarginBank(
     amount?: number,
-    usdcContract?: address,
     mbContract?: address
   ): Promise<boolean> {
-    const tokenContract = this.getContract("USDTToken", usdcContract);
     const marginBankContract = this.getContract("MarginBank", mbContract);
-
-    if (tokenContract === false || marginBankContract === false) {
-      return false;
-    }
 
     const amountString = amount
       ? toBigNumberStr(amount)
@@ -579,18 +560,38 @@ export class FireflyClient {
   /**
    * Private function to return a global(Test USDC Token / Margin Bank) contract
    * @param contract address of contract
-   * @returns contract or false
+   * @returns Contract | MarginBank or throws error
    */
   private getContract(
     contractName: string,
-    contract?: address
-  ): Contract | boolean | MarginBank {
-    if (!contract) {
-      contract = (contracts as any)[this.network.chainId][contractName].address;
+    contract?: address,
+    market?: MarketSymbol
+  ): Contract | MarginBank | Orders {
+    // if a market name is provided and contract address is not provided
+    if (market && !contract) {
+      try {
+        contract = (contracts as any)[this.network.chainId][market][
+          contractName
+        ].address;
+      } catch (e) {
+        contract = "";
+      }
+    }
+
+    // if contract address is not provided and also market name is not provided
+    if (!market && !contract) {
+      try {
+        contract = (contracts as any)[this.network.chainId][contractName]
+          .address;
+      } catch (e) {
+        contract = "";
+      }
     }
 
     if (contract === "" || contract === undefined) {
-      return false;
+      throw Error(
+        `Contract "${contractName}" not found in deployedContracts.json for network id ${this.network.chainId}`
+      );
     }
 
     switch (contractName) {
@@ -600,8 +601,12 @@ export class FireflyClient {
         const marginBankFactory = new MarginBank__factory();
         const marginBank = marginBankFactory.attach(contract);
         return marginBank as any as MarginBank;
+      case "Orders":
+        const ordersFactory = new Orders__factory();
+        const orders = ordersFactory.attach(contract);
+        return orders as any as Orders;
       default:
-        return false;
+        throw Error(`Unknown contract name received: ${contractName}`);
     }
   }
 
