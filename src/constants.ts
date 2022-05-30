@@ -111,7 +111,7 @@ export const Networks = {
     url: "https://bobabase.boba.network/",
     chainId: 1297,
     apiGateway: "https://dapi-testnet.firefly.exchange",
-    socketURL: "http://18.213.136.198:3002",
+    socketURL: "wss://dapi-testnet.firefly.exchange",
   },
   MAINNET: {
     url: "https://bobabeam.boba.network/",
