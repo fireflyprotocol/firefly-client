@@ -115,15 +115,11 @@ export class FireflyClient {
       symbol,
       new OrderSigner(this.web3, Number(this.network.chainId), contract.address)
     );
-
-    this.sockets.subscribeGlobalUpdatesBySymbol(symbol);
-    this.sockets.subscribeUserUpdateByAddress(this.getPublicAddress());
-
     return true;
   }
 
   /**
-   * Removes the provided symbol market order signer
+   * Removes the provided symbol market order signer and also unsubsribes socket from it
    * @param market symbol of the market to be removed
    * @returns boolean  true if market is removed false other wise
    */
