@@ -4,3 +4,4 @@ Firefly client library for creating signed orders and placing on exchange.The li
 ## How To?
 - Build library using `yarn build`
 - To run tests, do `yarn test`
+- To run linter, use `yarn lint`
