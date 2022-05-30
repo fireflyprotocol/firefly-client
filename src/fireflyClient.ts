@@ -101,14 +101,9 @@ export class FireflyClient {
    * Allows caller to add a market, internally creates order signer for the provided market
    * @param marksymbolet Symbol of MARKET in form of DOT-PERP, BTC-PERP etc.
    * @param ordersContractAddress (Optional) address of orders contract address for market
-   * @param subscribe (true by default) subscribes to market events upon addition
    * @returns boolean true if market is added else false
    */
-  addMarket(
-    symbol: MarketSymbol,
-    ordersContract?: address,
-    subscribe: boolean = true
-  ): boolean {
+  addMarket(symbol: MarketSymbol, ordersContract?: address): boolean {
     // if signer for market already exists return false
     if (this.orderSigners.get(symbol)) {
       return false;
@@ -121,10 +116,8 @@ export class FireflyClient {
       new OrderSigner(this.web3, Number(this.network.chainId), contract.address)
     );
 
-    // if asked for socket subscription
-    if (subscribe) {
-      this.sockets.subscribeGlobalUpdatesBySymbol(symbol);
-    }
+    this.sockets.subscribeGlobalUpdatesBySymbol(symbol);
+    this.sockets.subscribeUserUpdateByAddress(this.getPublicAddress());
 
     return true;
   }
@@ -135,6 +128,7 @@ export class FireflyClient {
    * @returns boolean  true if market is removed false other wise
    */
   removeMarket(market: MarketSymbol): boolean {
+    this.sockets.unsubscribeGlobalUpdatesBySymbol(market);
     return this.orderSigners.delete(market);
   }
 
