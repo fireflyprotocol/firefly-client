@@ -250,6 +250,18 @@ describe("FireflyClient", () => {
 
       expect(cancelResponse.ok).to.be.equal(true);
     });
+
+    it("should cancel all open orders", async () => {
+      const response = await client.cancelAllOpenOrders(MARKET_SYMBOLS.DOT);
+      expect(response.ok).to.be.equal(true);
+
+      const openOrders = await client.getUserOrders({
+        symbol: MARKET_SYMBOLS.DOT,
+        statuses: ORDER_STATUS.OPEN,
+      });
+
+      expect(openOrders.response.data.length).to.be.equal(0);
+    });
   });
 
   describe("Get User Orders", () => {

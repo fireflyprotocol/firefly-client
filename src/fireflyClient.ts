@@ -24,6 +24,7 @@ import {
   MarketSymbol,
   address,
   DAPIKlineResponse,
+  ORDER_STATUS,
 } from "./types";
 
 import { Price, Fee } from "./signer/baseValue";
@@ -400,6 +401,26 @@ export class FireflyClient {
       ...params,
       signature,
     });
+    return response;
+  }
+
+  /**
+   * Cancels all open orders for a given market
+   * @param symbol DOT-PERP, market symbol
+   * @returns cancellation response
+   */
+  async cancelAllOpenOrders(symbol: MarketSymbol) {
+    const openOrders = await this.getUserOrders({
+      symbol,
+      statuses: ORDER_STATUS.OPEN,
+    });
+
+    const hashes = (await openOrders.data?.map(
+      (order) => order.hash
+    )) as string[];
+
+    const response = await this.postCancelOrder({ hashes, symbol });
+
     return response;
   }
 
