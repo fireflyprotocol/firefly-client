@@ -12,7 +12,6 @@ import {
   PlaceOrderResponse,
   GetPositionResponse,
   GetUserTradesResponse,
-  GetUserTransactionHistoryResponse,
   GetAccountDataResponse,
   MiniTickerData,
 } from "../interfaces/routes";
