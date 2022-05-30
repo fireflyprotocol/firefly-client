@@ -1,6 +1,7 @@
 /* eslint-disable no-undef */
 import chai, { assert, expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
+import { setTimeout } from "timers/promises";
 
 import {
   Networks,
@@ -9,13 +10,18 @@ import {
   FireflyClient,
   bnStrToBaseNumber,
   ORDER_SIDE,
+  PlaceOrderResponse,
+  GetMarketRecentTradesResponse,
+  GetPositionResponse,
+  GetUserTradesResponse,
+  GetAccountDataResponse,
 } from "../src/index";
 
 chai.use(chaiAsPromised);
 
 const testAcctKey =
-  "4ef06568055d528efdeb3a2e0c1a4b1a0f1fdf4f9e388f11f0a248228298c2b7";
-const testAcctPubAddr = "0xe83515fEa858D4ac48278F27DF375fbF2bff441d";
+  "4d6c9531e0042cc8f7cf13d8c3cf77bfe239a8fed95e198d498ee1ec0b1a7e83";
+const testAcctPubAddr = "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF";
 
 let client: FireflyClient;
 
@@ -430,5 +436,141 @@ describe("FireflyClient", () => {
     const response = await client.getExchangeStatus();
     expect(response.ok).to.be.equal(true);
     expect(response.data?.isAlive).to.be.equal(true);
+  });
+
+  describe("Global Market Socket", () => {
+    beforeEach(async () => {
+      await client.addMarket(MARKET_SYMBOLS.DOT);
+      await client.sockets.subscribeGlobalUpdatesBySymbol(MARKET_SYMBOLS.DOT);
+      await client.sockets.subscribeUserUpdateByAddress(
+        client.getPublicAddress()
+      );
+    });
+    it("should receive an event for orderbook update when an order is placed on exchange", (done) => {
+      const callback = ({ orderbook }: any) => {
+        expect(orderbook.symbol).to.be.equal(MARKET_SYMBOLS.DOT);
+        done();
+      };
+
+      client.sockets.onOrderBookUpdate(callback);
+
+      // wait for 1 sec as room might not had been subscribed
+      setTimeout(1000).then(() => {
+        client.postOrder({
+          symbol: MARKET_SYMBOLS.DOT,
+          price: 15,
+          quantity: 0.5,
+          side: ORDER_SIDE.SELL,
+        });
+      });
+    });
+
+    it("should receive an event when a trade is performed", (done) => {
+      const callback = ({
+        trades,
+      }: {
+        trades: GetMarketRecentTradesResponse[];
+      }) => {
+        expect(trades[0].symbol).to.be.equal(MARKET_SYMBOLS.DOT);
+        done();
+      };
+
+      client.sockets.onRecentTrades(callback);
+
+      // wait for 1 sec as room might not had been subscribed
+      setTimeout(1000).then(() => {
+        client.postOrder({
+          symbol: MARKET_SYMBOLS.DOT,
+          price: 0,
+          quantity: 0.5,
+          side: ORDER_SIDE.BUY,
+        });
+      });
+    });
+
+    it("should receive order update event", (done) => {
+      const callback = ({ order }: { order: PlaceOrderResponse }) => {
+        expect(order.symbol).to.be.equal(MARKET_SYMBOLS.DOT);
+        done();
+      };
+
+      client.sockets.onUserOrderUpdate(callback);
+
+      // wait for 1 sec as room might not had been subscribed
+      setTimeout(1000).then(() => {
+        client.postOrder({
+          symbol: MARKET_SYMBOLS.DOT,
+          price: 12,
+          quantity: 0.5,
+          side: ORDER_SIDE.SELL,
+        });
+      });
+    });
+
+    it("should receive position update event", (done) => {
+      const callback = ({ position }: { position: GetPositionResponse }) => {
+        expect(position.userAddress).to.be.equal(
+          client.getPublicAddress().toLocaleLowerCase()
+        );
+        done();
+      };
+
+      client.sockets.onUserPositionUpdate(callback);
+
+      // wait for 1 sec as room might not had been subscribed
+      setTimeout(1000).then(() => {
+        client.postOrder({
+          symbol: MARKET_SYMBOLS.DOT,
+          price: 0,
+          quantity: 0.5,
+          side: ORDER_SIDE.BUY,
+        });
+      });
+    });
+
+    it("should receive user update event", (done) => {
+      const callback = ({ trade }: { trade: GetUserTradesResponse }) => {
+        expect(trade.maker).to.be.equal(false);
+        expect(trade.symbol).to.be.equal(MARKET_SYMBOLS.DOT);
+        done();
+      };
+
+      client.sockets.onUserUpdates(callback);
+
+      // wait for 1 sec as room might not had been subscribed
+      setTimeout(1000).then(() => {
+        client.postOrder({
+          symbol: MARKET_SYMBOLS.DOT,
+          price: 0,
+          quantity: 0.5,
+          side: ORDER_SIDE.BUY,
+        });
+      });
+    });
+
+    it("should receive user account update event", (done) => {
+      const callback = ({
+        accountData,
+      }: {
+        accountData: GetAccountDataResponse;
+      }) => {
+        expect(accountData.address).to.be.equal(
+          client.getPublicAddress().toLocaleLowerCase()
+        );
+        done();
+      };
+
+      client.sockets.onUserAccountDataUpdate(callback);
+
+      // wait for 1 sec as room might not had been subscribed
+      setTimeout(1000).then(() => {
+        client.postOrder({
+          symbol: MARKET_SYMBOLS.DOT,
+          price: 0,
+          quantity: 0.5,
+          side: ORDER_SIDE.BUY,
+        });
+      });
+    });
   });
 });
