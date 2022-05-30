@@ -71,9 +71,9 @@ export class Sockets {
   }
 
   // Emitted when any price bin on the oderbook is updated.
-  onOrderBookUpdate(cb: ({ orderbook }: any) => void) {
+  onOrderBookUpdate = (cb: ({ orderbook }: any) => void) => {
     this.socketInstance.on(SOCKET_EVENTS.OrderbookUpdateKey, cb);
-  }
+  };
 
   onMarketDataUpdate = (
     cb: ({ marketData }: { marketData: MiniTickerData }) => void
@@ -116,16 +116,6 @@ export class Sockets {
     cb: ({ trade }: { trade: GetUserTradesResponse }) => void
   ) => {
     this.socketInstance.on(SOCKET_EVENTS.UserTradeKey, cb);
-  };
-
-  onUserTransaction = (
-    cb: ({
-      transaction,
-    }: {
-      transaction: GetUserTransactionHistoryResponse;
-    }) => void
-  ) => {
-    this.socketInstance.on(SOCKET_EVENTS.UserTransaction, cb);
   };
 
   onUserAccountDataUpdate = (
