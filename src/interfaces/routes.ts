@@ -164,7 +164,7 @@ export interface GetOrderBookResponse {
   lastUpdatedAt: number;
   orderbookUpdateId: number;
   responseSentAt: number;
-  limit: number;
+  limit?: number;
 }
 
 export interface GetUserTradesRequest {
