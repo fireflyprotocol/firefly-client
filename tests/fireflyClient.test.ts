@@ -92,7 +92,7 @@ describe("FireflyClient", () => {
 
   describe("Balance", () => {
     it("should get 10K Test USDCs", async () => {
-      expect(await client.getTestUSDC()).to.be.equal(true);
+      expect(await client.getTestUSDT()).to.be.equal(true);
       expect(
         bnStrToBaseNumber(await client.getUSDTBalance())
       ).to.be.greaterThanOrEqual(10000);
@@ -121,7 +121,7 @@ describe("FireflyClient", () => {
     });
 
     it("should put 10K in margin bank", async () => {
-      await client.getTestUSDC();
+      await client.getTestUSDT();
       await client.depositToMarginBank(10000);
     });
 

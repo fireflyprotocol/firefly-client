@@ -158,12 +158,12 @@ export class FireflyClient {
   }
 
   /**
-   * Faucet function, mints 10K USDC to wallet - Only works on Testnet
+   * Faucet function, mints 10K USDT to wallet - Only works on Testnet
    * Assumes that the user wallet has Boba/Moonbase Tokens on Testnet
-   * @param contract (optional) address of USDC contract
+   * @param contract (optional) address of USDT contract
    * @returns Boolean true if user is funded, false otherwise
    */
-  async getTestUSDC(contract?: address): Promise<boolean> {
+  async getTestUSDT(contract?: address): Promise<boolean> {
     const tokenContract = this.getContract("USDTToken", contract);
     // mint 10K USDC token
     await (
