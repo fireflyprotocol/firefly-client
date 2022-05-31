@@ -163,7 +163,7 @@ export class FireflyClient {
    * @param contract (optional) address of USDT contract
    * @returns Boolean true if user is funded, false otherwise
    */
-  async getTestUSDT(contract?: address): Promise<boolean> {
+  async mintTestUSDT(contract?: address): Promise<boolean> {
     const tokenContract = this.getContract("USDTToken", contract);
     // mint 10K USDC token
     await (
