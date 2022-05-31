@@ -242,22 +242,6 @@ export class FireflyClient {
   }
 
   /**
-   * Gets Orders placed by the user. Returns the first 50 orders by default.
-   * @param params of type OrderRequest,
-   * @returns OrderResponse array
-   */
-  async getUserOrders(params: GetOrderRequest) {
-    const response = await this.apiService.get<GetOrderResponse[]>(
-      SERVICE_URLS.USER.ORDERS,
-      {
-        ...params,
-        userAddress: this.getPublicAddress(),
-      }
-    );
-    return response;
-  }
-
-  /**
    * Creates order signature and returns it. The signed order can be placed on exchange
    * @param params OrderSignatureRequest params needed to be signed
    * @returns OrderSignatureResponse with the payload signed on-chain along with order signature
@@ -342,19 +326,6 @@ export class FireflyClient {
   }
 
   /**
-   * Gets user open position. If the market is not specified then will return first 50 open positions for 50 markets.
-   * @param params GetPositionRequest
-   * @returns GetPositionResponse
-   */
-  async getUserPosition(params: GetPositionRequest) {
-    const response = await this.apiService.get<GetPositionResponse[]>(
-      SERVICE_URLS.USER.USER_POSITIONS,
-      { ...params, userAddress: this.getPublicAddress() }
-    );
-    return response;
-  }
-
-  /**
    * Creates signature for cancelling orders
    * @param params OrderCancelSignatureRequest containing market symbol and order hashes to be cancelled
    * @returns generated signature string
@@ -400,6 +371,35 @@ export class FireflyClient {
       ...params,
       signature,
     });
+    return response;
+  }
+
+  /**
+   * Gets Orders placed by the user. Returns the first 50 orders by default.
+   * @param params of type OrderRequest,
+   * @returns OrderResponse array
+   */
+  async getUserOrders(params: GetOrderRequest) {
+    const response = await this.apiService.get<GetOrderResponse[]>(
+      SERVICE_URLS.USER.ORDERS,
+      {
+        ...params,
+        userAddress: this.getPublicAddress(),
+      }
+    );
+    return response;
+  }
+
+  /**
+   * Gets user open position. If the market is not specified then will return first 50 open positions for 50 markets.
+   * @param params GetPositionRequest
+   * @returns GetPositionResponse
+   */
+  async getUserPosition(params: GetPositionRequest) {
+    const response = await this.apiService.get<GetPositionResponse[]>(
+      SERVICE_URLS.USER.USER_POSITIONS,
+      { ...params, userAddress: this.getPublicAddress() }
+    );
     return response;
   }
 
