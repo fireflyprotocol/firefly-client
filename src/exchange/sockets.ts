@@ -38,8 +38,10 @@ export class Sockets {
    * closes the socket instance connection
    */
   close() {
-    this.socketInstance.disconnect();
-    this.socketInstance.close();
+    if (this.socketInstance) {
+      this.socketInstance.disconnect();
+      this.socketInstance.close();
+    }
   }
 
   subscribeGlobalUpdatesBySymbol(symbol: MarketSymbol): boolean {
