@@ -450,8 +450,9 @@ describe("FireflyClient", () => {
     expect(response.data?.isAlive).to.be.equal(true);
   });
 
-  describe("Global Market Socket", () => {
+  describe.only("Sockets", () => {
     beforeEach(async () => {
+      await client.sockets.open();
       await client.addMarket(MARKET_SYMBOLS.DOT);
       await client.sockets.subscribeGlobalUpdatesBySymbol(MARKET_SYMBOLS.DOT);
       await client.sockets.subscribeUserUpdateByAddress(

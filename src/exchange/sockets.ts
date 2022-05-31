@@ -17,10 +17,19 @@ import {
 } from "../interfaces/routes";
 
 export class Sockets {
-  private socketInstance: SocketInstance;
+  private socketInstance!: SocketInstance;
+
+  private url: string;
 
   constructor(url: string) {
-    this.socketInstance = io(url, {
+    this.url = url;
+  }
+
+  /**
+   * opens socket instance connection
+   */
+  open() {
+    this.socketInstance = io(this.url, {
       transports: ["websocket"],
     });
   }
