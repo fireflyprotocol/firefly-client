@@ -130,11 +130,11 @@ export class FireflyClient {
   }
 
   /**
-   * Returns the USDC balance of user in USDC contract
-   * @param contract (optional) address of USDC contract
+   * Returns the USDT balance of user in USDT contract
+   * @param contract (optional) address of USDT contract
    * @returns Number representing balance of user
    */
-  async getUSDCBalance(contract?: address): Promise<string> {
+  async getUSDTBalance(contract?: address): Promise<string> {
     const tokenContract = this.getContract("USDTToken", contract);
     const balance = await (tokenContract as Contract)
       .connect(this.wallet)

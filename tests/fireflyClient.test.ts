@@ -94,7 +94,7 @@ describe("FireflyClient", () => {
     it("should get 10K Test USDCs", async () => {
       expect(await client.getTestUSDC()).to.be.equal(true);
       expect(
-        bnStrToBaseNumber(await client.getUSDCBalance())
+        bnStrToBaseNumber(await client.getUSDTBalance())
       ).to.be.greaterThanOrEqual(10000);
     });
 
