@@ -450,7 +450,7 @@ describe("FireflyClient", () => {
     expect(response.data?.isAlive).to.be.equal(true);
   });
 
-  describe.only("Sockets", () => {
+  describe("Sockets", () => {
     beforeEach(async () => {
       await client.sockets.open();
       await client.addMarket(MARKET_SYMBOLS.DOT);
@@ -459,6 +459,7 @@ describe("FireflyClient", () => {
         client.getPublicAddress()
       );
     });
+
     it("should receive an event for orderbook update when an order is placed on exchange", (done) => {
       const callback = ({ orderbook }: any) => {
         expect(orderbook.symbol).to.be.equal(MARKET_SYMBOLS.DOT);

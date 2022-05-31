@@ -42,40 +42,48 @@ export class Sockets {
     this.socketInstance.close();
   }
 
-  subscribeGlobalUpdatesBySymbol(symbol: MarketSymbol) {
+  subscribeGlobalUpdatesBySymbol(symbol: MarketSymbol): boolean {
+    if (!this.socketInstance) return false;
     this.socketInstance.emit("SUBSCRIBE", [
       {
         e: SOCKET_EVENTS.GLOBAL_UPDATES_ROOM,
         p: symbol,
       },
     ]);
+    return true;
   }
 
-  unsubscribeGlobalUpdatesBySymbol(symbol: MarketSymbol) {
+  unsubscribeGlobalUpdatesBySymbol(symbol: MarketSymbol): boolean {
+    if (!this.socketInstance) return false;
     this.socketInstance.emit("UNSUBSCRIBE", [
       {
         e: SOCKET_EVENTS.GLOBAL_UPDATES_ROOM,
         p: symbol,
       },
     ]);
+    return true;
   }
 
-  subscribeUserUpdateByAddress(ethAddress: address) {
+  subscribeUserUpdateByAddress(ethAddress: address): boolean {
+    if (!this.socketInstance) return false;
     this.socketInstance.emit("SUBSCRIBE", [
       {
         e: SOCKET_EVENTS.UserUpdatesRoom,
         u: ethAddress.toLowerCase(),
       },
     ]);
+    return true;
   }
 
-  unsubscribeUserUpdateByAddress(ethAddress: address) {
+  unsubscribeUserUpdateByAddress(ethAddress: address): boolean {
+    if (!this.socketInstance) return false;
     this.socketInstance.emit("UNSUBSCRIBE", [
       {
         e: SOCKET_EVENTS.UserUpdatesRoom,
         u: ethAddress.toLowerCase(),
       },
     ]);
+    return true;
   }
 
   // Emitted when any price bin on the oderbook is updated.
