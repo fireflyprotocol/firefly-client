@@ -213,9 +213,8 @@ export class FireflyClient {
    * Transfers usdt from MarginBank, back to usdt contract
    * @param amount (optional) if not provided, transfers all available usdt tokens
    * from Margin Bank to usdt contract
-   * @param usdtContract (optional) address of usdt contract
    * @param mbContract (address) address of Margin Bank contract
-   * @returns boolean true if funds are transferred, false otherwise
+   * @returns boolean true if funds are withdrawn, false otherwise
    */
   async withdrawFromMarginBank(
     amount?: number,
