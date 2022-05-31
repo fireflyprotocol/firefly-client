@@ -144,7 +144,7 @@ export class FireflyClient {
   }
 
   /**
-   * Returns the USDC Balance(Free Collateral) of the account in Margin Bank contract
+   * Returns the usdt Balance(Free Collateral) of the account in Margin Bank contract
    * @param contract (optional) address of Margin Bank contract
    * @returns Number representing balance of user
    */
@@ -165,7 +165,7 @@ export class FireflyClient {
    */
   async mintTestUSDT(contract?: address): Promise<boolean> {
     const tokenContract = this.getContract("USDTToken", contract);
-    // mint 10K USDC token
+    // mint 10K usdt token
     await (
       await (tokenContract as Contract)
         .connect(this.wallet)
@@ -176,30 +176,30 @@ export class FireflyClient {
   }
 
   /**
-   * Transfers USDC to margin bank to be used for placing orders and opening
+   * Transfers usdt to margin bank to be used for placing orders and opening
    * positions on Firefly Exchange
-   * @param amount the number of USDC to be transferred
-   * @param usdcContract (optional) address of USDC contract
+   * @param amount the number of usdt to be transferred
+   * @param usdtContract (optional) address of usdt contract
    * @param mbContract (address) address of Margin Bank contract
    * @returns boolean true if funds are transferred, false otherwise
    */
   async depositToMarginBank(
     amount: number,
-    usdcContract?: address,
+    usdtContract?: address,
     mbContract?: address
   ): Promise<boolean> {
-    const tokenContract = this.getContract("USDTToken", usdcContract);
+    const tokenContract = this.getContract("USDTToken", usdtContract);
     const marginBankContract = this.getContract("MarginBank", mbContract);
     const amountString = toBigNumberStr(amount);
 
-    // approve usdc contract to allow margin bank to take funds out for user's behalf
+    // approve usdt contract to allow margin bank to take funds out for user's behalf
     await (
       await (tokenContract as Contract)
         .connect(this.wallet)
         .approve((marginBankContract as MarginBank).address, amountString, {})
     ).wait();
 
-    // deposit `amount` usdc to margin bank
+    // deposit `amount` usdt to margin bank
     await (
       await (marginBankContract as MarginBank)
         .connect(this.wallet)
@@ -210,10 +210,10 @@ export class FireflyClient {
   }
 
   /**
-   * Transfers USDC from MarginBank, back to USDC contract
-   * @param amount (optional) if not provided, transfers all available USDC tokens
-   * from Margin Bank to USDC contract
-   * @param usdcContract (optional) address of USDC contract
+   * Transfers usdt from MarginBank, back to usdt contract
+   * @param amount (optional) if not provided, transfers all available usdt tokens
+   * from Margin Bank to usdt contract
+   * @param usdtContract (optional) address of usdt contract
    * @param mbContract (address) address of Margin Bank contract
    * @returns boolean true if funds are transferred, false otherwise
    */
@@ -569,7 +569,7 @@ export class FireflyClient {
   //= ==============================================================//
 
   /**
-   * Private function to return a global(Test USDC Token / Margin Bank) contract
+   * Private function to return a global(Test usdt Token / Margin Bank) contract
    * @param contract address of contract
    * @returns Contract | MarginBank or throws error
    */
