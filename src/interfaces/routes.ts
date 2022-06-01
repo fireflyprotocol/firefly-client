@@ -99,7 +99,7 @@ export interface PlaceOrderResponse {
   price: string;
   quantity: string;
   leverage: string;
-  reduceOnly: true;
+  reduceOnly: boolean;
   expiration: number;
   salt: number;
   orderSignature: string;
