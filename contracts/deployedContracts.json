@@ -1,0 +1,91 @@
+{
+    "1297": {
+        "USDTToken": {
+            "address": "0x57AB85a85f75fb4E9d2Ee85a28913F2DEe9aD283"
+        },
+        "MarginBank": {
+            "address": "0xbDd8210d4F74fC97d4E93950a1FF201fe425C68f",
+            "transactionHash": "0xfb5d27a275c61610373facf07d37aee3c470f5937e937ab4d84cafc994cfacf8"
+        },
+        "DOT-PERP": {
+            "Test_Funder": {
+                "links": {},
+                "address": "0xf57AAAb54304969F71A63C911B40b137b46Da817",
+                "transactionHash": "0xbdcb840a48566718b776c34314bf1d51b1844f153e9fa53a8aaf3bee62fa6d36",
+                "type": "Test"
+            },
+            "Test_Trader": {
+                "links": {},
+                "address": "0xFDDc8FAcc21Ca0b7cf20B5adC7ED238010176f5c",
+                "transactionHash": "0x85e7f0e561949ac590332b835ec95569ba481b4b5a8637e1384618787a237b18",
+                "type": "Test"
+            },
+            "Test_Token": {
+                "links": {},
+                "address": "0x57AB85a85f75fb4E9d2Ee85a28913F2DEe9aD283",
+                "transactionHash": "0x1ba9958a110e6550a59b698864c2e77214a4be1ee53793ceda3a7cd845609a5e",
+                "type": "Test"
+            },
+            "Test_TradeInfo": {
+                "links": {},
+                "address": "0x46ABa007B8c0ff7Da3132b52b81d2C15D2e8E815",
+                "transactionHash": "0xb8759b6ab413290ea63a7682d5faf3b1f8843c8f296d3696746c8b30b1edd46c",
+                "type": "Test"
+            },
+            "FreedCollateral": {
+                "links": {},
+                "address": "0xd2F3b4b20ef0B1F20fAd2CF9D254950ce1D17632",
+                "transactionHash": "0xcd21fe2fb5605d76f90f5dfd8fe5c790f624c7bc5d3b2234eda1e245f4ec86a6",
+                "type": "Lib"
+            },
+            "PerpetualV1": {
+                "links": {},
+                "address": "0xB23Fa8079fcE0f40b0344B6e0A27C7C79B66568B",
+                "transactionHash": "0xb89e7976e62f4c405f72faa0effb77fa10c47979fbd84521c0c749eaecf5e21f",
+                "type": "Base"
+            },
+            "PerpetualProxy": {
+                "links": {},
+                "address": "0x52d92ebBe4122d8Ed5394819d302AD234001D2C7",
+                "transactionHash": "0xd860a1afdbf0c38d630ea5176ae1568ee16cea49427d663fccc971321c4e4355",
+                "type": "BaseProxy"
+            },
+            "PriceOracle": {
+                "links": {},
+                "address": "0x6AFE95293ac120Efedf56D69388Dc6e75d9434fa",
+                "transactionHash": "0x1db4a66804d77e536531271a80077870fb13c330970abe2327d9be1198ffa133",
+                "type": "Base"
+            },
+            "FundingOracle": {
+                "links": {},
+                "address": "0x4D3f855B80192909E87591Fa49bEd3c2b8E303a3",
+                "transactionHash": "0x299f23f74f1deec8a1aab087a392e32b137069efc947e8796eba14b6609ef8fd",
+                "type": "Oracle"
+            },
+            "InverseFundingOracle": {
+                "links": {},
+                "address": "0x3Ef705B37C92702deDA78479FA2715573238DCA2",
+                "transactionHash": "0xdd1195a0c0e3577f53a567a068745282978c96f8db57b9cd7134157f2751d9e9",
+                "type": "Oracle"
+            },
+            "Orders": {
+                "links": {},
+                "address": "0x36AAc8c385E5FA42F6A7F62Ee91b5C2D813C451C",
+                "transactionHash": "0x07921206bda9dc074f8b51264222bfc1796ceec8a5a34c7cae3f90c4458c3d24",
+                "type": "Trader"
+            },
+            "Liquidation": {
+                "links": {},
+                "address": "0xb2a87564B2D7961881e7BCa34f283336B511C794",
+                "transactionHash": "0x72a193e5cbaff199c3f35d9de2abba71074ce3bafb3e3a2eba9ef396bddb382b",
+                "type": "Trader"
+            },
+            "LiquidatorProxy": {
+                "links": {},
+                "address": "0x0c3Ea99D4EC973F3415338ada2e76C96F2671Fa7",
+                "transactionHash": "0xb58bfc5f1efd4f594921df43570b4206012d54967337b006ba59c26709a72178",
+                "type": "TraderProxy"
+            }
+        }
+    }
+}

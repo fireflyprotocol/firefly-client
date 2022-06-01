@@ -1,0 +1,56 @@
+{
+  "name": "ffly-client",
+  "version": "1.0.0",
+  "description": "Firefly client library for creating signed orders and placing on exchange",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "lint": "npx eslint src/*/** --fix",
+    "test": "ts-mocha --timeout 100000 tests/*.test.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fireflyprotocol/ffly-client.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fireflyprotocol/ffly-client/issues"
+  },
+  "homepage": "https://github.com/fireflyprotocol/ffly-client#readme",
+  "devDependencies": {
+    "@types/chai-as-promised": "^7.1.5",
+    "@types/es6-promisify": "^6.0.1",
+    "@types/lodash": "^4.14.182",
+    "@types/node": "^17.0.36",
+    "@typescript-eslint/eslint-plugin": "^5.23.0",
+    "@typescript-eslint/parser": "^5.23.0",
+    "@types/chai": "^4.3.0",
+    "@types/expect": "^24.3.0",
+    "@types/mocha": "^9.1.0",
+    "eslint": "^8.16.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-import-resolver-node": "^0.3.6",
+    "eslint-plugin-import": "^2.25.2",
+    "eslint-plugin-prettier": "^4.0.0",
+    "prettier": "^2.6.2"
+  },
+  "dependencies": {
+   
+    "axios": "^0.27.2",
+    "bignumber.js": "^9.0.2",
+    "chai": "^4.3.6",
+    "chai-as-promised": "^7.1.1",
+    "es6-promisify": "^7.0.0",
+    "ethers": "^5.6.5",
+    "lodash": "^4.17.21",
+    "mocha": "^10.0.0",
+    "socket.io-client": "^4.5.1",
+    "ts-mocha": "^9.0.2",
+    "typescript": "^4.6.4",
+    "web3": "^1.7.3",
+    "web3-core": "^1.7.3",
+    "web3-core-helpers": "^1.7.3"
+  }
+}
