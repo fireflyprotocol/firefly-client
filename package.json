@@ -1,8 +1,8 @@
 {
   "name": "firefly-client",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Firefly client library for creating signed orders and placing on exchange",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
     "lint": "npx eslint src/*/** --fix",
@@ -52,5 +52,13 @@
     "web3": "^1.7.3",
     "web3-core": "^1.7.3",
     "web3-core-helpers": "^1.7.3"
-  }
+  },
+  "keywords": [
+    "client",
+    "library",
+    "firefly",
+    "exchange",
+    "decentralized",
+    "orderbook"
+  ]
 }

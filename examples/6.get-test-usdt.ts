@@ -3,7 +3,7 @@
  */
 
 /* eslint-disable no-console */
-import { Networks, FireflyClient, bnStrToBaseNumber } from "../src/index";
+import { Networks, FireflyClient, bnStrToBaseNumber } from "../index";
 
 async function main() {
   // ensure that account has enough BOBA/MOVR tokens to perform on-chain USDT.mint() call

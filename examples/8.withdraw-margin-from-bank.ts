@@ -4,7 +4,7 @@
  */
 
 /* eslint-disable no-console */
-import { Networks, FireflyClient } from "../src/index";
+import { Networks, FireflyClient } from "../index";
 
 async function main() {
   // ensure that account has enough BOBA/MOVR tokens to perform on-chain contract call
