@@ -71,7 +71,7 @@ export interface OrderSignatureResponse extends RequiredOrderFields {
   reduceOnly: boolean;
   salt: number;
   expiration: number;
-  orderSignatrue: string;
+  orderSignature: string;
 }
 
 export interface PlaceOrderRequest extends OrderSignatureResponse {

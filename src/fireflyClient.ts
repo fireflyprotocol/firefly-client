@@ -277,7 +277,7 @@ export class FireflyClient {
       reduceOnly: order.isDecreaseOnly,
       salt: order.salt.toNumber(),
       expiration: order.expiration.toNumber(),
-      orderSignatrue: signedOrder.typedSignature,
+      orderSignature: signedOrder.typedSignature,
     };
   }
 
@@ -300,7 +300,7 @@ export class FireflyClient {
         reduceOnly: params.reduceOnly,
         salt: params.salt,
         expiration: params.expiration,
-        orderSignature: params.orderSignatrue,
+        orderSignature: params.orderSignature,
         timeInForce: params.timeInForce || TIME_IN_FORCE.GOOD_TILL_CANCEL,
         postOnly: params.postOnly || false,
       }
