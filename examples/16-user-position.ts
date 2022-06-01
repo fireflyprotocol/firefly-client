@@ -3,7 +3,7 @@
  */
 
 /* eslint-disable no-console */
-import { Networks, FireflyClient, MARKET_SYMBOLS } from "../src/index";
+import { Networks, FireflyClient, MARKET_SYMBOLS } from "../index";
 
 async function main() {
   const dummyAccountKey =

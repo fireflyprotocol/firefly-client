@@ -3,12 +3,7 @@
  */
 
 /* eslint-disable no-console */
-import {
-  Networks,
-  FireflyClient,
-  MARKET_SYMBOLS,
-  ORDER_SIDE,
-} from "../src/index";
+import { Networks, FireflyClient, MARKET_SYMBOLS, ORDER_SIDE } from "../index";
 
 async function main() {
   // no gas fee is required to create order signature.

@@ -3,7 +3,7 @@
  */
 
 /* eslint-disable no-console */
-import { Networks, Network, FireflyClient } from "../src/index";
+import { Networks, Network, FireflyClient } from "../index";
 
 async function main() {
   const dummyAccountKey =

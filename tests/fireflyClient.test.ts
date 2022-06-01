@@ -15,7 +15,7 @@ import {
   GetPositionResponse,
   GetUserTradesResponse,
   GetAccountDataResponse,
-} from "../src/index";
+} from "../index";
 
 chai.use(chaiAsPromised);
 

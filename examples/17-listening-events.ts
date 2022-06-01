@@ -9,7 +9,7 @@ import {
   MARKET_SYMBOLS,
   ORDER_SIDE,
   PlaceOrderResponse,
-} from "../src/index";
+} from "../index";
 
 async function main() {
   // no gas fee is required to create order signature.
