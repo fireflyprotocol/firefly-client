@@ -11,35 +11,6 @@ import {
   Interval,
 } from "../types";
 
-export interface GetOrderResponse {
-  id: number;
-  clientId: string;
-  symbol: MarketSymbol;
-  userAddress: address;
-  hash: string;
-
-  price: string;
-  quantity: string;
-  filledQty: string;
-  avgFillPrice: string;
-  leverage: string;
-  fee: string;
-  side: ORDER_SIDE;
-  reduceOnly: boolean;
-  orderType: ORDER_TYPE;
-  timeInForce: TIME_IN_FORCE;
-  orderStatus: ORDER_STATUS;
-  cancelReason: CANCEL_REASON;
-  postOnly: boolean;
-
-  salt: number;
-  expiration: number;
-  updatedAt: number;
-  createdAt: number;
-
-  cancelling?: boolean;
-}
-
 export interface GetTransactionHistoryRequest {
   symbol?: MarketSymbol; // will fetch orders of provided market
   pageSize?: number; // will get only provided number of orders must be <= 50
@@ -84,17 +55,17 @@ export interface PostOrderRequest extends OrderSignatureRequest {
   postOnly?: boolean;
 }
 
-export interface PlaceOrderResponse {
+interface OrderResponse {
   id: number;
   clientId: string;
   requestTime: number;
-  cancelReason: string;
+  cancelReason: CANCEL_REASON;
   orderStatus: ORDER_STATUS;
   hash: string;
   symbol: MarketSymbol;
   orderType: ORDER_TYPE;
   timeInForce: TIME_IN_FORCE;
-  userAddress: string;
+  userAddress: address;
   side: ORDER_SIDE;
   price: string;
   quantity: string;
@@ -105,11 +76,20 @@ export interface PlaceOrderResponse {
   orderSignature: string;
   filledQty: string;
   avgFillPrice: string;
-  amountLeft: string;
-  makerFee: string;
-  takerFee: string;
   createdAt: number;
   updatedAt: number;
+}
+
+export interface GetOrderResponse extends OrderResponse {
+  fee: string;
+  postOnly: boolean;
+  cancelling?: boolean;
+}
+
+export interface PlaceOrderResponse extends OrderResponse {
+  makerFee: string;
+  takerFee: string;
+  amountLeft: string;
 }
 
 export interface OrderCancelSignatureRequest {
