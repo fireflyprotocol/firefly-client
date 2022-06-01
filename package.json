@@ -1,5 +1,5 @@
 {
-  "name": "ffly-client",
+  "name": "firefly-client",
   "version": "1.0.0",
   "description": "Firefly client library for creating signed orders and placing on exchange",
   "main": "index.js",
