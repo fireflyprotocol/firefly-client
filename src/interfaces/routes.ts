@@ -25,7 +25,7 @@ export interface GetOrderResponse {
   leverage: string;
   fee: string;
   side: ORDER_SIDE;
-  reduceOnly: false;
+  reduceOnly: boolean;
   orderType: ORDER_TYPE;
   timeInForce: TIME_IN_FORCE;
   orderStatus: ORDER_STATUS;
