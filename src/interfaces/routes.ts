@@ -84,7 +84,7 @@ export interface PostOrderRequest extends OrderSignatureRequest {
   postOnly?: boolean;
 }
 
-export type PlaceOrderResponse = {
+export interface PlaceOrderResponse {
   id: number;
   clientId: string;
   requestTime: number;
@@ -110,7 +110,7 @@ export type PlaceOrderResponse = {
   takerFee: string;
   createdAt: number;
   updatedAt: number;
-};
+}
 
 export interface OrderCancelSignatureRequest {
   symbol: MarketSymbol;
