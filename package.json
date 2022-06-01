@@ -60,8 +60,5 @@
     "exchange",
     "decentralized",
     "orderbook"
-  ],
-  "publishConfig": {
-    "access": "public"
-  }
+  ]
 }
