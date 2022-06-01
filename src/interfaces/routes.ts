@@ -202,18 +202,8 @@ export interface GetAccountDataResponse {
   updateTime: number;
 }
 
-export interface GetUserTransactionHistoryResponse {
-  id: number;
-  symbol: MarketSymbol;
-  commission: string;
-  commissionAsset: string;
-  maker: boolean;
-  side: ORDER_SIDE;
-  price: string;
-  quantity: string;
-  quoteQty: string;
-  realizedPnl: string;
-  time: number;
+export interface GetUserTransactionHistoryResponse
+  extends GetUserTradesResponse {
   orderHash: string;
   traderType: string;
 }
