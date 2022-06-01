@@ -375,6 +375,26 @@ export class FireflyClient {
   }
 
   /**
+   * Cancels all open orders for a given market
+   * @param symbol DOT-PERP, market symbol
+   * @returns cancellation response
+   */
+  async cancelAllOpenOrders(symbol: MarketSymbol) {
+    const openOrders = await this.getUserOrders({
+      symbol,
+      statuses: ORDER_STATUS.OPEN,
+    });
+
+    const hashes = (await openOrders.data?.map(
+      (order) => order.hash
+    )) as string[];
+
+    const response = await this.postCancelOrder({ hashes, symbol });
+
+    return response;
+  }
+
+  /**
    * Gets Orders placed by the user. Returns the first 50 orders by default.
    * @param params of type OrderRequest,
    * @returns OrderResponse array
@@ -400,26 +420,6 @@ export class FireflyClient {
       SERVICE_URLS.USER.USER_POSITIONS,
       { ...params, userAddress: this.getPublicAddress() }
     );
-    return response;
-  }
-
-  /**
-   * Cancels all open orders for a given market
-   * @param symbol DOT-PERP, market symbol
-   * @returns cancellation response
-   */
-  async cancelAllOpenOrders(symbol: MarketSymbol) {
-    const openOrders = await this.getUserOrders({
-      symbol,
-      statuses: ORDER_STATUS.OPEN,
-    });
-
-    const hashes = (await openOrders.data?.map(
-      (order) => order.hash
-    )) as string[];
-
-    const response = await this.postCancelOrder({ hashes, symbol });
-
     return response;
   }
 
