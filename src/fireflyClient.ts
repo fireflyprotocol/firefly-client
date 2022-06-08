@@ -1,22 +1,12 @@
 import Web3 from "web3";
 
 import { Contract, Wallet, providers } from "ethers";
-import * as contracts from "../contracts/deployedContracts.json";
-import * as USDTToken from "../contracts/usdtToken.json";
-import {
-  MarginBank__factory,
-  Orders__factory,
-  MarginBank,
-  Orders,
-} from "../contracts/orderbook";
+
 import {
   toBigNumberStr,
   bnToString,
   bigNumber,
   toBigNumber,
-} from "./helpers/utils";
-
-import {
   ORDER_SIDE,
   ORDER_TYPE,
   TIME_IN_FORCE,
@@ -25,15 +15,22 @@ import {
   address,
   DAPIKlineResponse,
   ORDER_STATUS,
-} from "./types";
+  Price,
+  Fee,
+  Network,
+  SignedOrder,
+  Order,
+  OrderSigner,
+} from "@firefly-exchange/library";
 
-import { Price, Fee } from "./signer/baseValue";
-
-import { Network } from "./interfaces/on-chain";
-
-import { SignedOrder, Order } from "./interfaces/order";
-
-import { OrderSigner } from "./signer/orderSigner";
+import {
+  MarginBank__factory,
+  Orders__factory,
+  MarginBank,
+  Orders,
+} from "../contracts/orderbook";
+import * as USDTToken from "../contracts/usdtToken.json";
+import * as contracts from "../contracts/deployedContracts.json";
 
 import {
   GetOrderResponse,
@@ -225,8 +222,8 @@ export class FireflyClient {
     const amountString = amount
       ? toBigNumberStr(amount)
       : await this.getMarginBankBalance(
-          (marginBankContract as MarginBank).address
-        );
+        (marginBankContract as MarginBank).address
+      );
 
     await (
       await (marginBankContract as MarginBank)

@@ -9,7 +9,7 @@ import {
   CANCEL_REASON,
   MARKET_STATUS,
   Interval,
-} from "../types";
+} from "@firefly-exchange/library";
 
 export interface GetTransactionHistoryRequest {
   symbol?: MarketSymbol; // will fetch orders of provided market
@@ -21,7 +21,7 @@ export interface GetOrderRequest extends GetTransactionHistoryRequest {
   statuses: ORDER_STATUS; // status of orders to be fetched
 }
 
-export interface GetPositionRequest extends GetTransactionHistoryRequest {}
+export interface GetPositionRequest extends GetTransactionHistoryRequest { }
 
 export interface RequiredOrderFields {
   symbol: MarketSymbol; // market for which to create order
