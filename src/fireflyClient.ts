@@ -1,14 +1,6 @@
 import Web3 from "web3";
 
 import { Contract, Wallet, providers } from "ethers";
-import * as contracts from "../contracts/deployedContracts.json";
-import * as USDTToken from "../contracts/usdtToken.json";
-import {
-  MarginBank__factory,
-  Orders__factory,
-  MarginBank,
-  Orders,
-} from "../contracts/orderbook";
 
 import {
   toBigNumberStr,
@@ -23,16 +15,22 @@ import {
   address,
   DAPIKlineResponse,
   ORDER_STATUS,
+  Price,
+  Fee,
+  Network,
+  SignedOrder,
+  Order,
+  OrderSigner,
 } from "@firefly-exchange/library";
 
-
-import { Price, Fee } from "@firefly-exchange/library";
-
-import { Network } from "@firefly-exchange/library";
-
-import { SignedOrder, Order } from "@firefly-exchange/library";
-
-import { OrderSigner } from "@firefly-exchange/library";
+import {
+  MarginBank__factory,
+  Orders__factory,
+  MarginBank,
+  Orders,
+} from "../contracts/orderbook";
+import * as USDTToken from "../contracts/usdtToken.json";
+import * as contracts from "../contracts/deployedContracts.json";
 
 import {
   GetOrderResponse,
