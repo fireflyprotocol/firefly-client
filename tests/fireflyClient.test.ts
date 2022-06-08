@@ -112,7 +112,7 @@ describe("FireflyClient", () => {
       expect(await client.withdrawFromMarginBank(1)).to.be.equal(true);
     });
 
-    it.only("should move all USDC token from Margin Bank", async () => {
+    it("should move all USDC token from Margin Bank", async () => {
       expect(await client.withdrawFromMarginBank()).to.be.equal(true);
       expect(await client.getMarginBankBalance()).to.be.eql("0");
     });
