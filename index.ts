@@ -13,6 +13,3 @@ export * from "./src/fireflyClient";
 
 // constants
 export * from "./src/constants";
-
-// contracts
-export * from "./contracts/orderbook";

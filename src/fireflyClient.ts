@@ -21,16 +21,11 @@ import {
   SignedOrder,
   Order,
   OrderSigner,
+  contracts_exchange,
+  USDT_ABI,
 } from "@firefly-exchange/library";
 
-import {
-  MarginBank__factory,
-  Orders__factory,
-  MarginBank,
-  Orders,
-} from "../contracts/orderbook";
-import * as USDTToken from "../contracts/usdtToken.json";
-import * as contracts from "../contracts/deployedContracts.json";
+import * as contracts from "../deployedContracts.json";
 
 import {
   GetOrderResponse,
@@ -147,7 +142,7 @@ export class FireflyClient {
    */
   async getMarginBankBalance(contract?: address): Promise<string> {
     const marginBankContract = this.getContract("MarginBank", contract);
-    const balance = await (marginBankContract as MarginBank)
+    const balance = await (marginBankContract as contracts_exchange.MarginBank)
       .connect(this.wallet)
       .getAccountBankBalance(this.wallet.address);
 
@@ -193,12 +188,16 @@ export class FireflyClient {
     await (
       await (tokenContract as Contract)
         .connect(this.wallet)
-        .approve((marginBankContract as MarginBank).address, amountString, {})
+        .approve(
+          (marginBankContract as contracts_exchange.MarginBank).address,
+          amountString,
+          {}
+        )
     ).wait();
 
     // deposit `amount` usdt to margin bank
     await (
-      await (marginBankContract as MarginBank)
+      await (marginBankContract as contracts_exchange.MarginBank)
         .connect(this.wallet)
         .depositToBank(this.wallet.address, amountString, {})
     ).wait();
@@ -222,11 +221,11 @@ export class FireflyClient {
     const amountString = amount
       ? toBigNumberStr(amount)
       : await this.getMarginBankBalance(
-        (marginBankContract as MarginBank).address
+        (marginBankContract as contracts_exchange.MarginBank).address
       );
 
     await (
-      await (marginBankContract as MarginBank)
+      await (marginBankContract as contracts_exchange.MarginBank)
         .connect(this.wallet)
         .withdrawFromBank(
           this.wallet.address,
@@ -573,7 +572,7 @@ export class FireflyClient {
     contractName: string,
     contract?: address,
     market?: MarketSymbol
-  ): Contract | MarginBank | Orders {
+  ): Contract | contracts_exchange.MarginBank | contracts_exchange.Orders {
     // if a market name is provided and contract address is not provided
     if (market && !contract) {
       try {
@@ -603,15 +602,15 @@ export class FireflyClient {
 
     switch (contractName) {
       case "USDTToken":
-        return new Contract(contract, USDTToken.abi);
+        return new Contract(contract, USDT_ABI.abi);
       case "MarginBank":
-        const marginBankFactory = new MarginBank__factory();
+        const marginBankFactory = new contracts_exchange.MarginBank__factory();
         const marginBank = marginBankFactory.attach(contract);
-        return marginBank as any as MarginBank;
+        return marginBank as any as contracts_exchange.MarginBank;
       case "Orders":
-        const ordersFactory = new Orders__factory();
+        const ordersFactory = new contracts_exchange.Orders__factory();
         const orders = ordersFactory.attach(contract);
-        return orders as any as Orders;
+        return orders as any as contracts_exchange.Orders;
       default:
         throw Error(`Unknown contract name received: ${contractName}`);
     }
