@@ -9,14 +9,12 @@ import {
   MarginBank,
   Orders,
 } from "../contracts/orderbook";
+
 import {
   toBigNumberStr,
   bnToString,
   bigNumber,
   toBigNumber,
-} from "./helpers/utils";
-
-import {
   ORDER_SIDE,
   ORDER_TYPE,
   TIME_IN_FORCE,
@@ -25,15 +23,16 @@ import {
   address,
   DAPIKlineResponse,
   ORDER_STATUS,
-} from "./types";
+} from "@firefly-exchange/library";
 
-import { Price, Fee } from "./signer/baseValue";
 
-import { Network } from "./interfaces/on-chain";
+import { Price, Fee } from "@firefly-exchange/library";
 
-import { SignedOrder, Order } from "./interfaces/order";
+import { Network } from "@firefly-exchange/library";
 
-import { OrderSigner } from "./signer/orderSigner";
+import { SignedOrder, Order } from "@firefly-exchange/library";
+
+import { OrderSigner } from "@firefly-exchange/library";
 
 import {
   GetOrderResponse,
@@ -225,8 +224,8 @@ export class FireflyClient {
     const amountString = amount
       ? toBigNumberStr(amount)
       : await this.getMarginBankBalance(
-          (marginBankContract as MarginBank).address
-        );
+        (marginBankContract as MarginBank).address
+      );
 
     await (
       await (marginBankContract as MarginBank)

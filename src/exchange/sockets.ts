@@ -6,7 +6,8 @@ import {
   MarketSymbol,
   SOCKET_EVENTS,
   MARKET_STATUS,
-} from "../types";
+} from "@firefly-exchange/library";
+
 import {
   GetMarketRecentTradesResponse,
   PlaceOrderResponse,

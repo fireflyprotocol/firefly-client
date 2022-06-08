@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosInstance } from "axios";
-import { getValue, isEmpty } from "../helpers/utils";
+import { getValue, isEmpty } from "@firefly-exchange/library";
 
 export class APIService {
   private apiService: AxiosInstance;
