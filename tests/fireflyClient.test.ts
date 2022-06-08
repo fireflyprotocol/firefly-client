@@ -4,12 +4,15 @@ import chaiAsPromised from "chai-as-promised";
 import { setTimeout } from "timers/promises";
 
 import {
-  Networks,
   MARKET_SYMBOLS,
   ORDER_STATUS,
-  FireflyClient,
-  bnStrToBaseNumber,
   ORDER_SIDE,
+  bnStrToBaseNumber,
+} from "@firefly-exchange/library";
+
+import {
+  Networks,
+  FireflyClient,
   PlaceOrderResponse,
   GetMarketRecentTradesResponse,
   GetPositionResponse,
