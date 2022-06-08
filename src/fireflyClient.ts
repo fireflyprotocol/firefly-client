@@ -25,7 +25,7 @@ import {
   USDT_ABI,
 } from "@firefly-exchange/library";
 
-import * as contracts from "../deployedContracts.json";
+import * as contractAddresses from "../deployedContracts.json";
 
 import {
   GetOrderResponse,
@@ -576,7 +576,7 @@ export class FireflyClient {
     // if a market name is provided and contract address is not provided
     if (market && !contract) {
       try {
-        contract = (contracts as any)[this.network.chainId][market][
+        contract = (contractAddresses as any)[this.network.chainId][market][
           contractName
         ].address;
       } catch (e) {
@@ -587,8 +587,9 @@ export class FireflyClient {
     // if contract address is not provided and also market name is not provided
     if (!market && !contract) {
       try {
-        contract = (contracts as any)[this.network.chainId][contractName]
-          .address;
+        contract = (contractAddresses as any)[this.network.chainId][
+          contractName
+        ].address;
       } catch (e) {
         contract = "";
       }
