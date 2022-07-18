@@ -5,4 +5,10 @@ export const Networks = {
     apiGateway: "https://dapi-testnet.firefly.exchange",
     socketURL: "wss://dapi-testnet.firefly.exchange",
   },
+  DEV: {
+    url: "https://l2-dev.firefly.exchange/",
+    chainId: 78602,
+    apiGateway: "https://dev.firefly.exchange/",
+    socketURL: "wss://dev.firefly.exchange/"
+  }
 };
