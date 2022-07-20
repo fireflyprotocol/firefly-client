@@ -18,7 +18,7 @@ export interface GetTransactionHistoryRequest {
 }
 
 export interface GetOrderRequest extends GetTransactionHistoryRequest {
-  statuses: ORDER_STATUS; // status of orders to be fetched
+  status: ORDER_STATUS; // status of orders to be fetched
 }
 
 export interface GetPositionRequest extends GetTransactionHistoryRequest { }

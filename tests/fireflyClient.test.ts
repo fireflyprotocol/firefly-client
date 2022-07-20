@@ -31,7 +31,7 @@ const testAcctKey =
   "52925ece7d545f78b11302e11da1a87e65a258eb873a4e2436c78af7132b8764";
 const testAcctPubAddr = "0x6b76ecDd2DedA1168953dF17dC68470714a7D12B";
 
-//clean account
+//clean account with no orders and positions
 // const testAcctKey =
 //   "a694d91ed5a8374abce1f1f0b2a4d31d72bc199ef3080896fbda8846296570a8";
 // const testAcctPubAddr = "0x7dDC793acFca34dA0f7aDfC023200F1283b04F86";
@@ -61,7 +61,7 @@ describe("FireflyClient", () => {
     });
 
     it("should add DOT-PERP market with custom orders contract address", async () => {
-      expect(
+      expect( 
         client.addMarket(
           MARKET_SYMBOLS.DOT,
           "0x36AAc8c385E5FA42F6A7F62Ee91b5C2D813C451C"
@@ -288,7 +288,7 @@ describe("FireflyClient", () => {
 
       const openOrders = await client.getUserOrders({
         symbol: MARKET_SYMBOLS.DOT,
-        statuses: ORDER_STATUS.OPEN,
+        status: ORDER_STATUS.OPEN,
       });
 
       expect(openOrders.response.data.length).to.be.equal(0);
@@ -298,7 +298,7 @@ describe("FireflyClient", () => {
   describe("Get User Orders", () => {
     it("should get all open orders", async () => {
       const data = await client.getUserOrders({
-        statuses: ORDER_STATUS.OPEN,
+        status: ORDER_STATUS.OPEN,
         symbol: MARKET_SYMBOLS.DOT,
       });
       expect(data.ok).to.be.equals(true);
@@ -307,7 +307,7 @@ describe("FireflyClient", () => {
 
     it("should get all cancelled orders", async () => {
       const data = await client.getUserOrders({
-        statuses: ORDER_STATUS.CANCELLED,
+        status: ORDER_STATUS.CANCELLED,
         symbol: MARKET_SYMBOLS.DOT,
       });
       expect(data.response.data.length).to.be.greaterThanOrEqual(2);
@@ -315,7 +315,7 @@ describe("FireflyClient", () => {
 
     it("should get 1 cancelled orders", async () => {
       const data = await client.getUserOrders({
-        statuses: ORDER_STATUS.CANCELLED,
+        status: ORDER_STATUS.CANCELLED,
         symbol: MARKET_SYMBOLS.DOT,
         pageSize: 1,
       });
@@ -324,7 +324,7 @@ describe("FireflyClient", () => {
 
     it("should get 0 expired orders as page 10 does not exist for expired orders", async () => {
       const data = await client.getUserOrders({
-        statuses: ORDER_STATUS.EXPIRED,
+        status: ORDER_STATUS.EXPIRED,
         symbol: MARKET_SYMBOLS.DOT,
         pageNumber: 10,
       });

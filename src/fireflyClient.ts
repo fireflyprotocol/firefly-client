@@ -81,6 +81,7 @@ export class FireflyClient {
    */
   constructor(_network: Network, _acctPvtKey: string) {
     this.network = _network;
+
     this.web3 = new Web3(_network.url);
     this.web3.eth.accounts.wallet.add(_acctPvtKey);
     this.wallet = new Wallet(
@@ -383,7 +384,7 @@ export class FireflyClient {
   async cancelAllOpenOrders(symbol: MarketSymbol) {
     const openOrders = await this.getUserOrders({
       symbol,
-      statuses: ORDER_STATUS.OPEN,
+      status: ORDER_STATUS.OPEN,
     });
 
     const hashes = (await openOrders.data?.map(
@@ -394,6 +395,15 @@ export class FireflyClient {
 
     return response;
   }
+
+  /**
+   * Updates user's leverage to given leverage
+   * @param symbol market symbol get information about
+   * @param leverage new leverage you want to change to
+   * @param mbContract (address) address of Margin Bank contract
+   * @param perpContract (address) address of Perpetual V1 contract
+   * @returns boolean indicating if leverage updated successfully
+   */
 
   async updateLeverage(
     symbol: string, 
@@ -407,7 +417,6 @@ export class FireflyClient {
         `User positions data doesn't exist`
       );
     }
-    console.log(userPosition.data);
     const position = userPosition.data as any as GetPositionResponse
     //if user position exists, make contract call to add or remove margin
     if (Object.keys(position).length > 0) { //TODO [BFLY-603]: this should be returned as array from dapi, remove this typecasting when done
@@ -451,7 +460,8 @@ export class FireflyClient {
                 new Web3().eth.abi.encodeParameter(
                   "bytes32",
                   Web3.utils.asciiToHex("UpdateSLeverage")
-                )
+                ),
+                // {gasLimit: 11_000_000}
               )
           ).wait();
         }
@@ -459,13 +469,13 @@ export class FireflyClient {
     }
     //make api call
     else {
-      console.log("no positions");
+      console.log("no positions MAKE API CALL");
       console.log(`res == lev: ${leverage}`);
     }
   }
 
   /**
-   * Gets Orders placed by the user. Returns the first 50 orders by default.
+   * Gets Users default leverage.
    * @param symbol market symbol get information about
    * @returns user default leverage
    */
