@@ -138,7 +138,7 @@ describe("FireflyClient", () => {
       expect(lev).to.equal(3) //default leverage of DOT on our exchange
     })
 
-    it("mk23should update leverage of user", async () => {
+    it.only("should update leverage of user", async () => {
       await client.updateLeverage(MARKET_SYMBOLS.DOT, 5)
     })
   })
