@@ -22,20 +22,15 @@ import {
 
 chai.use(chaiAsPromised);
 
-// const testAcctKey =
-//   "4d6c9531e0042cc8f7cf13d8c3cf77bfe239a8fed95e198d498ee1ec0b1a7e83";
-// const testAcctPubAddr = "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF";
-
 const testAcctKey =
-  "52925ece7d545f78b11302e11da1a87e65a258eb873a4e2436c78af7132b8764";
-const testAcctPubAddr = "0x6b76ecDd2DedA1168953dF17dC68470714a7D12B";
-
+  "4d6c9531e0042cc8f7cf13d8c3cf77bfe239a8fed95e198d498ee1ec0b1a7e83";
+const testAcctPubAddr = "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF";
 
 let client: FireflyClient;
 
 describe("FireflyClient", () => {
   beforeEach(() => {
-    client = new FireflyClient(Networks.DEV, testAcctKey);
+    client = new FireflyClient(Networks.TESTNET, testAcctKey);
   });
 
   afterEach(() => {
@@ -170,7 +165,7 @@ describe("FireflyClient", () => {
       expect(signedOrder.quantity).to.be.equal(0.1);
     });
 
-    it("mk1should place a LIMIT SELL order on exchange", async () => {
+    it("should place a LIMIT SELL order on exchange", async () => {
       const signedOrder = await client.createSignedOrder({
         symbol: MARKET_SYMBOLS.DOT,
         price: 11,
@@ -179,9 +174,7 @@ describe("FireflyClient", () => {
         leverage: 3
       });
 
-      const response = await client.placeSignedOrder({ ...signedOrder });
-      console.log(`res == ${JSON.stringify(response)}`);
-      
+      const response = await client.placeSignedOrder({ ...signedOrder });      
       expect(response.ok).to.be.equal(true);
     });
 

@@ -7,7 +7,6 @@ import {
   ORDER_TYPE,
   address,
   CANCEL_REASON,
-  MARKET_STATUS,
   Interval,
   OrderQuantityRules,
 } from "@firefly-exchange/library";
