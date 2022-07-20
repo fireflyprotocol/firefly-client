@@ -59,6 +59,7 @@ import {
 import { APIService } from "./exchange/apiService";
 import { SERVICE_URLS } from "./exchange/apiUrls";
 import { Sockets } from "./exchange/sockets";
+import { calcMargin } from "@firefly-exchange/firefly-math";
 
 export class FireflyClient {
   protected readonly network: Network;
@@ -394,6 +395,75 @@ export class FireflyClient {
     return response;
   }
 
+  async updateLeverage(
+    symbol: string, 
+    leverage: number, 
+    perpContract?: address,
+    mbContract?: address,
+    ) {
+    const userPosition = await this.getUserPosition({symbol: symbol})
+    if (!userPosition.data) {
+      throw Error(
+        `User positions data doesn't exist`
+      );
+    }
+    console.log(userPosition.data);
+    const position = userPosition.data as any as GetPositionResponse
+    //if user position exists, make contract call to add or remove margin
+    if (Object.keys(position).length > 0) { //TODO [BFLY-603]: this should be returned as array from dapi, remove this typecasting when done
+      const bnNewMargin = bigNumber(calcMargin(
+        position.quantity, 
+        position.avgEntryPrice, 
+        toBigNumber(leverage).toString()
+      ))
+      const bnCurrMargin = bigNumber(position.margin)
+      const marginToAdjust = bnCurrMargin.minus(bnNewMargin).abs().toFixed()
+      const isAdd = bnNewMargin.gt(bnCurrMargin);
+
+      console.log(`res == isAdd: ${isAdd}, ${bnStrToBaseNumber(marginToAdjust)}, ${marginToAdjust}`);
+
+      if (bigNumber(marginToAdjust).gt(bigNumber(0))) {
+        if (isAdd) {
+          const marginBankContract = this.getContract("MarginBank", mbContract, symbol);
+          await (
+            await (marginBankContract as contracts_exchange.MarginBank)
+              .connect(this.wallet)
+              .transferToPerpetual(
+                perpContract,
+                this.getPublicAddress(),
+                marginToAdjust,
+                new Web3().eth.abi.encodeParameter(
+                  "bytes32",
+                  Web3.utils.asciiToHex("UpdateSLeverage")
+                )
+              )
+          ).wait();
+        }
+        else {
+          const perpV1Contract = this.getContract("PerpetualV1", perpContract, symbol);
+          await (
+            await (perpV1Contract as contracts_exchange.PerpetualV1)
+              .connect(this.wallet)
+              .withdrawFromPosition(
+                this.getPublicAddress(),
+                this.getPublicAddress(),
+                marginToAdjust,
+                new Web3().eth.abi.encodeParameter(
+                  "bytes32",
+                  Web3.utils.asciiToHex("UpdateSLeverage")
+                )
+              )
+          ).wait();
+        }
+      }
+    }
+    //make api call
+    else {
+      console.log("no positions");
+      console.log(`res == lev: ${leverage}`);
+    }
+  }
+
   /**
    * Gets Orders placed by the user. Returns the first 50 orders by default.
    * @param symbol market symbol get information about
@@ -636,6 +706,10 @@ export class FireflyClient {
     }
 
     switch (contractName) {
+      case "PerpetualV1":
+        const perpV1Factory = new contracts_exchange.PerpetualV1__factory();
+        const perpV1 = perpV1Factory.attach(contract);
+        return perpV1 as any as contracts_exchange.PerpetualV1
       case "USDTToken":
         return new Contract(contract, USDT_ABI.abi);
       case "MarginBank":

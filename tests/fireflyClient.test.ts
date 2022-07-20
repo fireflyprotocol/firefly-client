@@ -26,10 +26,15 @@ chai.use(chaiAsPromised);
 //   "4d6c9531e0042cc8f7cf13d8c3cf77bfe239a8fed95e198d498ee1ec0b1a7e83";
 // const testAcctPubAddr = "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF";
 
+//talha's
 const testAcctKey =
   "52925ece7d545f78b11302e11da1a87e65a258eb873a4e2436c78af7132b8764";
 const testAcctPubAddr = "0x6b76ecDd2DedA1168953dF17dC68470714a7D12B";
 
+//clean account
+// const testAcctKey =
+//   "a694d91ed5a8374abce1f1f0b2a4d31d72bc199ef3080896fbda8846296570a8";
+// const testAcctPubAddr = "0x7dDC793acFca34dA0f7aDfC023200F1283b04F86";
 
 let client: FireflyClient;
 
@@ -131,6 +136,10 @@ describe("FireflyClient", () => {
     it("should get user default leverage", async () => {
       const lev = await client.getUserDefaultLeverage(MARKET_SYMBOLS.DOT)
       expect(lev).to.equal(3) //default leverage of DOT on our exchange
+    })
+
+    it("mk23should update leverage of user", async () => {
+      await client.updateLeverage(MARKET_SYMBOLS.DOT, 5)
     })
   })
 
