@@ -23,6 +23,7 @@ import {
   OrderSigner,
   contracts_exchange,
   USDT_ABI,
+  bnStrToBaseNumber,
 } from "@firefly-exchange/library";
 
 import * as contractAddresses from "../deployedContracts.json";
@@ -395,6 +396,37 @@ export class FireflyClient {
 
   /**
    * Gets Orders placed by the user. Returns the first 50 orders by default.
+   * @param symbol market symbol get information about
+   * @returns user default leverage
+   */
+ async getUserDefaultLeverage(symbol: string) {
+    const accData = await this.getUserAccountData()
+    if (!accData.data) {
+      throw Error(
+        `Account data does not exist`
+      );
+    }
+    const accDataByMarket = accData.data.accountDataByMarket.filter(data => {      
+      return data.symbol == symbol
+    })    
+    ///found accountDataByMarket
+    if (accDataByMarket && accDataByMarket.length > 0) {      
+      return bnStrToBaseNumber(accDataByMarket[0].selectedLeverage)
+    }
+    ///user is new and symbol data is not present in accountDataByMarket
+    else {
+      const exchangeInfo = await this.getExchangeInfo(symbol)
+      if (!exchangeInfo.data) {
+        throw Error(
+          `Provided Market Symbol(${symbol}) does not exist`
+        );
+      }
+      return bnStrToBaseNumber(exchangeInfo.data.defaultLeverage)
+    }
+ }
+
+  /**
+   * Gets Orders placed by the user. Returns the first 50 orders by default.
    * @param params of type OrderRequest,
    * @returns OrderResponse array
    */
@@ -452,13 +484,12 @@ export class FireflyClient {
 
   /**
    * Gets user Account Data
-   * @param symbol (optional) market for which to fetch data
    * @returns GetAccountDataResponse
    */
-  async getUserAccountData(symbol?: MarketSymbol) {
+  async getUserAccountData() {
     const response = await this.apiService.get<GetAccountDataResponse>(
       SERVICE_URLS.USER.ACCOUNT,
-      { symbol, userAddress: this.getPublicAddress() }
+      { userAddress: this.getPublicAddress() }
     );
     return response;
   }
