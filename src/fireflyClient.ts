@@ -283,6 +283,9 @@ export class FireflyClient {
    * @returns PlaceOrderResponse containing status and data. If status is not 201, order placement failed.
    */
   async placeSignedOrder(params: PlaceOrderRequest) {
+
+    console.log(`exp = ${params.expiration}`);
+    
     const response = await this.apiService.post<PlaceOrderResponse>(
       SERVICE_URLS.ORDERS.ORDERS,
       {
@@ -297,7 +300,7 @@ export class FireflyClient {
         salt: params.salt,
         expiration: params.expiration,
         orderSignature: params.orderSignature,
-        timeInForce: params.timeInForce || TIME_IN_FORCE.GOOD_TILL_CANCEL,
+        timeInForce: params.timeInForce || TIME_IN_FORCE.GOOD_TILL_TIME,
         postOnly: params.postOnly || false,
       }
     );
@@ -625,7 +628,7 @@ export class FireflyClient {
   private createOrderToSign(params: OrderSignatureRequest): Order {
     const expiration = new Date();
     expiration.setMonth(expiration.getMonth() + 1);
-
+        
     return {
       limitPrice: new Price(bigNumber(params.price)),
       isBuy: params.side === ORDER_SIDE.BUY,
@@ -637,7 +640,7 @@ export class FireflyClient {
       limitFee: new Fee(0),
       taker: "0x0000000000000000000000000000000000000000",
       expiration: bigNumber(
-        params.expiration || Math.floor(expiration.getTime() / 1000)
+        params.expiration || Math.floor(expiration.getTime()) //removed /1000 because taking time in ms now
       ),
       salt: bigNumber(params.salt || Math.floor(Math.random() * 1_000_000)),
     } as Order;

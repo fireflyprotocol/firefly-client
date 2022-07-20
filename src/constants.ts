@@ -8,7 +8,7 @@ export const Networks = {
   DEV: {
     url: "https://l2-dev.firefly.exchange/",
     chainId: 78602,
-    apiGateway: "https://dev.firefly.exchange/",
+    apiGateway: "https://dapi-dev.firefly.exchange/",
     socketURL: "wss://dev.firefly.exchange/"
   }
 };

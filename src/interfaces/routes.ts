@@ -46,7 +46,7 @@ export interface OrderSignatureResponse extends RequiredOrderFields {
 }
 
 export interface PlaceOrderRequest extends OrderSignatureResponse {
-  timeInForce?: TIME_IN_FORCE; // GTC/FOK/IOC by default all orders are GTC
+  timeInForce?: TIME_IN_FORCE; // FOK/IOC/GTT by default all orders are GTT
   postOnly?: boolean; // true/false, default is true
 }
 
@@ -78,18 +78,19 @@ interface OrderResponse {
   avgFillPrice: string;
   createdAt: number;
   updatedAt: number;
+  makerFee: string;
+  takerFee: string;
+  openQty: string;
 }
 
 export interface GetOrderResponse extends OrderResponse {
   fee: string;
   postOnly: boolean;
-  cancelling?: boolean;
+  triggerPrice: string;
 }
 
 export interface PlaceOrderResponse extends OrderResponse {
-  makerFee: string;
-  takerFee: string;
-  amountLeft: string;
+  
 }
 
 export interface OrderCancelSignatureRequest {

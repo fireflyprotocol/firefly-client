@@ -30,7 +30,7 @@ let client: FireflyClient;
 
 describe("FireflyClient", () => {
   beforeEach(() => {
-    client = new FireflyClient(Networks.TESTNET, testAcctKey);
+    client = new FireflyClient(Networks.DEV, testAcctKey);
   });
 
   afterEach(() => {
@@ -154,15 +154,18 @@ describe("FireflyClient", () => {
       expect(signedOrder.quantity).to.be.equal(0.1);
     });
 
-    it("should place a LIMIT SELL order on exchange", async () => {
+    it("mk1should place a LIMIT SELL order on exchange", async () => {
       const signedOrder = await client.createSignedOrder({
         symbol: MARKET_SYMBOLS.DOT,
         price: 11,
         quantity: 0.5,
         side: ORDER_SIDE.SELL,
+        leverage: 3
       });
 
       const response = await client.placeSignedOrder({ ...signedOrder });
+      console.log(`res == ${JSON.stringify(response)}`);
+      
       expect(response.ok).to.be.equal(true);
     });
 
