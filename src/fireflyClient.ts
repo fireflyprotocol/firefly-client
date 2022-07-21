@@ -24,6 +24,9 @@ import {
   contracts_exchange,
   USDT_ABI,
   bnStrToBaseNumber,
+  OnboardingSigner,
+  OnboardingMessageString,
+  MARGIN_TYPE
 } from "@firefly-exchange/library";
 
 import * as contractAddresses from "../deployedContracts.json";
@@ -54,11 +57,16 @@ import {
   MiniTickerData,
   MarketMeta,
   StatusResponse,
+  AuthorizeHashResponse,
+  AdjustLeverageResponse,
 } from "./interfaces/routes";
 
 import { APIService } from "./exchange/apiService";
 import { SERVICE_URLS } from "./exchange/apiUrls";
 import { Sockets } from "./exchange/sockets";
+import { calcMargin } from "@firefly-exchange/firefly-math";
+import { OnboardingMessage } from "@firefly-exchange/library/dist/src/interfaces/OnboardingMessage";
+import { AxiosRequestConfig, AxiosRequestHeaders } from "axios";
 
 export class FireflyClient {
   protected readonly network: Network;
@@ -68,6 +76,8 @@ export class FireflyClient {
   private wallet: Wallet;
 
   private orderSigners: Map<MarketSymbol, OrderSigner> = new Map();
+
+  private onboardSigner: OnboardingSigner;
 
   private apiService: APIService;
 
@@ -80,6 +90,7 @@ export class FireflyClient {
    */
   constructor(_network: Network, _acctPvtKey: string) {
     this.network = _network;
+
     this.web3 = new Web3(_network.url);
     this.web3.eth.accounts.wallet.add(_acctPvtKey);
     this.wallet = new Wallet(
@@ -89,6 +100,8 @@ export class FireflyClient {
     this.apiService = new APIService(this.network.apiGateway);
 
     this.sockets = new Sockets(this.network.socketURL);
+
+    this.onboardSigner = new OnboardingSigner(this.web3, this.network.chainId)
   }
 
   /**
@@ -239,6 +252,21 @@ export class FireflyClient {
   }
 
   /**
+   * Gets margin of position open
+   * @param symbol market symbol get information about
+   * @param perpContract (address) address of Perpetual V1 contract
+   * @returns margin balance of positions of given symbol
+   */
+  async getAccountPositionBalance(symbol: MarketSymbol, perpContract?: address) {
+    const perpV1Contract = this.getContract("PerpetualV1", perpContract, symbol);
+    const marginBalance = await perpV1Contract.connect(this.wallet).getAccountPositionBalance(this.getPublicAddress());
+    console.log("size:", +marginBalance.size);
+    console.log("debt:", +marginBalance.debt);
+    console.log("margin:", +marginBalance.margin);
+    return marginBalance
+  }
+
+  /**
    * Creates order signature and returns it. The signed order can be placed on exchange
    * @param params OrderSignatureRequest params needed to be signed
    * @returns OrderSignatureResponse with the payload signed on-chain along with order signature
@@ -380,7 +408,7 @@ export class FireflyClient {
   async cancelAllOpenOrders(symbol: MarketSymbol) {
     const openOrders = await this.getUserOrders({
       symbol,
-      statuses: ORDER_STATUS.OPEN,
+      status: ORDER_STATUS.OPEN,
     });
 
     const hashes = (await openOrders.data?.map(
@@ -393,7 +421,118 @@ export class FireflyClient {
   }
 
   /**
-   * Gets Orders placed by the user. Returns the first 50 orders by default.
+   * Updates user's leverage to given leverage
+   * @param symbol market symbol get information about
+   * @param leverage new leverage you want to change to
+   * @param perpetualAddress (address) address of Perpetual contract (comes in meta)
+   * @param marginBankAddress (address) address of Margin Bank contract (comes in meta)
+   * @returns boolean indicating if leverage updated successfully
+   */
+
+  async updateLeverage(
+    symbol: string, 
+    leverage: number, 
+    perpetualAddress: address,
+    marginBankAddress: address,
+    ) {
+    const userPosition = await this.getUserPosition({symbol: symbol})
+    if (!userPosition.data) {
+      throw Error(
+        `User positions data doesn't exist`
+      );
+    }
+
+    const position = userPosition.data as any as GetPositionResponse
+
+    //if user position exists, make contract call to add or remove margin
+    if (Object.keys(position).length > 0) { //TODO [BFLY-603]: this should be returned as array from dapi, remove this typecasting when done
+      //calculate new margin that'd be required
+      const bnNewMargin = bigNumber(calcMargin(
+        position.quantity, 
+        position.avgEntryPrice, 
+        toBigNumberStr(leverage)
+      ))
+      const bnCurrMargin = bigNumber(position.margin)
+      const marginToAdjust = bnCurrMargin.minus(bnNewMargin).abs().toFixed()
+      const isAdd = bnNewMargin.gt(bnCurrMargin);
+
+      if (bigNumber(marginToAdjust).gt(bigNumber(0))) {
+        if (isAdd) {
+          const marginBankContract = this.getContract("MarginBank", marginBankAddress, symbol);
+
+          await (
+            await (marginBankContract as contracts_exchange.MarginBank)
+              .connect(this.wallet)
+              .transferToPerpetual(
+                perpetualAddress,
+                this.getPublicAddress(),
+                marginToAdjust,
+                new Web3().eth.abi.encodeParameter(
+                  "bytes32",
+                  Web3.utils.asciiToHex("UpdateSLeverage")
+                )
+              )
+          ).wait();
+          return true
+        }
+        else {
+          const perpV1Contract = this.getContract("PerpetualProxy", perpetualAddress, symbol);
+
+          await (
+            await (perpV1Contract as contracts_exchange.PerpetualV1)
+              .connect(this.wallet)
+              .withdrawFromPosition(
+                this.getPublicAddress(),
+                this.getPublicAddress(),
+                marginToAdjust,
+                new Web3().eth.abi.encodeParameter(
+                  "bytes32",
+                  Web3.utils.asciiToHex("UpdateSLeverage")
+                ),
+              )
+          ).wait();
+          return true
+        }
+      }
+      return false
+    }
+    //make api call
+    else {
+      console.log("no positions MAKE API CALL");
+      const message: OnboardingMessage = {
+        action: OnboardingMessageString.ONBOARDING,
+        onlySignOn: this.network.onboardingUrl
+      }
+      //sign onboarding message
+      const signature = await this.onboardSigner.sign(this.getPublicAddress(), SigningMethod.TypedData, message)      
+      //authorize signature created by dAPI
+      const authTokenResponse = await this.authorizeSignedHash(signature)
+
+      if (!authTokenResponse.ok || !authTokenResponse.data) {
+        throw Error(
+          `Authorization error: ${authTokenResponse.response.message}`
+        );
+      }
+
+      //make update leverage api call
+      const adjustLeverageResponse = await this.adjustLeverage({
+        symbol: symbol,
+        leverage: leverage,
+        authToken: authTokenResponse.data.token
+      })
+      console.log("adjust leverage", adjustLeverageResponse);
+      
+      if (!adjustLeverageResponse.ok || !adjustLeverageResponse.data) {
+        throw Error(
+          `Adjust leverage error: ${adjustLeverageResponse.response.message}`
+        );
+      }
+      return adjustLeverageResponse.ok
+    }
+  }
+
+  /**
+   * Gets Users default leverage.
    * @param symbol market symbol get information about
    * @returns user default leverage
    */
@@ -634,6 +773,11 @@ export class FireflyClient {
     }
 
     switch (contractName) {
+      case "PerpetualV1":
+      case "PerpetualProxy":
+        const perpV1Factory = new contracts_exchange.PerpetualV1__factory();
+        const perpV1 = perpV1Factory.attach(contract);
+        return perpV1 as any as contracts_exchange.PerpetualV1
       case "USDTToken":
         return new Contract(contract, USDT_ABI.abi);
       case "MarginBank":
@@ -674,4 +818,45 @@ export class FireflyClient {
       salt: bigNumber(params.salt || Math.floor(Math.random() * 1_000_000)),
     } as Order;
   }
+
+  /**
+   * Posts signed Auth Hash to dAPI and gets token in return if signature is valid
+   * @returns GetAuthHashResponse which contains auth hash to be signed
+   */
+  private async authorizeSignedHash(signedHash: string) {
+    const response = await this.apiService.post<AuthorizeHashResponse>(
+      SERVICE_URLS.USER.AUTHORIZE,
+      {
+        signature: signedHash,
+        userAddress: this.getPublicAddress()
+      }
+    );
+    return response;
+  }
+
+  /**
+   * Posts signed Auth Hash to dAPI and gets token in return if signature is valid
+   * @returns GetAuthHashResponse which contains auth hash to be signed
+   */
+   private async adjustLeverage(params: {symbol: MarketSymbol, leverage: number, authToken: string}) {
+
+    const headers: AxiosRequestHeaders = {
+      "Authorization": `Bearer ${params.authToken}`
+    }
+    const configs: AxiosRequestConfig = {
+      headers: headers
+    }
+    const response = await this.apiService.post<AdjustLeverageResponse>(
+      SERVICE_URLS.USER.ADJUST_LEVERGAE,
+      {
+        symbol: params.symbol,
+        address: this.getPublicAddress(),
+        leverage: toBigNumberStr(params.leverage),
+        marginType: MARGIN_TYPE.ISOLATED,
+      },
+      configs
+    );
+    return response;
+  }
+
 }

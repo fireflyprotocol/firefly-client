@@ -18,7 +18,7 @@ export interface GetTransactionHistoryRequest {
 }
 
 export interface GetOrderRequest extends GetTransactionHistoryRequest {
-  statuses: ORDER_STATUS; // status of orders to be fetched
+  status: ORDER_STATUS; // status of orders to be fetched
 }
 
 export interface GetPositionRequest extends GetTransactionHistoryRequest { }
@@ -314,4 +314,16 @@ export interface MarketMeta {
 export interface StatusResponse {
   isAlive: boolean;
   serverTime: number;
+}
+
+export interface AuthorizeHashResponse {
+  token: string
+}
+
+export interface AdjustLeverageResponse {
+  symbol: string
+  address: string
+  leverage: string
+  marginType: string
+  maxNotionalValue: string
 }
