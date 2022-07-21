@@ -313,8 +313,6 @@ export class FireflyClient {
    */
   async placeSignedOrder(params: PlaceOrderRequest) {
 
-    console.log(`exp = ${params.expiration}`);
-    
     const response = await this.apiService.post<PlaceOrderResponse>(
       SERVICE_URLS.ORDERS.ORDERS,
       {
@@ -538,7 +536,7 @@ export class FireflyClient {
    * @param symbol market symbol get information about
    * @returns user default leverage
    */
- async getUserDefaultLeverage(symbol: string) {
+ async getUserDefaultLeverage(symbol: MarketSymbol) {
     const accData = await this.getUserAccountData()
     if (!accData.data) {
       throw Error(

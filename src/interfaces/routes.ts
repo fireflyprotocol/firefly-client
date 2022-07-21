@@ -7,8 +7,8 @@ import {
   ORDER_TYPE,
   address,
   CANCEL_REASON,
-  MARKET_STATUS,
   Interval,
+  OrderQuantityRules,
 } from "@firefly-exchange/library";
 
 export interface GetTransactionHistoryRequest {
@@ -110,7 +110,6 @@ export interface GetOrderbookRequest {
 export interface GetPositionResponse {
   userAddress: address;
   symbol: MarketSymbol;
-  marketAddress: string;
   marginType: MARGIN_TYPE;
 
   side: ORDER_SIDE;
@@ -127,24 +126,26 @@ export interface GetPositionResponse {
   midMarketPrice: string;
   indexPrice: string;
 
-  createdTime: string;
-  updateTime: string;
-
-  closing?: boolean;
-  closingType?: ORDER_TYPE;
+  updatedAt: number;
+  createdAt: number;
 }
 
 export interface GetOrderBookResponse {
   asks: string[][];
   bids: string[][];
-  highestBid: string;
-  lowestAsk: string;
   midPrice: string;
   symbol: MarketSymbol;
-  loading?: boolean;
   lastUpdatedAt: number;
   orderbookUpdateId: number;
   responseSentAt: number;
+
+  bestBidPrice: string;
+  bestBidQty: string;
+  bestAskPrice: string;
+  bestAskQty: string;
+  oraclePrice: string;
+  oraclePriceLastUpdateAt: number;
+
   limit?: number;
 }
 
@@ -171,12 +172,12 @@ export interface GetUserTradesResponse {
   quoteQty: string;
   realizedPnl: string;
   time: number;
+  clientId: string;
+  orderId: number;
 }
 
 export interface MarketAccountData {
   symbol: MarketSymbol;
-  openOrderMargin: string;
-  reducingOpenOrderMargin: string;
   positionQtyReduced: string;
   positionQtyReducible: string;
   unrealizedProfit: string;
@@ -189,8 +190,6 @@ export interface GetAccountDataResponse {
   address: address;
   feeTier: string;
   canTrade: boolean;
-  totalOpenOrderMargin: string;
-  totalReducingOpenOrderMargin: string;
   totalPositionMargin: string;
   totalPositionQtyReduced: string;
   totalPositionQtyReducible: string;
@@ -203,8 +202,18 @@ export interface GetAccountDataResponse {
   updateTime: number;
 }
 
-export interface GetUserTransactionHistoryResponse
-  extends GetUserTradesResponse {
+export interface GetUserTransactionHistoryResponse {
+  id: number;
+  symbol: MarketSymbol;
+  commission: string;
+  commissionAsset: string;
+  maker: boolean;
+  side: ORDER_SIDE;
+  price: string;
+  quantity: string;
+  quoteQty: string;
+  realizedPnl: string;
+  time: number;
   orderHash: string;
   traderType: string;
 }
@@ -237,15 +246,12 @@ export interface GetCandleStickRequest {
 /* Market Endpoints */
 export interface MarketInfo {
   symbol: MarketSymbol;
-  ContractType: string;
   maintMarginReq: string;
   inititalMarginReq: string;
   baseAssetSymbol: string;
   baseAssetName: string;
   quoteAssetSymbol: string;
   quoteAssetName: string;
-  pricePrecision: number;
-  sizePrecision: number;
   baseAssetPrecision: number;
   quoteAssetPrecision: number;
   minOrderSize: number;
@@ -258,6 +264,9 @@ export interface MarketInfo {
   liquidationFee: string;
   marketTakeBound: string;
   defaultLeverage: string;
+  contractType: string;
+  status: string;
+  maxAllowedOrderQuantityRules: OrderQuantityRules[]
 }
 
 export interface MiniTickerData {
@@ -288,9 +297,6 @@ export interface MiniTickerData {
   _24hrFirstId: number;
   _24hrLastId: number;
   _24hrCount: string;
-
-  marketAddress?: string;
-  loading?: boolean;
 }
 
 export interface MarketMeta {
@@ -300,10 +306,9 @@ export interface MarketMeta {
   orderAddress: address;
   perpetualAddress: address;
   marginBankAddress: address;
-  orderbookQueuePort: string;
-  orderbookStatePort: string;
-  orderbookServerIP: string;
-  status: MARKET_STATUS;
+  liquidatorProxyAddress: address;
+  networkID: string;
+  priceOracleAddress: address;
 }
 
 export interface StatusResponse {
