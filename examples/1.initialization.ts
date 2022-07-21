@@ -20,6 +20,7 @@ async function main() {
     chainId: 1297,
     apiGateway: "https://dapi-testnet.firefly.exchange",
     socketURL: "wss://dapi-testnet.firefly.exchange",
+    onboardingUrl: "https://testnet.firefly.exchange"
   };
   const clientCustomNetwork = new FireflyClient(custNetwork, dummyAccountKey);
   // prints client address

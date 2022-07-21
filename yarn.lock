@@ -749,7 +749,7 @@
     sinon-chai "^2.14.0"
     ts-node "^3.3.0"
 
-"@firefly-exchange/library@^1.0.14", "@firefly-exchange/library@^1.0.21":
+"@firefly-exchange/library@^1.0.14":
   version "1.0.21"
   resolved "https://registry.yarnpkg.com/@firefly-exchange/library/-/library-1.0.21.tgz#2976af246c4792c7b0cbbc4b0fb8d73134334a8e"
   integrity sha512-HXytUCN/l4zgfxEWiOuGAuwYSoQsvND1pMgM2nSKDGn3EkDH0R/GRHKuG+/JjBVIlt9kdDMKHqs6Db4KDEVNsg==
@@ -759,6 +759,22 @@
     ethers "^5.6.8"
     lodash "^4.17.21"
     socket.io-client "^4.5.1"
+    web3 "^1.7.3"
+
+"@firefly-exchange/library@^1.0.28":
+  version "1.0.28"
+  resolved "https://registry.yarnpkg.com/@firefly-exchange/library/-/library-1.0.28.tgz#373d8fa6de4af9296cd1666c121b0162b4e34cb6"
+  integrity sha512-P3qQ7KLyJ3YdRtyrtL/WCyGmW2yJCJWDFZDX5hpuM1B2Q/IVObfjxh5l1Yc7B5uBMYK15PI04D7EWnXqSTW4eA==
+  dependencies:
+    bignumber "^1.1.0"
+    bignumber.js "^9.0.2"
+    chai "^4.3.6"
+    chai-as-promised "^7.1.1"
+    ethers "^5.6.8"
+    lodash "^4.17.21"
+    mocha "^10.0.0"
+    socket.io-client "^4.5.1"
+    ts-mocha "^9.0.2"
     web3 "^1.7.3"
 
 "@humanwhocodes/config-array@^0.9.2":

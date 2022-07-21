@@ -27,14 +27,19 @@ chai.use(chaiAsPromised);
 // const testAcctPubAddr = "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF";
 
 //talha's
-const testAcctKey =
-  "52925ece7d545f78b11302e11da1a87e65a258eb873a4e2436c78af7132b8764";
-const testAcctPubAddr = "0x6b76ecDd2DedA1168953dF17dC68470714a7D12B";
+// const testAcctKey =
+//   "52925ece7d545f78b11302e11da1a87e65a258eb873a4e2436c78af7132b8764";
+// const testAcctPubAddr = "0x6b76ecDd2DedA1168953dF17dC68470714a7D12B";
 
 //clean account with no orders and positions
+const testAcctKey =
+  "a694d91ed5a8374abce1f1f0b2a4d31d72bc199ef3080896fbda8846296570a8";
+const testAcctPubAddr = "0x7dDC793acFca34dA0f7aDfC023200F1283b04F86";
+
 // const testAcctKey =
-//   "a694d91ed5a8374abce1f1f0b2a4d31d72bc199ef3080896fbda8846296570a8";
-// const testAcctPubAddr = "0x7dDC793acFca34dA0f7aDfC023200F1283b04F86";
+//   "0e89bcda63ef4be7560c81cf42302b4d218e6fac38b310187194159283969c2a";
+// const testAcctPubAddr = "0xe0a27C1931E82E580743e272fDA9c9850fbA809C";
+
 
 let client: FireflyClient;
 
@@ -134,12 +139,13 @@ describe("FireflyClient", () => {
     });
 
     it("should get user default leverage", async () => {
-      const lev = await client.getUserDefaultLeverage(MARKET_SYMBOLS.DOT)
+      const lev = await client.getUserDefaultLeverage(MARKET_SYMBOLS.GLMR)
       expect(lev).to.equal(3) //default leverage of DOT on our exchange
     })
 
     it.only("should update leverage of user", async () => {
-      await client.updateLeverage(MARKET_SYMBOLS.DOT, 5)
+      const response = await client.updateLeverage(MARKET_SYMBOLS.GLMR, 2, "0x4b6eaa3f28b63e4034757cf4e170466da4f12ed5", "0xd99e96aa728712de4707bbc96045afab91b82747")
+      expect(response).to.equal(true)
     })
   })
 

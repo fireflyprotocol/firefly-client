@@ -310,3 +310,15 @@ export interface StatusResponse {
   isAlive: boolean;
   serverTime: number;
 }
+
+export interface AuthorizeHashResponse {
+  token: string
+}
+
+export interface AdjustLeverageResponse {
+  symbol: string
+  address: string
+  leverage: string
+  marginType: string
+  maxNotionalValue: string
+}
