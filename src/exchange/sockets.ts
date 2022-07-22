@@ -14,7 +14,7 @@ import {
   GetPositionResponse,
   GetUserTradesResponse,
   GetAccountDataResponse,
-  MiniTickerData,
+  MarketData,
 } from "../interfaces/routes";
 
 export class Sockets {
@@ -95,7 +95,7 @@ export class Sockets {
   };
 
   onMarketDataUpdate = (
-    cb: ({ marketData }: { marketData: MiniTickerData }) => void
+    cb: ({ marketData }: { marketData: MarketData }) => void
   ) => {
     this.socketInstance.on(SOCKET_EVENTS.MarketDataUpdateKey, cb);
   };

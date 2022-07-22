@@ -81,6 +81,7 @@ interface OrderResponse {
   makerFee: string;
   takerFee: string;
   openQty: string;
+  cancelOnRevert?: boolean;
 }
 
 export interface GetOrderResponse extends OrderResponse {
@@ -244,7 +245,7 @@ export interface GetCandleStickRequest {
 }
 
 /* Market Endpoints */
-export interface MarketInfo {
+export interface ExchangeInfo {
   symbol: MarketSymbol;
   maintMarginReq: string;
   inititalMarginReq: string;
@@ -269,7 +270,7 @@ export interface MarketInfo {
   maxAllowedOrderQuantityRules: OrderQuantityRules[]
 }
 
-export interface MiniTickerData {
+export interface MarketData {
   symbol: MarketSymbol;
   bestAskPrice: string;
   bestAskQty: string;
