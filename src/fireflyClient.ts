@@ -260,9 +260,6 @@ export class FireflyClient {
   async getAccountPositionBalance(symbol: MarketSymbol, perpContract?: address) {
     const perpV1Contract = this.getContract("PerpetualV1", perpContract, symbol);
     const marginBalance = await perpV1Contract.connect(this.wallet).getAccountPositionBalance(this.getPublicAddress());
-    console.log("size:", +marginBalance.size);
-    console.log("debt:", +marginBalance.debt);
-    console.log("margin:", +marginBalance.margin);
     return marginBalance
   }
 
@@ -520,7 +517,6 @@ export class FireflyClient {
         leverage: leverage,
         authToken: authTokenResponse.data.token
       })
-      console.log("adjust leverage", adjustLeverageResponse);
       
       if (!adjustLeverageResponse.ok || !adjustLeverageResponse.data) {
         throw Error(
