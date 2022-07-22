@@ -1,6 +1,6 @@
 {
   "name": "@firefly-exchange/firefly-client",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "Firefly client library for creating signed orders and placing on exchange.",
   "main": "dist/index.js",
   "scripts": {
