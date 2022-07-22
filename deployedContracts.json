@@ -1,91 +1,125 @@
 {
-    "1297": {
-        "USDTToken": {
-            "address": "0x57AB85a85f75fb4E9d2Ee85a28913F2DEe9aD283"
-        },
-        "MarginBank": {
-            "address": "0xbDd8210d4F74fC97d4E93950a1FF201fe425C68f",
-            "transactionHash": "0xfb5d27a275c61610373facf07d37aee3c470f5937e937ab4d84cafc994cfacf8"
-        },
-        "DOT-PERP": {
-            "Test_Funder": {
-                "links": {},
-                "address": "0xf57AAAb54304969F71A63C911B40b137b46Da817",
-                "transactionHash": "0xbdcb840a48566718b776c34314bf1d51b1844f153e9fa53a8aaf3bee62fa6d36",
-                "type": "Test"
+   "1297":{
+      "USDTToken": {
+         "address": "0x57AB85a85f75fb4E9d2Ee85a28913F2DEe9aD283"
+     },
+     "MarginBank": {
+         "address": "0xbDd8210d4F74fC97d4E93950a1FF201fe425C68f",
+         "transactionHash": "0xfb5d27a275c61610373facf07d37aee3c470f5937e937ab4d84cafc994cfacf8"
+     },
+      "DOT-PERP":{
+         "Test_Funder":{
+            "links":{
+               
             },
-            "Test_Trader": {
-                "links": {},
-                "address": "0xFDDc8FAcc21Ca0b7cf20B5adC7ED238010176f5c",
-                "transactionHash": "0x85e7f0e561949ac590332b835ec95569ba481b4b5a8637e1384618787a237b18",
-                "type": "Test"
+            "address":"0x258c07cf0627086AdD4Ae2cF144E883b2EeB0993",
+            "transactionHash":"0xb505bfe0cb62d822362685ffb5550ae22d54b63f445f725674c1cf6ef82f1cab",
+            "type":"Test"
+         },
+         "Test_Trader":{
+            "links":{
+               
             },
-            "Test_Token": {
-                "links": {},
-                "address": "0x57AB85a85f75fb4E9d2Ee85a28913F2DEe9aD283",
-                "transactionHash": "0x1ba9958a110e6550a59b698864c2e77214a4be1ee53793ceda3a7cd845609a5e",
-                "type": "Test"
+            "address":"0x7cEB567243fa1fa709006fD663c577Cf7B356c53",
+            "transactionHash":"0x25861fef4395b56deca24ea0c89b037c7549b9ca30e13e113a64ba924cb76cdd",
+            "type":"Test"
+         },
+         "Test_Token":{
+            "links":{
+               
             },
-            "Test_TradeInfo": {
-                "links": {},
-                "address": "0x46ABa007B8c0ff7Da3132b52b81d2C15D2e8E815",
-                "transactionHash": "0xb8759b6ab413290ea63a7682d5faf3b1f8843c8f296d3696746c8b30b1edd46c",
-                "type": "Test"
+            "address":"0x518dc6D233bcb530a406924322564B6Edd1695c5",
+            "transactionHash":"0x539c1b69fbeed342c5ecfe09315508a64feb1725281b487564f7c42633eb509d",
+            "type":"Test"
+         },
+         "Test_TradeInfo":{
+            "links":{
+               
             },
-            "FreedCollateral": {
-                "links": {},
-                "address": "0xd2F3b4b20ef0B1F20fAd2CF9D254950ce1D17632",
-                "transactionHash": "0xcd21fe2fb5605d76f90f5dfd8fe5c790f624c7bc5d3b2234eda1e245f4ec86a6",
-                "type": "Lib"
+            "address":"0x92883a53DBC68C90D21d868F0A395Acc99721933",
+            "transactionHash":"0x35a292b9eddc3b1ca8e542182fa6c907947d08fd1248fc9c1b97847cf367bcd5",
+            "type":"Test"
+         },
+         "FreedCollateral":{
+            "links":{
+               
             },
-            "PerpetualV1": {
-                "links": {},
-                "address": "0xB23Fa8079fcE0f40b0344B6e0A27C7C79B66568B",
-                "transactionHash": "0xb89e7976e62f4c405f72faa0effb77fa10c47979fbd84521c0c749eaecf5e21f",
-                "type": "Base"
+            "address":"0x9F47F43378772e8B3Ef47BB5ffAe5F47030bC5D1",
+            "transactionHash":"0xfab2fdfd06d0e3743aac22c9dd0b10d6b9501996172c4eddec9016688cea9a42",
+            "type":"Lib"
+         },
+         "PerpetualV1":{
+            "links":{
+               
             },
-            "PerpetualProxy": {
-                "links": {},
-                "address": "0x52d92ebBe4122d8Ed5394819d302AD234001D2C7",
-                "transactionHash": "0xd860a1afdbf0c38d630ea5176ae1568ee16cea49427d663fccc971321c4e4355",
-                "type": "BaseProxy"
+            "address":"0x182299ebB09275BD64ceba21640030656B10dB75",
+            "transactionHash":"0x2cb0d1a0d39d3e62754d2c83f95a6c5a540c3729da008086aec11ba2af79e134",
+            "type":"Base"
+         },
+         "PerpetualProxy":{
+            "links":{
+               
             },
-            "PriceOracle": {
-                "links": {},
-                "address": "0x6AFE95293ac120Efedf56D69388Dc6e75d9434fa",
-                "transactionHash": "0x1db4a66804d77e536531271a80077870fb13c330970abe2327d9be1198ffa133",
-                "type": "Base"
+            "address":"0xc7f75b30C5FC324B49A240A4b42411321B0E36f0",
+            "transactionHash":"0x782c9ea32ad08c78d04bb9a5e2fd63d38a39d8f2c67d8e4a1169ce4c6f5d146f",
+            "type":"BaseProxy"
+         },
+         "MarginBank":{
+            "links":{
+               
             },
-            "FundingOracle": {
-                "links": {},
-                "address": "0x4D3f855B80192909E87591Fa49bEd3c2b8E303a3",
-                "transactionHash": "0x299f23f74f1deec8a1aab087a392e32b137069efc947e8796eba14b6609ef8fd",
-                "type": "Oracle"
+            "address":"0xE95EB7980abfe5d4C9e041044D6658F40f03813a",
+            "transactionHash":"0x6e9cfd3b0d04973746188d3342d03e6e454121929a8606e24592528cf3e11dae",
+            "type":"Base"
+         },
+         "PriceOracle":{
+            "links":{
+               
             },
-            "InverseFundingOracle": {
-                "links": {},
-                "address": "0x3Ef705B37C92702deDA78479FA2715573238DCA2",
-                "transactionHash": "0xdd1195a0c0e3577f53a567a068745282978c96f8db57b9cd7134157f2751d9e9",
-                "type": "Oracle"
+            "address":"0xB6c7AAaFbec08950b611fE174a6b3a50958C127E",
+            "transactionHash":"0x9454f19456bb38504ebb3e07c7ec98f3875ebaed7ff40686d781fccaed3f86bf",
+            "type":"Base"
+         },
+         "FundingOracle":{
+            "links":{
+               
             },
-            "Orders": {
-                "links": {},
-                "address": "0x36AAc8c385E5FA42F6A7F62Ee91b5C2D813C451C",
-                "transactionHash": "0x07921206bda9dc074f8b51264222bfc1796ceec8a5a34c7cae3f90c4458c3d24",
-                "type": "Trader"
+            "address":"0xB194eC38f5b66c2726A15e87B1212Bb5cc4C7479",
+            "transactionHash":"0x151274a92937ed69c4d661b4c23c1495c6c15f152507a44e3a45dfb30c0a432b",
+            "type":"Oracle"
+         },
+         "InverseFundingOracle":{
+            "links":{
+               
             },
-            "Liquidation": {
-                "links": {},
-                "address": "0xb2a87564B2D7961881e7BCa34f283336B511C794",
-                "transactionHash": "0x72a193e5cbaff199c3f35d9de2abba71074ce3bafb3e3a2eba9ef396bddb382b",
-                "type": "Trader"
+            "address":"0xBdd2C4240B9B913a9D9D44CA0398CF1D5846a166",
+            "transactionHash":"0x3a78d8d01ed138c8d37843712738da3406b515089204bf83848b7847b29d7e46",
+            "type":"Oracle"
+         },
+         "Orders":{
+            "links":{
+               
             },
-            "LiquidatorProxy": {
-                "links": {},
-                "address": "0x0c3Ea99D4EC973F3415338ada2e76C96F2671Fa7",
-                "transactionHash": "0xb58bfc5f1efd4f594921df43570b4206012d54967337b006ba59c26709a72178",
-                "type": "TraderProxy"
-            }
-        }
-    }
+            "address":"0x8F19569f74E3634885F2c9922B231373037fF957",
+            "transactionHash":"0xd7230168159dd44cdce96d7d99235a4fe44f0b0fe6354ba30fff605e8a12b5fc",
+            "type":"Trader"
+         },
+         "Liquidation":{
+            "links":{
+               
+            },
+            "address":"0xde0CfE95a72e6c56Bf77FaA475C3656fA00ff29E",
+            "transactionHash":"0x464f5c617ad3370f48242c7a2586215c2471156379cc6d8ca0d2f469eca453a9",
+            "type":"Trader"
+         },
+         "LiquidatorProxy":{
+            "links":{
+               
+            },
+            "address":"0xc0E8e5c0f11AdDf65c266676892D689eE9B05d8d",
+            "transactionHash":"0x11404b63d4d9a4bdb67ccc31abc00589170651ab2ec71e2d01a7ab23b5cfb4ba",
+            "type":"TraderProxy"
+         }
+      }
+   }
 }

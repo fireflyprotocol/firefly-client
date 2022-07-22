@@ -14,6 +14,8 @@ export const SERVICE_URLS = {
     ORDERS: "/orders",
     ACCOUNT: "/account",
     USER_TRANSACTION_HISTORY: "/userTransactionHistory",
+    AUTHORIZE: "/authorize",
+    ADJUST_LEVERGAE: "/account/adjustLeverage"
   },
   ORDERS: {
     ORDERS: "/orders",
