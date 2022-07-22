@@ -174,9 +174,7 @@ describe("FireflyClient", () => {
         leverage: 3
       });
 
-      const response = await client.placeSignedOrder({ ...signedOrder });   
-      console.log(response);
-         
+      const response = await client.placeSignedOrder({ ...signedOrder });            
       expect(response.ok).to.be.equal(true);
     });
 

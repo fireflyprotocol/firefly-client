@@ -452,8 +452,6 @@ export class FireflyClient {
       const bnCurrMargin = bigNumber(position.margin)
       const marginToAdjust = bnCurrMargin.minus(bnNewMargin).abs().toFixed()
       const isAdd = bnNewMargin.gt(bnCurrMargin);
-
-      console.log(`is Add: ${isAdd}, ${bnNewMargin}, ${bnCurrMargin}`);
       
       if (bigNumber(marginToAdjust).gt(bigNumber(0))) {
         if (isAdd) {
