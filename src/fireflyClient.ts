@@ -53,8 +53,8 @@ import {
   GetMarketRecentTradesRequest,
   GetMarketRecentTradesResponse,
   GetCandleStickRequest,
-  MarketInfo,
-  MiniTickerData,
+  ExchangeInfo,
+  MarketData,
   MarketMeta,
   StatusResponse,
   AuthorizeHashResponse,
@@ -671,10 +671,10 @@ export class FireflyClient {
   /**
    * Gets publically available market info about market(s)
    * @param symbol (optional) market symbol get information about, by default fetches info on all available markets
-   * @returns MarketInfo or MarketInfo[] in case no market was provided as input
+   * @returns ExchangeInfo or ExchangeInfo[] in case no market was provided as input
    */
   async getExchangeInfo(symbol?: MarketSymbol) {
-    const response = await this.apiService.get<MarketInfo>(
+    const response = await this.apiService.get<ExchangeInfo>(
       SERVICE_URLS.MARKET.EXCHANGE_INFO,
       { symbol }
     );
@@ -682,12 +682,12 @@ export class FireflyClient {
   }
 
   /**
-   * Gets MiniTickerData data for market(s)
+   * Gets MarketData data for market(s)
    * @param symbol (optional) market symbol get information about, by default fetches info on all available markets
-   * @returns MiniTickerData or MiniTickerData[] in case no market was provided as input
+   * @returns MarketData or MarketData[] in case no market was provided as input
    */
   async getMarketData(symbol?: MarketSymbol) {
-    const response = await this.apiService.get<MiniTickerData>(
+    const response = await this.apiService.get<MarketData>(
       SERVICE_URLS.MARKET.MARKET_DATA,
       { symbol }
     );
