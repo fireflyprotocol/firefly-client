@@ -254,11 +254,11 @@ export class FireflyClient {
   /**
    * Gets margin of position open
    * @param symbol market symbol get information about
-   * @param perpContract (address) address of Perpetual V1 contract
+   * @param perpContract (address) address of Perpetual address comes in metaInfo
    * @returns margin balance of positions of given symbol
    */
   async getAccountPositionBalance(symbol: MarketSymbol, perpContract?: address) {
-    const perpV1Contract = this.getContract("PerpetualV1", perpContract, symbol);
+    const perpV1Contract = this.getContract("PerpetualProxy", perpContract, symbol);
     const marginBalance = await perpV1Contract.connect(this.wallet).getAccountPositionBalance(this.getPublicAddress());
     return marginBalance
   }
@@ -427,7 +427,7 @@ export class FireflyClient {
    */
 
   async updateLeverage(
-    symbol: string, 
+    symbol: MarketSymbol, 
     leverage: number, 
     perpetualAddress: address,
     marginBankAddress: address,
@@ -453,6 +453,8 @@ export class FireflyClient {
       const marginToAdjust = bnCurrMargin.minus(bnNewMargin).abs().toFixed()
       const isAdd = bnNewMargin.gt(bnCurrMargin);
 
+      console.log(`is Add: ${isAdd}, ${bnNewMargin}, ${bnCurrMargin}`);
+      
       if (bigNumber(marginToAdjust).gt(bigNumber(0))) {
         if (isAdd) {
           const marginBankContract = this.getContract("MarginBank", marginBankAddress, symbol);
@@ -495,7 +497,6 @@ export class FireflyClient {
     }
     //make api call
     else {
-      console.log("no positions MAKE API CALL");
       const message: OnboardingMessage = {
         action: OnboardingMessageString.ONBOARDING,
         onlySignOn: this.network.onboardingUrl
