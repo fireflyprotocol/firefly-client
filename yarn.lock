@@ -761,10 +761,10 @@
     socket.io-client "^4.5.1"
     web3 "^1.7.3"
 
-"@firefly-exchange/library@^1.0.28":
-  version "1.0.28"
-  resolved "https://registry.yarnpkg.com/@firefly-exchange/library/-/library-1.0.28.tgz#373d8fa6de4af9296cd1666c121b0162b4e34cb6"
-  integrity sha512-P3qQ7KLyJ3YdRtyrtL/WCyGmW2yJCJWDFZDX5hpuM1B2Q/IVObfjxh5l1Yc7B5uBMYK15PI04D7EWnXqSTW4eA==
+"@firefly-exchange/library@^1.0.29":
+  version "1.0.29"
+  resolved "https://registry.yarnpkg.com/@firefly-exchange/library/-/library-1.0.29.tgz#972c13c3e804de12da8189735f51a130f0cf9a4b"
+  integrity sha512-i5OGUVJHPfXkI8437/1/Db9AF7h2NM2wp1IYNOapj2zp5cw7wzu6Q75w+EVs8c81lVHRqbFMicGMQv8KjTZltA==
   dependencies:
     bignumber "^1.1.0"
     bignumber.js "^9.0.2"
