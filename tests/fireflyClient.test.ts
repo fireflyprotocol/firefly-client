@@ -8,6 +8,7 @@ import {
   ORDER_STATUS,
   ORDER_SIDE,
   bnStrToBaseNumber,
+  MinifiedCandleStick,
 } from "@firefly-exchange/library";
 
 import {
@@ -475,6 +476,14 @@ describe("FireflyClient", () => {
         client.getPublicAddress()
       );
     });
+
+    it("should receive an event from candle stick", (done) => {
+      const callback = (candle : MinifiedCandleStick) => {
+        expect(candle[candle.length-1]).to.be.equal(MARKET_SYMBOLS.DOT);
+        done();
+      };
+      client.sockets.onCandleStickUpdate(MARKET_SYMBOLS.DOT,"1m",callback);
+    })
 
     it("should receive an event for orderbook update when an order is placed on exchange", (done) => {
       const callback = ({ orderbook }: any) => {

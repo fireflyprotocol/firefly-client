@@ -6,6 +6,7 @@ import {
   MarketSymbol,
   SOCKET_EVENTS,
   MARKET_STATUS,
+  MinifiedCandleStick,
 } from "@firefly-exchange/library";
 
 import {
@@ -24,6 +25,13 @@ export class Sockets {
 
   constructor(url: string) {
     this.url = url;
+  }
+
+  createDynamicUrl(dynamicUrl: string, object: any) {
+    for (const key in object) {
+      dynamicUrl = dynamicUrl.replace(`{${key}}`, object[key]);
+    }
+    return dynamicUrl;
   }
 
   /**
@@ -104,6 +112,18 @@ export class Sockets {
     cb: ({ status, symbol }: { status: MARKET_STATUS; symbol: string }) => void
   ) => {
     this.socketInstance.on(SOCKET_EVENTS.MarketHealthKey, cb);
+  };
+
+  onCandleStickUpdate = (
+    symbol: string,
+    interval: string,
+    cb: (candle: MinifiedCandleStick) => void,
+  ) => {
+    this.socketInstance.on(this.createDynamicUrl(
+      SOCKET_EVENTS.GET_LAST_KLINE_WITH_INTERVAL, {
+			symbol: symbol,
+			interval: interval,
+		}), cb);
   };
 
   onExchangeHealthChange = (
