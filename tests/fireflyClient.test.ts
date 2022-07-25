@@ -22,9 +22,9 @@ import {
 
 chai.use(chaiAsPromised);
 
-let testAcctKey =
+const testAcctKey =
   "4d6c9531e0042cc8f7cf13d8c3cf77bfe239a8fed95e198d498ee1ec0b1a7e83";
-let testAcctPubAddr = "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF";
+const testAcctPubAddr = "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF";
 
 let client: FireflyClient;
 
@@ -124,7 +124,7 @@ describe("FireflyClient", () => {
     });
 
     it("should get user default leverage", async () => {
-      const lev = await client.getUserDefaultLeverage(MARKET_SYMBOLS.DOT)
+      const lev = await client.getUserDefaultLeverage(MARKET_SYMBOLS.DOT)      
       expect(lev).to.equal(3) //default leverage of DOT on our exchange
     })
   })
@@ -174,9 +174,7 @@ describe("FireflyClient", () => {
         leverage: 3
       });
 
-      const response = await client.placeSignedOrder({ ...signedOrder });   
-      console.log(response);
-         
+      const response = await client.placeSignedOrder({ ...signedOrder });            
       expect(response.ok).to.be.equal(true);
     });
 
