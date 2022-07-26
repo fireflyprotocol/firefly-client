@@ -47,10 +47,7 @@ describe("FireflyClient", () => {
   });
 
   describe("Market", () => {
-    it.only("should add DOT-PERP market", async () => {
-
-      console.log("mk == ", client.marketSymbols);
-      
+    it("should add DOT-PERP market", async () => {      
       expect(client.addMarket(MARKET_SYMBOLS.DOT)).to.be.equal(true);
     });
 
