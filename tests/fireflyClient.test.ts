@@ -47,7 +47,7 @@ describe("FireflyClient", () => {
   });
 
   describe("Market", () => {
-    it("should add DOT-PERP market", async () => {
+    it("should add DOT-PERP market", async () => {      
       expect(client.addMarket(MARKET_SYMBOLS.DOT)).to.be.equal(true);
     });
 
@@ -458,6 +458,11 @@ describe("FireflyClient", () => {
 
   it("should get market meta info for DOT Market", async () => {
     const response = await client.getMarketMetaInfo(MARKET_SYMBOLS.DOT);
+    expect(response.ok).to.be.equal(true);
+  });
+
+  it("should get market symbols", async () => {
+    const response = await client.getMarketSymbols()    
     expect(response.ok).to.be.equal(true);
   });
 
