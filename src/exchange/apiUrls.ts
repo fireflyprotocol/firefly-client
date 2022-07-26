@@ -7,6 +7,7 @@ export const SERVICE_URLS = {
     MARKET_DATA: "/marketData",
     META: "/meta",
     STATUS: "/status",
+    SYMBOLS: "/marketData/symbols"
   },
   USER: {
     USER_POSITIONS: "/userPosition",

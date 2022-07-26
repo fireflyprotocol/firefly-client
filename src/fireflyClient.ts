@@ -83,6 +83,8 @@ export class FireflyClient {
 
   public sockets: Sockets;
 
+  public marketSymbols: string[] = []; //to save array market symbols [DOT-PERP, SOL-PERP]
+
   /**
    * initializes the class instance
    * @param _network containing network rpc url and chain id
@@ -705,6 +707,17 @@ export class FireflyClient {
     );
     return response;
   }
+
+  /**
+   * Gets the list of market symbols available on exchange
+   * @returns array of strings representing MARKET SYMBOLS
+   */
+ async getMarketSymbols() {
+    const response = await this.apiService.get<string[]>(
+      SERVICE_URLS.MARKET.SYMBOLS
+    );
+    return response
+ }
 
   /**
    * Gets status of the exchange
