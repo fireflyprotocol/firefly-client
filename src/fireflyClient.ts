@@ -1,6 +1,6 @@
 import Web3 from "web3";
 
-import { Contract, Wallet, providers, Signer } from "ethers";
+import { Contract, Wallet, providers, Signer, ethers } from "ethers";
 
 import {
   toBigNumberStr,
@@ -59,6 +59,7 @@ import {
   StatusResponse,
   AuthorizeHashResponse,
   AdjustLeverageResponse,
+  CancelOrderResponse,
 } from "./interfaces/routes";
 
 import { APIService } from "./exchange/apiService";
@@ -89,6 +90,8 @@ export class FireflyClient {
 
   private signer: Signer | undefined //to save provider when connecting from UI
 
+  private signingMethod: SigningMethod = SigningMethod.MetaMaskLatest //to save signing method when integrating on UI
+
   /**
    * initializes the class instance
    * @param _network containing network rpc url and chain id
@@ -110,12 +113,27 @@ export class FireflyClient {
     }
   }
 
-  async initializeWithSigner(_signer: Signer, _web3Provider: any) {
+  /**
+   * initializes web3 with the given provider and creates a signer to sign transactions like placing order
+   * @param _web3Provider provider HttpProvider | IpcProvider | WebsocketProvider | AbstractProvider | string
+   * @param _signingMethod method to sign transactions with, by default its MetaMaskLatest
+   */
+  async initializeWithProvider(_web3Provider: any, _signingMethod?: SigningMethod) {
     this.web3 = new Web3(_web3Provider)
-    this.signer = _signer
-    this.walletAddress = await _signer.getAddress()
+    
+		let provider = new ethers.providers.Web3Provider(_web3Provider);
+    this.signer = provider.getSigner()
+    this.walletAddress = await this.signer.getAddress()
+
+    if (_signingMethod) {
+      this.signingMethod = _signingMethod
+    }
   }
 
+  /**
+   * initializes web3 and wallet with the given account private key
+   * @param _acctPvtKey private key for the account to be used for placing orders
+   */
   initializeWithPrivateKey(_acctPvtKey: string) {
     this.web3.eth.accounts.wallet.add(_acctPvtKey);
     this.wallet = new Wallet(
@@ -302,7 +320,7 @@ export class FireflyClient {
   
     const orderSignature = await (signer as OrderSigner).signOrder(
       order,
-      SigningMethod.Hash
+      this.getSigningMethod()
     );
 
     const signedOrder: SignedOrder = {
@@ -386,7 +404,7 @@ export class FireflyClient {
     return signer.signCancelOrdersByHash(
       params.hashes,
       this.getPublicAddress().toLowerCase(),
-      SigningMethod.Hash
+      this.getSigningMethod()
     );
   }
 
@@ -396,7 +414,7 @@ export class FireflyClient {
    * @returns response from exchange server
    */
   async placeCancelOrder(params: OrderCancellationRequest) {
-    const response = await this.apiService.delete<PlaceOrderResponse>(
+    const response = await this.apiService.delete<CancelOrderResponse>(
       SERVICE_URLS.ORDERS.ORDERS_HASH,
       {
         symbol: params.symbol,
@@ -770,6 +788,10 @@ export class FireflyClient {
       );
     } 
     return walletOrSigner
+  }
+
+  getSigningMethod() {
+    return this.wallet ? SigningMethod.Hash : this.signingMethod
   }
 
   //= ==============================================================//

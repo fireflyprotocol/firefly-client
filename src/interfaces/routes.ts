@@ -103,6 +103,19 @@ export interface OrderCancellationRequest extends OrderCancelSignatureRequest {
   signature: string;
 }
 
+export type CancelOrder = {
+	hash: string;
+	reason?: string;
+};
+
+export type CancelOrderResponse = {
+	message: string;
+	data: {
+		acceptedForCancelling: CancelOrder[];
+		failedCancelling: CancelOrder[];
+	};
+};
+
 export interface GetOrderbookRequest {
   symbol: MarketSymbol;
   limit: number; // number of bids/asks to retrieve, should be <= 50
