@@ -1,6 +1,6 @@
 import Web3 from "web3";
 
-import { Contract, Wallet, providers } from "ethers";
+import { Contract, Wallet, providers, Signer, ethers } from "ethers";
 
 import {
   toBigNumberStr,
@@ -26,7 +26,7 @@ import {
   bnStrToBaseNumber,
   OnboardingSigner,
   OnboardingMessageString,
-  MARGIN_TYPE
+  MARGIN_TYPE,
 } from "@firefly-exchange/library";
 
 import * as contractAddresses from "../deployedContracts.json";
@@ -59,6 +59,7 @@ import {
   StatusResponse,
   AuthorizeHashResponse,
   AdjustLeverageResponse,
+  CancelOrderResponse,
 } from "./interfaces/routes";
 
 import { APIService } from "./exchange/apiService";
@@ -73,7 +74,7 @@ export class FireflyClient {
 
   private web3: Web3;
 
-  private wallet: Wallet;
+  private wallet: Wallet | undefined;
 
   private orderSigners: Map<MarketSymbol, OrderSigner> = new Map();
 
@@ -85,25 +86,60 @@ export class FireflyClient {
 
   public marketSymbols: string[] = []; //to save array market symbols [DOT-PERP, SOL-PERP]
 
+  private walletAddress = "" //to save user's public address when connecting from UI
+
+  private signer: Signer | undefined //to save provider when connecting from UI
+
+  private signingMethod: SigningMethod = SigningMethod.MetaMaskLatest //to save signing method when integrating on UI
+
   /**
    * initializes the class instance
    * @param _network containing network rpc url and chain id
    * @param _acctPvtKey private key for the account to be used for placing orders
    */
-  constructor(_network: Network, _acctPvtKey: string) {
+  constructor(_network: Network, _acctPvtKey?: string) {
     this.network = _network;
 
     this.web3 = new Web3(_network.url);
-    this.web3.eth.accounts.wallet.add(_acctPvtKey);
-    this.wallet = new Wallet(
-      _acctPvtKey,
-      new providers.JsonRpcProvider(_network.url)
-    );
+
     this.apiService = new APIService(this.network.apiGateway);
 
     this.sockets = new Sockets(this.network.socketURL);
 
     this.onboardSigner = new OnboardingSigner(this.web3, this.network.chainId)
+
+    if (_acctPvtKey) {
+      this.initializeWithPrivateKey(_acctPvtKey)
+    }
+  }
+
+  /**
+   * initializes web3 with the given provider and creates a signer to sign transactions like placing order
+   * @param _web3Provider provider HttpProvider | IpcProvider | WebsocketProvider | AbstractProvider | string
+   * @param _signingMethod method to sign transactions with, by default its MetaMaskLatest
+   */
+  async initializeWithProvider(_web3Provider: any, _signingMethod?: SigningMethod) {
+    this.web3 = new Web3(_web3Provider)
+    
+		let provider = new ethers.providers.Web3Provider(_web3Provider);
+    this.signer = provider.getSigner()
+    this.walletAddress = await this.signer.getAddress()
+
+    if (_signingMethod) {
+      this.signingMethod = _signingMethod
+    }
+  }
+
+  /**
+   * initializes web3 and wallet with the given account private key
+   * @param _acctPvtKey private key for the account to be used for placing orders
+   */
+  initializeWithPrivateKey(_acctPvtKey: string) {
+    this.web3.eth.accounts.wallet.add(_acctPvtKey);
+    this.wallet = new Wallet(
+      _acctPvtKey,
+      new providers.JsonRpcProvider(this.network.url)
+    );
   }
 
   /**
@@ -145,8 +181,8 @@ export class FireflyClient {
   async getUSDTBalance(contract?: address): Promise<string> {
     const tokenContract = this.getContract("USDTToken", contract);
     const balance = await (tokenContract as Contract)
-      .connect(this.wallet)
-      .balanceOf(this.wallet.address);
+      .connect(this.getWallet())
+      .balanceOf(this.getPublicAddress());
 
     return bnToString(+balance);
   }
@@ -159,8 +195,8 @@ export class FireflyClient {
   async getMarginBankBalance(contract?: address): Promise<string> {
     const marginBankContract = this.getContract("MarginBank", contract);
     const balance = await (marginBankContract as contracts_exchange.MarginBank)
-      .connect(this.wallet)
-      .getAccountBankBalance(this.wallet.address);
+      .connect(this.getWallet())
+      .getAccountBankBalance(this.getPublicAddress());
 
     return balance.toString();
   }
@@ -176,8 +212,8 @@ export class FireflyClient {
     // mint 10K usdt token
     await (
       await (tokenContract as Contract)
-        .connect(this.wallet)
-        .mint(this.wallet.address, toBigNumberStr(10000))
+        .connect(this.getWallet())
+        .mint(this.getPublicAddress(), toBigNumberStr(10000))
     ).wait();
 
     return true;
@@ -203,7 +239,7 @@ export class FireflyClient {
     // approve usdt contract to allow margin bank to take funds out for user's behalf
     await (
       await (tokenContract as Contract)
-        .connect(this.wallet)
+        .connect(this.getWallet())
         .approve(
           (marginBankContract as contracts_exchange.MarginBank).address,
           amountString,
@@ -214,8 +250,8 @@ export class FireflyClient {
     // deposit `amount` usdt to margin bank
     await (
       await (marginBankContract as contracts_exchange.MarginBank)
-        .connect(this.wallet)
-        .depositToBank(this.wallet.address, amountString, {})
+        .connect(this.getWallet())
+        .depositToBank(this.getPublicAddress(), amountString, {})
     ).wait();
 
     return true;
@@ -242,10 +278,10 @@ export class FireflyClient {
 
     await (
       await (marginBankContract as contracts_exchange.MarginBank)
-        .connect(this.wallet)
+        .connect(this.getWallet())
         .withdrawFromBank(
-          this.wallet.address,
-          this.wallet.address,
+          this.getPublicAddress(),
+          this.getPublicAddress(),
           amountString
         )
     ).wait();
@@ -261,7 +297,7 @@ export class FireflyClient {
    */
   async getAccountPositionBalance(symbol: MarketSymbol, perpContract?: address) {
     const perpV1Contract = this.getContract("PerpetualProxy", perpContract, symbol);
-    const marginBalance = await perpV1Contract.connect(this.wallet).getAccountPositionBalance(this.getPublicAddress());
+    const marginBalance = await perpV1Contract.connect(this.getWallet()).getAccountPositionBalance(this.getPublicAddress());
     return marginBalance
   }
 
@@ -281,10 +317,10 @@ export class FireflyClient {
         `Provided Market Symbol(${params.symbol}) is not added to client library`
       );
     }
-
+  
     const orderSignature = await (signer as OrderSigner).signOrder(
       order,
-      SigningMethod.Hash
+      this.getSigningMethod()
     );
 
     const signedOrder: SignedOrder = {
@@ -368,7 +404,7 @@ export class FireflyClient {
     return signer.signCancelOrdersByHash(
       params.hashes,
       this.getPublicAddress().toLowerCase(),
-      SigningMethod.Hash
+      this.getSigningMethod()
     );
   }
 
@@ -378,7 +414,7 @@ export class FireflyClient {
    * @returns response from exchange server
    */
   async placeCancelOrder(params: OrderCancellationRequest) {
-    const response = await this.apiService.delete<PlaceOrderResponse>(
+    const response = await this.apiService.delete<CancelOrderResponse>(
       SERVICE_URLS.ORDERS.ORDERS_HASH,
       {
         symbol: params.symbol,
@@ -461,7 +497,7 @@ export class FireflyClient {
 
           await (
             await (marginBankContract as contracts_exchange.MarginBank)
-              .connect(this.wallet)
+              .connect(this.getWallet())
               .transferToPerpetual(
                 perpetualAddress,
                 this.getPublicAddress(),
@@ -479,7 +515,7 @@ export class FireflyClient {
 
           await (
             await (perpV1Contract as contracts_exchange.PerpetualV1)
-              .connect(this.wallet)
+              .connect(this.getWallet())
               .withdrawFromPosition(
                 this.getPublicAddress(),
                 this.getPublicAddress(),
@@ -735,7 +771,27 @@ export class FireflyClient {
    * @returns string | address
    */
   getPublicAddress(): address {
-    return this.wallet.address;
+    const address = this.wallet ? this.wallet.address : this.walletAddress
+    if (address == ""){
+      throw Error(
+        `Invalid user address`
+      );
+    }
+    return address
+  }
+
+  getWallet() {  
+    const walletOrSigner = this.wallet ? this.wallet : this.signer
+    if (!walletOrSigner){
+      throw Error(
+        `Invalid Signer`
+      );
+    } 
+    return walletOrSigner
+  }
+
+  getSigningMethod() {
+    return this.wallet ? SigningMethod.Hash : this.signingMethod
   }
 
   //= ==============================================================//
@@ -866,5 +922,4 @@ export class FireflyClient {
     );
     return response;
   }
-
 }
