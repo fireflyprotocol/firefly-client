@@ -301,6 +301,7 @@ export class FireflyClient {
     return marginBalance
   }
 
+
   /**
    * Creates order signature and returns it. The signed order can be placed on exchange
    * @param params OrderSignatureRequest params needed to be signed
@@ -753,6 +754,19 @@ export class FireflyClient {
       SERVICE_URLS.MARKET.SYMBOLS
     );
     return response
+ }
+
+ /**
+  * Gets contract addresses of market 
+  * @param symbol (optional) market symbol get information about, by default fetches info on all available markets
+  * @returns deployed contract addresses
+  */
+ async getContractAddresses(symbol?: MarketSymbol) {
+  const response = await this.apiService.get<Record<string,object>>(
+    SERVICE_URLS.MARKET.CONTRACT_ADDRESSES,
+    { symbol }
+  );
+  return response
  }
 
   /**

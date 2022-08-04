@@ -410,6 +410,11 @@ describe("FireflyClient", () => {
     });
   });
 
+  it("should get contract address", async () => {
+    const response = await client.getContractAddresses();
+    expect(response.ok).to.be.equal(true);
+  })
+
   it("should get User Account Data", async () => {
     const response = await client.getUserAccountData();
     expect(response.ok).to.be.equal(true);
