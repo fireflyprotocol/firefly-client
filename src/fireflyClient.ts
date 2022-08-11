@@ -188,11 +188,11 @@ export class FireflyClient {
   }
 
   /**
-   * Returns the USDT balance of user in USDT contract
-   * @param contract (optional) address of USDT contract
+   * Returns the USDC balance of user in USDC contract
+   * @param contract (optional) address of USDC contract
    * @returns Number representing balance of user
    */
-  async getUSDTBalance(contract?: address): Promise<string> {
+  async getUSDCBalance(contract?: address): Promise<string> {
     const tokenContract = this.getContract("USDTToken", contract);
     const balance = await (tokenContract as Contract)
       .connect(this.getWallet())
@@ -202,7 +202,7 @@ export class FireflyClient {
   }
 
   /**
-   * Returns the usdt Balance(Free Collateral) of the account in Margin Bank contract
+   * Returns the usdc Balance(Free Collateral) of the account in Margin Bank contract
    * @param contract (optional) address of Margin Bank contract
    * @returns Number representing balance of user
    */
@@ -216,14 +216,14 @@ export class FireflyClient {
   }
 
   /**
-   * Faucet function, mints 10K USDT to wallet - Only works on Testnet
+   * Faucet function, mints 10K USDC to wallet - Only works on Testnet
    * Assumes that the user wallet has Boba/Moonbase Tokens on Testnet
-   * @param contract (optional) address of USDT contract
+   * @param contract (optional) address of USDC contract
    * @returns Boolean true if user is funded, false otherwise
    */
-  async mintTestUSDT(contract?: address): Promise<boolean> {
+  async mintTestUSDC(contract?: address): Promise<boolean> {
     const tokenContract = this.getContract("USDTToken", contract);
-    // mint 10K usdt token
+    // mint 10K usdc token
     await (
       await (tokenContract as Contract)
         .connect(this.getWallet())
@@ -234,10 +234,10 @@ export class FireflyClient {
   }
 
   /**
-   * Transfers usdt to margin bank to be used for placing orders and opening
+   * Transfers usdc to margin bank to be used for placing orders and opening
    * positions on Firefly Exchange
-   * @param amount the number of usdt to be transferred
-   * @param usdtContract (optional) address of usdt contract
+   * @param amount the number of usdc to be transferred
+   * @param usdtContract (optional) address of usdc contract
    * @param mbContract (address) address of Margin Bank contract
    * @returns boolean true if funds are transferred, false otherwise
    */
@@ -250,7 +250,7 @@ export class FireflyClient {
     const marginBankContract = this.getContract("MarginBank", mbContract);
     const amountString = toBigNumberStr(amount);
 
-    // approve usdt contract to allow margin bank to take funds out for user's behalf
+    // approve usdc contract to allow margin bank to take funds out for user's behalf
     await (
       await (tokenContract as Contract)
         .connect(this.getWallet())
@@ -261,7 +261,7 @@ export class FireflyClient {
         )
     ).wait();
 
-    // deposit `amount` usdt to margin bank
+    // deposit `amount` usdc to margin bank
     await (
       await (marginBankContract as contracts_exchange.MarginBank)
         .connect(this.getWallet())
@@ -272,9 +272,9 @@ export class FireflyClient {
   }
 
   /**
-   * Transfers usdt from MarginBank, back to usdt contract
-   * @param amount (optional) if not provided, transfers all available usdt tokens
-   * from Margin Bank to usdt contract
+   * Transfers usdc from MarginBank, back to usdc contract
+   * @param amount (optional) if not provided, transfers all available usdc tokens
+   * from Margin Bank to usdc contract
    * @param mbContract (address) address of Margin Bank contract
    * @returns boolean true if funds are withdrawn, false otherwise
    */
@@ -832,7 +832,7 @@ export class FireflyClient {
   //= ==============================================================//
 
   /**
-   * Private function to return a global(Test usdt Token / Margin Bank) contract
+   * Private function to return a global(Test usdc Token / Margin Bank) contract
    * @param contract address of contract
    * @returns Contract | MarginBank or throws error
    */
@@ -910,7 +910,7 @@ export class FireflyClient {
       limitFee: new Fee(0),
       taker: "0x0000000000000000000000000000000000000000",
       expiration: bigNumber(
-        params.expiration || Math.floor(expiration.getTime()) //removed /1000 because taking time in ms now
+        params.expiration || Math.floor(expiration.getTime()) // removed /1000 because time in ms now
       ),
       salt: bigNumber(params.salt || Math.floor(Math.random() * 1_000_000)),
     } as Order;

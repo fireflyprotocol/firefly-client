@@ -1,5 +1,5 @@
 /**
- * Getting user's USDT balance locked in Margin Bank
+ * Getting user's USDC balance locked in Margin Bank
  */
 
 /* eslint-disable no-console */
@@ -14,13 +14,13 @@ async function main() {
   
   // will use margin bank contract from contractAddresses (initialized above)
   console.log(
-    "User's locked USDT in margin bank are: ",
+    "User's locked USDC in margin bank are: ",
     await client.getMarginBankBalance()
   );
 
   // will use the provided MarginBank contract address"
   console.log(
-    "User's locked USDT in margin bank are: ",
+    "User's locked USDC in margin bank are: ",
     await client.getMarginBankBalance(
       "0xbDd8210d4F74fC97d4E93950a1FF201fe425C68f"
     )

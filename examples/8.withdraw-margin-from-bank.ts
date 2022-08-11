@@ -1,6 +1,6 @@
 /**
- * Withdraw margin(USDT) from bank. Reduces locked margin(USDT) in Margin bank for user
- * and unlocks USDT in USDT contract.
+ * Withdraw margin(USDC) from bank. Reduces locked margin(USDC) in Margin bank for user
+ * and unlocks USDC in USDC contract.
  */
 
 /* eslint-disable no-console */
@@ -11,13 +11,13 @@ async function main() {
   const dummyAccountKey =
     "a182091b4d5a090b65d604e36f68629a692e3bf2aa864bd3f037854034cdd676";
 
-  // using TESTNET network, getUSDTBalance does not work on MAINNET
+  // using TESTNET network, getUSDCBalance does not work on MAINNET
   const client = new FireflyClient(Networks.TESTNET, dummyAccountKey);
   await client.init()
 
-  // withdraws 1 USDT token from bank
+  // withdraws 1 USDC token from bank
   console.log(
-    "USDT Withdrawn from MarginBank: ",
+    "USDC Withdrawn from MarginBank: ",
     await client.withdrawFromMarginBank(1)
   );
 }
