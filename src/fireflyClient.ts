@@ -134,7 +134,7 @@ export class FireflyClient {
    * initializes web3 and wallet with the given account private key
    * @param _acctPvtKey private key for the account to be used for placing orders
    */
-  async initializeWithPrivateKey(_acctPvtKey: string) {
+  initializeWithPrivateKey(_acctPvtKey: string) {
     this.web3.eth.accounts.wallet.add(_acctPvtKey);
     this.wallet = new Wallet(
       _acctPvtKey,
