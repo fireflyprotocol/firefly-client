@@ -12,7 +12,7 @@ async function main() {
 
   // using TESTNET network, getUSDTBalance does not work on MAINNET
   const client = new FireflyClient(Networks.TESTNET, dummyAccountKey);
-  await client.initializeContractAddresses()
+  await client.init()
 
   // all available symbols on exchange
   const symbols = await client.getMarketSymbols()

@@ -142,7 +142,10 @@ export class FireflyClient {
     );
   }
 
-  async initializeContractAddresses() {
+  /**
+   * initializes contract addresses
+   */
+  async init() {
     const response = await this.getContractAddresses()
     if (!response.ok) {
       throw Error(

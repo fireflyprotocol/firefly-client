@@ -36,7 +36,7 @@ describe("FireflyClient", () => {
 
   beforeEach(async () => {
     client = new FireflyClient(network, testAcctKey);
-    await client.initializeContractAddresses()
+    await client.init()
   });
 
   afterEach(() => {
@@ -336,7 +336,7 @@ describe("FireflyClient", () => {
         network,
         wallet.privateKey
       );
-      await clientTemp.initializeContractAddresses()
+      await clientTemp.init()
 
       //When
       clientTemp.addMarket(MARKET_SYMBOLS.DOT);
@@ -379,7 +379,7 @@ describe("FireflyClient", () => {
         network,
         wallet.privateKey
       );
-      await clientTemp.initializeContractAddresses()
+      await clientTemp.init()
 
       //When
       clientTemp.addMarket(MARKET_SYMBOLS.DOT);
