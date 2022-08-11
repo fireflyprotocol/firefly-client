@@ -12,6 +12,7 @@ async function main() {
 
   // using TESTNET network, getUSDTBalance does not work on MAINNET
   const client = new FireflyClient(Networks.TESTNET, dummyAccountKey);
+  await client.initializeContractAddresses()
 
   // balance will be 10K, will return true
   console.log("Tokens minted:", await client.mintTestUSDT());

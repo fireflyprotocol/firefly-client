@@ -10,8 +10,9 @@ async function main() {
     "a182091b4d5a090b65d604e36f68629a692e3bf2aa864bd3f037854034cdd676";
   // using TESTNET network
   const client = new FireflyClient(Networks.TESTNET, dummyAccountKey);
+  await client.initializeContractAddresses()
 
-  // will use USDT contract address from "/contracts/deployedContracts.json"
+  // will use USDT contract address from contractAddresses (initialized above)
   console.log("User's balance in USDT is: ", await client.getUSDTBalance());
 
   // will use the provided USDT contract address"

@@ -10,8 +10,9 @@ async function main() {
     "a182091b4d5a090b65d604e36f68629a692e3bf2aa864bd3f037854034cdd676";
   // using TESTNET network
   const client = new FireflyClient(Networks.TESTNET, dummyAccountKey);
-
-  // will use margin bank contract from "/contracts/deployedContracts.json"
+  await client.initializeContractAddresses()
+  
+  // will use margin bank contract from contractAddresses (initialized above)
   console.log(
     "User's locked USDT in margin bank are: ",
     await client.getMarginBankBalance()

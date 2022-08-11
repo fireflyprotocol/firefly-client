@@ -13,6 +13,7 @@ async function main() {
 
   // using TESTNET network, getUSDTBalance does not work on MAINNET
   const client = new FireflyClient(Networks.TESTNET, dummyAccountKey);
+  await client.initializeContractAddresses()
 
   // withdraws 1 USDT token from bank
   console.log(

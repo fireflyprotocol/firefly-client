@@ -12,6 +12,7 @@ async function main() {
 
   // using TESTNET network, getUSDTBalance does not work on MAINNET
   const client = new FireflyClient(Networks.TESTNET, dummyAccountKey);
+  await client.initializeContractAddresses()
 
   // deposits 10 USDT to margin bank, uses default USDT/MarginBank Contracts
   // assuming user has 1 USDT locked in margin bank, else will throw

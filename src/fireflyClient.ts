@@ -29,8 +29,6 @@ import {
   MARGIN_TYPE,
 } from "@firefly-exchange/library";
 
-import * as contractAddresses from "../deployedContracts.json";
-
 import {
   GetOrderResponse,
   GetOrderRequest,
@@ -92,6 +90,8 @@ export class FireflyClient {
 
   private signingMethod: SigningMethod = SigningMethod.MetaMaskLatest //to save signing method when integrating on UI
 
+  private contractAddresses: any
+
   /**
    * initializes the class instance
    * @param _network containing network rpc url and chain id
@@ -134,12 +134,23 @@ export class FireflyClient {
    * initializes web3 and wallet with the given account private key
    * @param _acctPvtKey private key for the account to be used for placing orders
    */
-  initializeWithPrivateKey(_acctPvtKey: string) {
+  async initializeWithPrivateKey(_acctPvtKey: string) {
     this.web3.eth.accounts.wallet.add(_acctPvtKey);
     this.wallet = new Wallet(
       _acctPvtKey,
       new providers.JsonRpcProvider(this.network.url)
     );
+  }
+
+  async initializeContractAddresses() {
+    const response = await this.getContractAddresses()
+    if (!response.ok) {
+      throw Error(
+        "Failed to fetch contract addresses"
+      );
+    }
+
+    this.contractAddresses = response.data
   }
 
   /**
@@ -825,7 +836,7 @@ export class FireflyClient {
     // if a market name is provided and contract address is not provided
     if (market && !contract) {
       try {
-        contract = (contractAddresses as any)[this.network.chainId][market][
+        contract = this.contractAddresses[market][
           contractName
         ].address;
       } catch (e) {
@@ -836,7 +847,7 @@ export class FireflyClient {
     // if contract address is not provided and also market name is not provided
     if (!market && !contract) {
       try {
-        contract = (contractAddresses as any)[this.network.chainId][
+        contract = this.contractAddresses[
           contractName
         ].address;
       } catch (e) {
@@ -846,7 +857,7 @@ export class FireflyClient {
 
     if (contract === "" || contract === undefined) {
       throw Error(
-        `Contract "${contractName}" not found in deployedContracts.json for network id ${this.network.chainId}`
+        `Contract "${contractName}" not found in contract addresses for network id ${this.network.chainId}`
       );
     }
 

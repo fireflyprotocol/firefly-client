@@ -10,11 +10,13 @@ async function main() {
     "a182091b4d5a090b65d604e36f68629a692e3bf2aa864bd3f037854034cdd676";
   // using TESTNET network
   const client = new FireflyClient(Networks.TESTNET, dummyAccountKey);
+  await client.initializeContractAddresses()
 
   // will add dot market to client and will be using the orders contract
-  // from /contracts/deployedContracts.json
+  // from contractAddresses initialized with initializeContractAddresses() method above
   console.log("Market Added: ", client.addMarket(MARKET_SYMBOLS.DOT));
   const client2 = new FireflyClient(Networks.TESTNET, dummyAccountKey);
+  await client2.initializeContractAddresses()
 
   console.log(
     "Market Added: ",
@@ -24,7 +26,7 @@ async function main() {
     )
   );
   // this will throw because ETH market is not yet available on TESTNET.
-  // the function looks up the /contracts/deployedContracts.json to determine if a particular
+  // the function looks up the contractAddresses (initialized above) to determine if a particular
   // market is available or not
   try {
     client.addMarket(MARKET_SYMBOLS.ETH);
