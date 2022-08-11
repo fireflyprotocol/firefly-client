@@ -439,6 +439,11 @@ export class FireflyClient {
   }
 
   async postCancelOrder(params: OrderCancelSignatureRequest) {
+    if (params.hashes.length <= 0) {
+      throw Error(
+        `No orders to cancel`
+      );
+    }
     const signature = await this.createOrderCancellationSignature(params);
     const response = await this.placeCancelOrder({
       ...params,
