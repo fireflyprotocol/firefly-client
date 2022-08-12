@@ -917,7 +917,7 @@ export class FireflyClient {
       limitFee: new Fee(0),
       taker: "0x0000000000000000000000000000000000000000",
       expiration: bigNumber(
-        params.expiration || Math.floor(expiration.getTime()) // removed /1000 because time in ms now
+        params.expiration || Math.floor(expiration.getTime() / 1000) // /1000 to convert time in seconds
       ),
       salt: bigNumber(params.salt || Math.floor(Math.random() * 1_000_000)),
     } as Order;
