@@ -897,8 +897,15 @@ export class FireflyClient {
    */
   private createOrderToSign(params: OrderSignatureRequest): Order {
     const expiration = new Date();
-    expiration.setMonth(expiration.getMonth() + 1);
-        
+    //MARKET ORDER - set expiration of 1 minute
+    if (params.price === 0){
+      expiration.setMinutes(expiration.getMinutes() + 1);
+    }
+    //LIMIT ORDER - set expiration of 1 month
+    else {
+      expiration.setMonth(expiration.getMonth() + 1);
+    }
+
     return {
       limitPrice: new Price(bigNumber(params.price)),
       isBuy: params.side === ORDER_SIDE.BUY,
