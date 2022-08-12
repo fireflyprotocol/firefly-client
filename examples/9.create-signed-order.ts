@@ -13,6 +13,8 @@ async function main() {
     "a182091b4d5a090b65d604e36f68629a692e3bf2aa864bd3f037854034cdd676";
 
   const client = new FireflyClient(Networks.TESTNET, dummyAccountKey);
+  await client.init()
+
   client.addMarket(MARKET_SYMBOLS.DOT);
 
   // this will throw because BTC Market does not exist in client.

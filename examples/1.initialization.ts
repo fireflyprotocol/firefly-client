@@ -23,6 +23,7 @@ async function main() {
     onboardingUrl: "https://testnet.firefly.exchange"
   };
   const clientCustomNetwork = new FireflyClient(custNetwork, dummyAccountKey);
+  await clientCustomNetwork.init()
   // prints client address
   console.log(clientCustomNetwork.getPublicAddress());
 }

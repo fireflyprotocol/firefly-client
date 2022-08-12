@@ -29,8 +29,6 @@ import {
   MARGIN_TYPE,
 } from "@firefly-exchange/library";
 
-import * as contractAddresses from "../deployedContracts.json";
-
 import {
   GetOrderResponse,
   GetOrderRequest,
@@ -92,6 +90,8 @@ export class FireflyClient {
 
   private signingMethod: SigningMethod = SigningMethod.MetaMaskLatest //to save signing method when integrating on UI
 
+  private contractAddresses: any
+
   /**
    * initializes the class instance
    * @param _network containing network rpc url and chain id
@@ -143,6 +143,20 @@ export class FireflyClient {
   }
 
   /**
+   * initializes contract addresses
+   */
+  async init() {
+    const response = await this.getContractAddresses()
+    if (!response.ok) {
+      throw Error(
+        "Failed to fetch contract addresses"
+      );
+    }
+
+    this.contractAddresses = response.data
+  }
+
+  /**
    * Allows caller to add a market, internally creates order signer for the provided market
    * @param marksymbolet Symbol of MARKET in form of DOT-PERP, BTC-PERP etc.
    * @param ordersContractAddress (Optional) address of orders contract address for market
@@ -174,11 +188,11 @@ export class FireflyClient {
   }
 
   /**
-   * Returns the USDT balance of user in USDT contract
-   * @param contract (optional) address of USDT contract
+   * Returns the USDC balance of user in USDC contract
+   * @param contract (optional) address of USDC contract
    * @returns Number representing balance of user
    */
-  async getUSDTBalance(contract?: address): Promise<string> {
+  async getUSDCBalance(contract?: address): Promise<string> {
     const tokenContract = this.getContract("USDTToken", contract);
     const balance = await (tokenContract as Contract)
       .connect(this.getWallet())
@@ -188,7 +202,7 @@ export class FireflyClient {
   }
 
   /**
-   * Returns the usdt Balance(Free Collateral) of the account in Margin Bank contract
+   * Returns the usdc Balance(Free Collateral) of the account in Margin Bank contract
    * @param contract (optional) address of Margin Bank contract
    * @returns Number representing balance of user
    */
@@ -202,14 +216,14 @@ export class FireflyClient {
   }
 
   /**
-   * Faucet function, mints 10K USDT to wallet - Only works on Testnet
+   * Faucet function, mints 10K USDC to wallet - Only works on Testnet
    * Assumes that the user wallet has Boba/Moonbase Tokens on Testnet
-   * @param contract (optional) address of USDT contract
+   * @param contract (optional) address of USDC contract
    * @returns Boolean true if user is funded, false otherwise
    */
-  async mintTestUSDT(contract?: address): Promise<boolean> {
+  async mintTestUSDC(contract?: address): Promise<boolean> {
     const tokenContract = this.getContract("USDTToken", contract);
-    // mint 10K usdt token
+    // mint 10K usdc token
     await (
       await (tokenContract as Contract)
         .connect(this.getWallet())
@@ -220,10 +234,10 @@ export class FireflyClient {
   }
 
   /**
-   * Transfers usdt to margin bank to be used for placing orders and opening
+   * Transfers usdc to margin bank to be used for placing orders and opening
    * positions on Firefly Exchange
-   * @param amount the number of usdt to be transferred
-   * @param usdtContract (optional) address of usdt contract
+   * @param amount the number of usdc to be transferred
+   * @param usdtContract (optional) address of usdc contract
    * @param mbContract (address) address of Margin Bank contract
    * @returns boolean true if funds are transferred, false otherwise
    */
@@ -236,7 +250,7 @@ export class FireflyClient {
     const marginBankContract = this.getContract("MarginBank", mbContract);
     const amountString = toBigNumberStr(amount);
 
-    // approve usdt contract to allow margin bank to take funds out for user's behalf
+    // approve usdc contract to allow margin bank to take funds out for user's behalf
     await (
       await (tokenContract as Contract)
         .connect(this.getWallet())
@@ -247,7 +261,7 @@ export class FireflyClient {
         )
     ).wait();
 
-    // deposit `amount` usdt to margin bank
+    // deposit `amount` usdc to margin bank
     await (
       await (marginBankContract as contracts_exchange.MarginBank)
         .connect(this.getWallet())
@@ -258,9 +272,9 @@ export class FireflyClient {
   }
 
   /**
-   * Transfers usdt from MarginBank, back to usdt contract
-   * @param amount (optional) if not provided, transfers all available usdt tokens
-   * from Margin Bank to usdt contract
+   * Transfers usdc from MarginBank, back to usdc contract
+   * @param amount (optional) if not provided, transfers all available usdc tokens
+   * from Margin Bank to usdc contract
    * @param mbContract (address) address of Margin Bank contract
    * @returns boolean true if funds are withdrawn, false otherwise
    */
@@ -300,6 +314,7 @@ export class FireflyClient {
     const marginBalance = await perpV1Contract.connect(this.getWallet()).getAccountPositionBalance(this.getPublicAddress());
     return marginBalance
   }
+
 
   /**
    * Creates order signature and returns it. The signed order can be placed on exchange
@@ -427,6 +442,11 @@ export class FireflyClient {
   }
 
   async postCancelOrder(params: OrderCancelSignatureRequest) {
+    if (params.hashes.length <= 0) {
+      throw Error(
+        `No orders to cancel`
+      );
+    }
     const signature = await this.createOrderCancellationSignature(params);
     const response = await this.placeCancelOrder({
       ...params,
@@ -755,6 +775,19 @@ export class FireflyClient {
     return response
  }
 
+ /**
+  * Gets contract addresses of market 
+  * @param symbol (optional) market symbol get information about, by default fetches info on all available markets
+  * @returns deployed contract addresses
+  */
+ async getContractAddresses(symbol?: MarketSymbol) {
+  const response = await this.apiService.get<Record<string,object>>(
+    SERVICE_URLS.MARKET.CONTRACT_ADDRESSES,
+    { symbol }
+  );
+  return response
+ }
+
   /**
    * Gets status of the exchange
    * @returns StatusResponse
@@ -799,7 +832,7 @@ export class FireflyClient {
   //= ==============================================================//
 
   /**
-   * Private function to return a global(Test usdt Token / Margin Bank) contract
+   * Private function to return a global(Test usdc Token / Margin Bank) contract
    * @param contract address of contract
    * @returns Contract | MarginBank or throws error
    */
@@ -811,7 +844,7 @@ export class FireflyClient {
     // if a market name is provided and contract address is not provided
     if (market && !contract) {
       try {
-        contract = (contractAddresses as any)[this.network.chainId][market][
+        contract = this.contractAddresses[market][
           contractName
         ].address;
       } catch (e) {
@@ -822,7 +855,7 @@ export class FireflyClient {
     // if contract address is not provided and also market name is not provided
     if (!market && !contract) {
       try {
-        contract = (contractAddresses as any)[this.network.chainId][
+        contract = this.contractAddresses[
           contractName
         ].address;
       } catch (e) {
@@ -832,7 +865,7 @@ export class FireflyClient {
 
     if (contract === "" || contract === undefined) {
       throw Error(
-        `Contract "${contractName}" not found in deployedContracts.json for network id ${this.network.chainId}`
+        `Contract "${contractName}" not found in contract addresses for network id ${this.network.chainId}`
       );
     }
 
@@ -877,7 +910,7 @@ export class FireflyClient {
       limitFee: new Fee(0),
       taker: "0x0000000000000000000000000000000000000000",
       expiration: bigNumber(
-        params.expiration || Math.floor(expiration.getTime()) //removed /1000 because taking time in ms now
+        params.expiration || Math.floor(expiration.getTime()) // removed /1000 because time in ms now
       ),
       salt: bigNumber(params.salt || Math.floor(Math.random() * 1_000_000)),
     } as Order;

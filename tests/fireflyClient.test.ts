@@ -20,6 +20,7 @@ import {
   GetUserTradesResponse,
   GetAccountDataResponse,
 } from "../index";
+import Web3 from "web3";
 
 chai.use(chaiAsPromised);
 
@@ -30,8 +31,12 @@ const testAcctPubAddr = "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF";
 let client: FireflyClient;
 
 describe("FireflyClient", () => {
-  beforeEach(() => {
-    client = new FireflyClient(Networks.TESTNET, testAcctKey);
+  //set environment from here
+  const network = Networks.DEV 
+
+  beforeEach(async () => {
+    client = new FireflyClient(network, testAcctKey);
+    await client.init()
   });
 
   afterEach(() => {
@@ -66,7 +71,7 @@ describe("FireflyClient", () => {
           client.addMarket("TEST-PERP");
         },
         Error,
-        `Contract "Orders" not found in deployedContracts.json for network id 1297`
+        `Contract "Orders" not found in contract addresses for network id ${network.chainId}`
       );
     });
 
@@ -96,9 +101,9 @@ describe("FireflyClient", () => {
 
   describe("Balance", () => {
     it("should get 10K Test USDCs", async () => {
-      expect(await client.mintTestUSDT()).to.be.equal(true);
+      expect(await client.mintTestUSDC()).to.be.equal(true);
       expect(
-        bnStrToBaseNumber(await client.getUSDTBalance())
+        bnStrToBaseNumber(await client.getUSDCBalance())
       ).to.be.greaterThanOrEqual(10000);
     });
 
@@ -136,8 +141,10 @@ describe("FireflyClient", () => {
     });
 
     it("should put 10K in margin bank", async () => {
-      await client.mintTestUSDT();
-      await client.depositToMarginBank(10000);
+      const minted = await client.mintTestUSDC();
+      const deposited = await client.depositToMarginBank(10000);
+      expect(minted).to.eq(true)
+      expect(deposited).to.eq(true)
     });
 
     it("should throw error as DOT market is not added to client", async () => {
@@ -175,7 +182,7 @@ describe("FireflyClient", () => {
         leverage: 3
       });
 
-      const response = await client.placeSignedOrder({ ...signedOrder });            
+      const response = await client.placeSignedOrder({ ...signedOrder });                  
       expect(response.ok).to.be.equal(true);
     });
 
@@ -199,6 +206,7 @@ describe("FireflyClient", () => {
         side: ORDER_SIDE.BUY,
         leverage: 3
       });
+      
       expect(response.ok).to.be.equal(true);
     });
   });
@@ -321,29 +329,23 @@ describe("FireflyClient", () => {
     });
 
     it("should return zero open positions for the user", async () => {
+      //Given
+      const web3 = new Web3(network.url)
+      const wallet = web3.eth.accounts.create()
       const clientTemp = new FireflyClient(
-        Networks.TESTNET,
-        "20049f9e228fc02b924e022533b92ddc07d0a1f125845d2caca14b8010943f63"
+        network,
+        wallet.privateKey
       );
-      clientTemp.addMarket(MARKET_SYMBOLS.DOT);
+      await clientTemp.init()
 
+      //When
+      clientTemp.addMarket(MARKET_SYMBOLS.DOT);
       const response = await clientTemp.getUserPosition({});
+
+      //Then
       expect(response.ok).to.be.equal(true);
       expect(response.response.data.length).to.be.equal(0);
 
-      clientTemp.sockets.close();
-    });
-
-    it("should return no open position for user against BTC-PERP market", async () => {
-      const clientTemp = new FireflyClient(
-        Networks.TESTNET,
-        "20049f9e228fc02b924e022533b92ddc07d0a1f125845d2caca14b8010943f63"
-      );
-      clientTemp.addMarket(MARKET_SYMBOLS.DOT);
-
-      const response = await clientTemp.getUserPosition({});
-      expect(response.ok).to.be.equal(true);
-      expect(response.response.data.length).to.be.equal(0);
       clientTemp.sockets.close();
     });
 
@@ -370,13 +372,20 @@ describe("FireflyClient", () => {
     });
 
     it("should return zero trades for the user", async () => {
+      //Given
+      const web3 = new Web3(network.url)
+      const wallet = web3.eth.accounts.create()
       const clientTemp = new FireflyClient(
-        Networks.TESTNET,
-        "20049f9e228fc02b924e022533b92ddc07d0a1f125845d2caca14b8010943f63"
+        network,
+        wallet.privateKey
       );
-      clientTemp.addMarket(MARKET_SYMBOLS.DOT);
+      await clientTemp.init()
 
+      //When
+      clientTemp.addMarket(MARKET_SYMBOLS.DOT);
       const response = await clientTemp.getUserTrades({});
+
+      //Then
       expect(response.ok).to.be.equal(true);
       expect(response.response.data.length).to.be.equal(0);
       clientTemp.sockets.close();
@@ -409,6 +418,11 @@ describe("FireflyClient", () => {
       expect(response.ok).to.be.equal(false);
     });
   });
+
+  it("should get contract address", async () => {
+    const response = await client.getContractAddresses();
+    expect(response.ok).to.be.equal(true);
+  })
 
   it("should get User Account Data", async () => {
     const response = await client.getUserAccountData();
