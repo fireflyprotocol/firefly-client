@@ -897,8 +897,15 @@ export class FireflyClient {
    */
   private createOrderToSign(params: OrderSignatureRequest): Order {
     const expiration = new Date();
-    expiration.setMonth(expiration.getMonth() + 1);
-        
+    //MARKET ORDER - set expiration of 1 minute
+    if (params.price === 0){
+      expiration.setMinutes(expiration.getMinutes() + 1);
+    }
+    //LIMIT ORDER - set expiration of 1 month
+    else {
+      expiration.setMonth(expiration.getMonth() + 1);
+    }
+
     return {
       limitPrice: new Price(bigNumber(params.price)),
       isBuy: params.side === ORDER_SIDE.BUY,
@@ -910,7 +917,7 @@ export class FireflyClient {
       limitFee: new Fee(0),
       taker: "0x0000000000000000000000000000000000000000",
       expiration: bigNumber(
-        params.expiration || Math.floor(expiration.getTime()) // removed /1000 because time in ms now
+        params.expiration || Math.floor(expiration.getTime() / 1000) // /1000 to convert time in seconds
       ),
       salt: bigNumber(params.salt || Math.floor(Math.random() * 1_000_000)),
     } as Order;
