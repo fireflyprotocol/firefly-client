@@ -574,7 +574,7 @@
     "@ethersproject/properties" "^5.6.0"
     "@ethersproject/strings" "^5.6.1"
 
-"@firefly-exchange/firefly-math@^1.0.19":
+"@firefly-exchange/firefly-math@1.0.19":
   version "1.0.19"
   resolved "https://registry.yarnpkg.com/@firefly-exchange/firefly-math/-/firefly-math-1.0.19.tgz#9f5721ced392be04c70f5210517d43af62f2fddf"
   integrity sha512-uQ4qUG9vOp2vkIJPrUw8emZ9mQJazkYGy403rx4wjU0w7aFT6FpO2VsdGVo9Ghip2AaZLE5eCt2HdyqEkLr4eQ==
@@ -592,19 +592,7 @@
     sinon-chai "^2.14.0"
     ts-node "^3.3.0"
 
-"@firefly-exchange/library@^1.0.14":
-  version "1.0.21"
-  resolved "https://registry.yarnpkg.com/@firefly-exchange/library/-/library-1.0.21.tgz#2976af246c4792c7b0cbbc4b0fb8d73134334a8e"
-  integrity sha512-HXytUCN/l4zgfxEWiOuGAuwYSoQsvND1pMgM2nSKDGn3EkDH0R/GRHKuG+/JjBVIlt9kdDMKHqs6Db4KDEVNsg==
-  dependencies:
-    bignumber "^1.1.0"
-    bignumber.js "^9.0.2"
-    ethers "^5.6.8"
-    lodash "^4.17.21"
-    socket.io-client "^4.5.1"
-    web3 "^1.7.3"
-
-"@firefly-exchange/library@^1.0.29":
+"@firefly-exchange/library@1.0.29":
   version "1.0.29"
   resolved "https://registry.yarnpkg.com/@firefly-exchange/library/-/library-1.0.29.tgz#972c13c3e804de12da8189735f51a130f0cf9a4b"
   integrity sha512-i5OGUVJHPfXkI8437/1/Db9AF7h2NM2wp1IYNOapj2zp5cw7wzu6Q75w+EVs8c81lVHRqbFMicGMQv8KjTZltA==
@@ -618,6 +606,18 @@
     mocha "^10.0.0"
     socket.io-client "^4.5.1"
     ts-mocha "^9.0.2"
+    web3 "^1.7.3"
+
+"@firefly-exchange/library@^1.0.14":
+  version "1.0.21"
+  resolved "https://registry.yarnpkg.com/@firefly-exchange/library/-/library-1.0.21.tgz#2976af246c4792c7b0cbbc4b0fb8d73134334a8e"
+  integrity sha512-HXytUCN/l4zgfxEWiOuGAuwYSoQsvND1pMgM2nSKDGn3EkDH0R/GRHKuG+/JjBVIlt9kdDMKHqs6Db4KDEVNsg==
+  dependencies:
+    bignumber "^1.1.0"
+    bignumber.js "^9.0.2"
+    ethers "^5.6.8"
+    lodash "^4.17.21"
+    socket.io-client "^4.5.1"
     web3 "^1.7.3"
 
 "@humanwhocodes/config-array@^0.9.2":
