@@ -1,6 +1,6 @@
 {
   "name": "@firefly-exchange/firefly-client",
-  "version": "1.0.21",
+  "version": "1.0.22",
   "description": "Firefly client library for creating signed orders and placing on exchange.",
   "main": "dist/index.js",
   "scripts": {
@@ -37,8 +37,8 @@
     "prettier": "^2.6.2"
   },
   "dependencies": {
-    "@firefly-exchange/firefly-math": "^1.0.19",
-    "@firefly-exchange/library": "^1.0.29",
+    "@firefly-exchange/firefly-math": "1.0.19",
+    "@firefly-exchange/library": "1.0.29",
     "axios": "^0.27.2",
     "bignumber.js": "^9.0.2",
     "chai": "^4.3.6",
