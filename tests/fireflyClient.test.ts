@@ -118,8 +118,8 @@ describe("FireflyClient", () => {
       expect(response.ok).to.eq(true)
     });
 
-    it("get gas token balance", async () => {
-      const response = await clientTemp.getGasBalance()
+    it("get boba token balance", async () => {
+      const response = await clientTemp.getBobaBalance()
       const val = new BigNumber(response).gt(new BigNumber(0))
       expect(val).to.eq(true)
     })

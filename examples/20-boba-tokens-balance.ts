@@ -1,5 +1,5 @@
 /**
- * Checks gas tokens balance
+ * Checks BOBA(gas) tokens balance
  */
 
 /* eslint-disable no-console */
@@ -15,8 +15,8 @@ async function main() {
     await client.init()
     
     console.log(
-      "User's gas/native tokens balance is: ",
-      bnStrToBaseNumber(await client.getGasBalance())
+      "User's balance is: ",
+      bnStrToBaseNumber(await client.getBobaBalance())
     );
 }
 

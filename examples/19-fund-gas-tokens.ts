@@ -1,5 +1,5 @@
 /**
- * Fund gas tokens on user's account
+ * Fund BOBA(gas) tokens on user's account
  */
 
 /* eslint-disable no-console */
@@ -19,8 +19,8 @@ async function main() {
   
     // initial balance will be zero"
     console.log(
-      "User's gas tokens balance is: ",
-      bnStrToBaseNumber(await client.getGasBalance())
+      "User's balance is: ",
+      bnStrToBaseNumber(await client.getBobaBalance())
     );
 }
 

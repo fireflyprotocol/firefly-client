@@ -261,10 +261,10 @@ export class FireflyClient {
   }
 
   /**
-   * Returns gas token balance in user's account
-   * @returns Number representing gas token balance
+   * Returns boba balance in user's account
+   * @returns Number representing boba balance in account
    */
-  async getGasBalance() {
+  async getBobaBalance() {
     const balance = await this.getWallet().getBalance()
     return bnToString(balance.toHexString())
   }
