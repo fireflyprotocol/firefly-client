@@ -947,7 +947,7 @@ export class FireflyClient {
 
   /**
    * Creates message to be signed, creates signature and authorize it from dapi
-   * @returns authorize hash response
+   * @returns auth token
    */
    private async getToken() {
     if (this.token !== "") {
