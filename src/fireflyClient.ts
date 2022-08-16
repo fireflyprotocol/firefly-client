@@ -58,6 +58,7 @@ import {
   AuthorizeHashResponse,
   AdjustLeverageResponse,
   CancelOrderResponse,
+  FundGasResponse,
 } from "./interfaces/routes";
 
 import { APIService } from "./exchange/apiService";
@@ -91,6 +92,8 @@ export class FireflyClient {
   private signingMethod: SigningMethod = SigningMethod.MetaMaskLatest //to save signing method when integrating on UI
 
   private contractAddresses: any
+
+  private token = "" //auth token
 
   /**
    * initializes the class instance
@@ -146,14 +149,17 @@ export class FireflyClient {
    * initializes contract addresses
    */
   async init() {
-    const response = await this.getContractAddresses()
-    if (!response.ok) {
+    //get contract addresses
+    const addresses = await this.getContractAddresses()
+    if (!addresses.ok) {
       throw Error(
         "Failed to fetch contract addresses"
       );
     }
+    this.contractAddresses = addresses.data
 
-    this.contractAddresses = response.data
+    //get auth token
+    await this.getToken()
   }
 
   /**
@@ -198,7 +204,7 @@ export class FireflyClient {
       .connect(this.getWallet())
       .balanceOf(this.getPublicAddress());
 
-    return bnToString(+balance);
+    return bnToString(+balance); 
   }
 
   /**
@@ -231,6 +237,36 @@ export class FireflyClient {
     ).wait();
 
     return true;
+  }
+
+  /**
+   * Funds gas tokens to user's account
+   * @returns Fund gas reponse
+   */
+  async fundGas() {
+    const token = await this.getToken()
+    const headers: AxiosRequestHeaders = {
+      "Authorization": `Bearer ${token}`
+    }
+    const configs: AxiosRequestConfig = {
+      headers: headers
+    }
+
+    const response = await this.apiService.post<FundGasResponse>(
+      SERVICE_URLS.USER.FUND_GAS,
+      {},
+      configs
+    );
+    return response;
+  }
+
+  /**
+   * Returns gas token balance in user's account
+   * @returns Number representing gas token balance
+   */
+  async getGasBalance() {
+    const balance = await this.getWallet().getBalance()
+    return bnToString(balance.toHexString())
   }
 
   /**
@@ -314,7 +350,6 @@ export class FireflyClient {
     const marginBalance = await perpV1Contract.connect(this.getWallet()).getAccountPositionBalance(this.getPublicAddress());
     return marginBalance
   }
-
 
   /**
    * Creates order signature and returns it. The signed order can be placed on exchange
@@ -553,26 +588,13 @@ export class FireflyClient {
     }
     //make api call
     else {
-      const message: OnboardingMessage = {
-        action: OnboardingMessageString.ONBOARDING,
-        onlySignOn: this.network.onboardingUrl
-      }
-      //sign onboarding message
-      const signature = await this.onboardSigner.sign(this.getPublicAddress(), SigningMethod.TypedData, message)      
-      //authorize signature created by dAPI
-      const authTokenResponse = await this.authorizeSignedHash(signature)
-
-      if (!authTokenResponse.ok || !authTokenResponse.data) {
-        throw Error(
-          `Authorization error: ${authTokenResponse.response.message}`
-        );
-      }
+      const token = await this.getToken()
 
       //make update leverage api call
       const adjustLeverageResponse = await this.adjustLeverage({
         symbol: symbol,
         leverage: leverage,
-        authToken: authTokenResponse.data.token
+        authToken: token
       })
       
       if (!adjustLeverageResponse.ok || !adjustLeverageResponse.data) {
@@ -921,6 +943,34 @@ export class FireflyClient {
       ),
       salt: bigNumber(params.salt || Math.floor(Math.random() * 1_000_000)),
     } as Order;
+  }
+
+  /**
+   * Creates message to be signed, creates signature and authorize it from dapi
+   * @returns authorize hash response
+   */
+   private async getToken() {
+    if (this.token !== "") {
+      return this.token
+    }
+
+    const message: OnboardingMessage = {
+      action: OnboardingMessageString.ONBOARDING,
+      onlySignOn: this.network.onboardingUrl
+    }
+    //sign onboarding message
+    const signature = await this.onboardSigner.sign(this.getPublicAddress(), SigningMethod.TypedData, message)      
+    //authorize signature created by dAPI
+    const authTokenResponse = await this.authorizeSignedHash(signature)
+
+    if (!authTokenResponse.ok || !authTokenResponse.data) {
+      throw Error(
+        `Authorization error: ${authTokenResponse.response.message}`
+      );
+    }
+
+    this.token = authTokenResponse.data.token
+    return this.token
   }
 
   /**

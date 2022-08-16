@@ -341,3 +341,7 @@ export interface AdjustLeverageResponse {
   marginType: string
   maxNotionalValue: string
 }
+
+export interface FundGasResponse {
+  message: string
+}

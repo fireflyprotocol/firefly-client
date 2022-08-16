@@ -10,7 +10,7 @@ async function main() {
   const dummyAccountKey =
     "a182091b4d5a090b65d604e36f68629a692e3bf2aa864bd3f037854034cdd676";
 
-  // using TESTNET network, getUSDCBalance does not work on MAINNET
+  // using TESTNET network
   const client = new FireflyClient(Networks.TESTNET, dummyAccountKey);
   await client.init()
 

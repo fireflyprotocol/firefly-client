@@ -21,6 +21,7 @@ import {
   GetAccountDataResponse,
 } from "../index";
 import Web3 from "web3";
+import BigNumber from "bignumber.js"
 
 chai.use(chaiAsPromised);
 
@@ -99,19 +100,44 @@ describe("FireflyClient", () => {
     });
   });
 
+  describe("Fund Gas", () => {
+    //Given
+    const web3 = new Web3(network.url)
+    const wallet = web3.eth.accounts.create()
+    const clientTemp = new FireflyClient(
+      network,
+      wallet.privateKey
+    );
+
+    before("fund gas route", async () => {
+      await clientTemp.init()
+    })
+    
+    it("fund gas token", async () => {
+      const response = await clientTemp.fundGas()
+      expect(response.ok).to.eq(true)
+    });
+
+    it("get gas token balance", async () => {
+      const response = await clientTemp.getGasBalance()
+      const val = new BigNumber(response).gt(new BigNumber(0))
+      expect(val).to.eq(true)
+    })
+  })
+
   describe("Balance", () => {
     it("should get 10K Test USDCs", async () => {
       expect(await client.mintTestUSDC()).to.be.equal(true);
       expect(
         bnStrToBaseNumber(await client.getUSDCBalance())
-      ).to.be.greaterThanOrEqual(10000);
+      ).to.be.gte(10000);
     });
 
     it("should move 1 USDC token to Margin Bank", async () => {
       expect(await client.depositToMarginBank(1)).to.be.equal(true);
       expect(
         bnStrToBaseNumber(await client.getMarginBankBalance())
-      ).to.be.greaterThanOrEqual(1);
+      ).to.be.gte(1);
     });
 
     it("should withdraw 1 USDC token from Margin Bank", async () => {
@@ -293,7 +319,7 @@ describe("FireflyClient", () => {
         symbol: MARKET_SYMBOLS.DOT,
       });
       expect(data.ok).to.be.equals(true);
-      expect(data.response.data.length).to.be.greaterThanOrEqual(0);
+      expect(data.response.data.length).to.be.gte(0);
     });
 
     it("should get all cancelled orders", async () => {
@@ -462,7 +488,7 @@ describe("FireflyClient", () => {
   it("should get exchange info for all markets", async () => {
     const response = await client.getExchangeInfo();
     expect(response.ok).to.be.equal(true);
-    expect(response.response.data.length).to.be.greaterThanOrEqual(1);
+    expect(response.response.data.length).to.be.gte(1);
   });
 
   it("should get market data for DOT Market", async () => {
