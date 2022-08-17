@@ -4,7 +4,6 @@ import { Contract, Wallet, providers, Signer, ethers } from "ethers";
 
 import {
   toBigNumberStr,
-  bnToString,
   bigNumber,
   toBigNumber,
   ORDER_SIDE,
@@ -27,6 +26,7 @@ import {
   OnboardingSigner,
   OnboardingMessageString,
   MARGIN_TYPE,
+  bnToString,
 } from "@firefly-exchange/library";
 
 import {
@@ -58,6 +58,7 @@ import {
   AuthorizeHashResponse,
   AdjustLeverageResponse,
   CancelOrderResponse,
+  FundGasResponse,
 } from "./interfaces/routes";
 
 import { APIService } from "./exchange/apiService";
@@ -92,12 +93,17 @@ export class FireflyClient {
 
   private contractAddresses: any
 
+  private token = "" //auth token
+
+  private isTermAccepted = false
+
   /**
    * initializes the class instance
+   * @param _isTermAccepted boolean indicating if exchange terms and conditions are accepted
    * @param _network containing network rpc url and chain id
    * @param _acctPvtKey private key for the account to be used for placing orders
    */
-  constructor(_network: Network, _acctPvtKey?: string) {
+  constructor(_isTermAccepted: boolean, _network: Network, _acctPvtKey?: string) {
     this.network = _network;
 
     this.web3 = new Web3(_network.url);
@@ -107,6 +113,8 @@ export class FireflyClient {
     this.sockets = new Sockets(this.network.socketURL);
 
     this.onboardSigner = new OnboardingSigner(this.web3, this.network.chainId)
+
+    this.isTermAccepted = _isTermAccepted
 
     if (_acctPvtKey) {
       this.initializeWithPrivateKey(_acctPvtKey)
@@ -146,14 +154,17 @@ export class FireflyClient {
    * initializes contract addresses
    */
   async init() {
-    const response = await this.getContractAddresses()
-    if (!response.ok) {
+    //get contract addresses
+    const addresses = await this.getContractAddresses()
+    if (!addresses.ok) {
       throw Error(
         "Failed to fetch contract addresses"
       );
     }
+    this.contractAddresses = addresses.data
 
-    this.contractAddresses = response.data
+    //get auth token
+    await this.getToken()
   }
 
   /**
@@ -198,7 +209,7 @@ export class FireflyClient {
       .connect(this.getWallet())
       .balanceOf(this.getPublicAddress());
 
-    return bnToString(+balance);
+    return bnToString(balance.toHexString()); 
   }
 
   /**
@@ -231,6 +242,35 @@ export class FireflyClient {
     ).wait();
 
     return true;
+  }
+
+  /**
+   * Funds gas tokens to user's account
+   * @returns Fund gas reponse
+   */
+  async fundGas() {
+    const token = await this.getToken()
+    const headers: AxiosRequestHeaders = {
+      "Authorization": `Bearer ${token}`
+    }
+    const configs: AxiosRequestConfig = {
+      headers: headers
+    }
+
+    const response = await this.apiService.post<FundGasResponse>(
+      SERVICE_URLS.USER.FUND_GAS,
+      {},
+      configs
+    );
+    return response;
+  }
+
+  /**
+   * Returns boba balance in user's account
+   * @returns Number representing boba balance in account
+   */
+  async getBobaBalance() {
+    return bnToString((await this.getWallet().getBalance()).toHexString())
   }
 
   /**
@@ -314,7 +354,6 @@ export class FireflyClient {
     const marginBalance = await perpV1Contract.connect(this.getWallet()).getAccountPositionBalance(this.getPublicAddress());
     return marginBalance
   }
-
 
   /**
    * Creates order signature and returns it. The signed order can be placed on exchange
@@ -553,26 +592,13 @@ export class FireflyClient {
     }
     //make api call
     else {
-      const message: OnboardingMessage = {
-        action: OnboardingMessageString.ONBOARDING,
-        onlySignOn: this.network.onboardingUrl
-      }
-      //sign onboarding message
-      const signature = await this.onboardSigner.sign(this.getPublicAddress(), SigningMethod.TypedData, message)      
-      //authorize signature created by dAPI
-      const authTokenResponse = await this.authorizeSignedHash(signature)
-
-      if (!authTokenResponse.ok || !authTokenResponse.data) {
-        throw Error(
-          `Authorization error: ${authTokenResponse.response.message}`
-        );
-      }
+      const token = await this.getToken()
 
       //make update leverage api call
       const adjustLeverageResponse = await this.adjustLeverage({
         symbol: symbol,
         leverage: leverage,
-        authToken: authTokenResponse.data.token
+        authToken: token
       })
       
       if (!adjustLeverageResponse.ok || !adjustLeverageResponse.data) {
@@ -924,6 +950,34 @@ export class FireflyClient {
   }
 
   /**
+   * Creates message to be signed, creates signature and authorize it from dapi
+   * @returns auth token
+   */
+   private async getToken() {
+    if (this.token !== "") {
+      return this.token
+    }
+
+    const message: OnboardingMessage = {
+      action: OnboardingMessageString.ONBOARDING,
+      onlySignOn: this.network.onboardingUrl
+    }
+    //sign onboarding message
+    const signature = await this.onboardSigner.sign(this.getPublicAddress(), SigningMethod.TypedData, message)      
+    //authorize signature created by dAPI
+    const authTokenResponse = await this.authorizeSignedHash(signature)
+
+    if (!authTokenResponse.ok || !authTokenResponse.data) {
+      throw Error(
+        `Authorization error: ${authTokenResponse.response.message}`
+      );
+    }
+
+    this.token = authTokenResponse.data.token
+    return this.token
+  }
+
+  /**
    * Posts signed Auth Hash to dAPI and gets token in return if signature is valid
    * @returns GetAuthHashResponse which contains auth hash to be signed
    */
@@ -932,7 +986,8 @@ export class FireflyClient {
       SERVICE_URLS.USER.AUTHORIZE,
       {
         signature: signedHash,
-        userAddress: this.getPublicAddress()
+        userAddress: this.getPublicAddress(),
+        isTermAccepted: this.isTermAccepted
       }
     );
     return response;

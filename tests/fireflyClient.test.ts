@@ -9,6 +9,7 @@ import {
   ORDER_SIDE,
   bnStrToBaseNumber,
   MinifiedCandleStick,
+  BigNumber,
 } from "@firefly-exchange/library";
 
 import {
@@ -35,7 +36,7 @@ describe("FireflyClient", () => {
   const network = Networks.DEV 
 
   beforeEach(async () => {
-    client = new FireflyClient(network, testAcctKey);
+    client = new FireflyClient(true, network, testAcctKey);
     await client.init()
   });
 
@@ -99,19 +100,53 @@ describe("FireflyClient", () => {
     });
   });
 
+  describe("Fund Gas", () => {    
+    it("fund gas token", async () => {
+      //Given
+      const web3 = new Web3(network.url)
+      const wallet = web3.eth.accounts.create()
+      const clientTemp = new FireflyClient(
+        true,
+        network,
+        wallet.privateKey
+      );
+      await clientTemp.init()
+      //When
+      const response = await clientTemp.fundGas()
+      //Then
+      expect(response.ok).to.eq(true)
+    });
+
+    it("get boba token balance", async () => {
+      //Given
+      const web3 = new Web3(network.url)
+      const wallet = web3.eth.accounts.create()
+      const clientTemp = new FireflyClient(
+        true,
+        network,
+        wallet.privateKey
+      );
+      await clientTemp.init()
+      //When
+      await clientTemp.fundGas() //should fund 0.01 boba
+      const response = await clientTemp.getBobaBalance()
+      expect(new BigNumber(response).gte(new BigNumber(0))).to.eq(true)
+    })
+  })
+
   describe("Balance", () => {
     it("should get 10K Test USDCs", async () => {
       expect(await client.mintTestUSDC()).to.be.equal(true);
       expect(
         bnStrToBaseNumber(await client.getUSDCBalance())
-      ).to.be.greaterThanOrEqual(10000);
+      ).to.be.gte(10000);
     });
 
     it("should move 1 USDC token to Margin Bank", async () => {
       expect(await client.depositToMarginBank(1)).to.be.equal(true);
       expect(
         bnStrToBaseNumber(await client.getMarginBankBalance())
-      ).to.be.greaterThanOrEqual(1);
+      ).to.be.gte(1);
     });
 
     it("should withdraw 1 USDC token from Margin Bank", async () => {
@@ -293,7 +328,7 @@ describe("FireflyClient", () => {
         symbol: MARKET_SYMBOLS.DOT,
       });
       expect(data.ok).to.be.equals(true);
-      expect(data.response.data.length).to.be.greaterThanOrEqual(0);
+      expect(data.response.data.length).to.be.gte(0);
     });
 
     it("should get all cancelled orders", async () => {
@@ -333,6 +368,7 @@ describe("FireflyClient", () => {
       const web3 = new Web3(network.url)
       const wallet = web3.eth.accounts.create()
       const clientTemp = new FireflyClient(
+        true,
         network,
         wallet.privateKey
       );
@@ -376,6 +412,7 @@ describe("FireflyClient", () => {
       const web3 = new Web3(network.url)
       const wallet = web3.eth.accounts.create()
       const clientTemp = new FireflyClient(
+        true,
         network,
         wallet.privateKey
       );
@@ -462,7 +499,7 @@ describe("FireflyClient", () => {
   it("should get exchange info for all markets", async () => {
     const response = await client.getExchangeInfo();
     expect(response.ok).to.be.equal(true);
-    expect(response.response.data.length).to.be.greaterThanOrEqual(1);
+    expect(response.response.data.length).to.be.gte(1);
   });
 
   it("should get market data for DOT Market", async () => {
