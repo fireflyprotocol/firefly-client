@@ -9,6 +9,7 @@ import {
   ORDER_SIDE,
   bnStrToBaseNumber,
   MinifiedCandleStick,
+  BigNumber,
 } from "@firefly-exchange/library";
 
 import {
@@ -21,7 +22,6 @@ import {
   GetAccountDataResponse,
 } from "../index";
 import Web3 from "web3";
-import BigNumber from "bignumber.js"
 
 chai.use(chaiAsPromised);
 
@@ -36,7 +36,7 @@ describe("FireflyClient", () => {
   const network = Networks.DEV 
 
   beforeEach(async () => {
-    client = new FireflyClient(network, testAcctKey);
+    client = new FireflyClient(true, network, testAcctKey);
     await client.init()
   });
 
@@ -100,28 +100,37 @@ describe("FireflyClient", () => {
     });
   });
 
-  describe("Fund Gas", () => {
-    //Given
-    const web3 = new Web3(network.url)
-    const wallet = web3.eth.accounts.create()
-    const clientTemp = new FireflyClient(
-      network,
-      wallet.privateKey
-    );
-
-    before("fund gas route", async () => {
-      await clientTemp.init()
-    })
-    
+  describe("Fund Gas", () => {    
     it("fund gas token", async () => {
+      //Given
+      const web3 = new Web3(network.url)
+      const wallet = web3.eth.accounts.create()
+      const clientTemp = new FireflyClient(
+        true,
+        network,
+        wallet.privateKey
+      );
+      await clientTemp.init()
+      //When
       const response = await clientTemp.fundGas()
+      //Then
       expect(response.ok).to.eq(true)
     });
 
     it("get boba token balance", async () => {
+      //Given
+      const web3 = new Web3(network.url)
+      const wallet = web3.eth.accounts.create()
+      const clientTemp = new FireflyClient(
+        true,
+        network,
+        wallet.privateKey
+      );
+      await clientTemp.init()
+      //When
+      await clientTemp.fundGas() //should fund 0.01 boba
       const response = await clientTemp.getBobaBalance()
-      const val = new BigNumber(response).gt(new BigNumber(0))
-      expect(val).to.eq(true)
+      expect(new BigNumber(response).gte(new BigNumber(0))).to.eq(true)
     })
   })
 
@@ -359,6 +368,7 @@ describe("FireflyClient", () => {
       const web3 = new Web3(network.url)
       const wallet = web3.eth.accounts.create()
       const clientTemp = new FireflyClient(
+        true,
         network,
         wallet.privateKey
       );
@@ -402,6 +412,7 @@ describe("FireflyClient", () => {
       const web3 = new Web3(network.url)
       const wallet = web3.eth.accounts.create()
       const clientTemp = new FireflyClient(
+        true,
         network,
         wallet.privateKey
       );

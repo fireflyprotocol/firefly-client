@@ -9,7 +9,7 @@ async function main() {
   const dummyAccountKey =
     "a182091b4d5a090b65d604e36f68629a692e3bf2aa864bd3f037854034cdd676";
   // using TESTNET network
-  const client = new FireflyClient(Networks.TESTNET, dummyAccountKey);
+  const client = new FireflyClient(true, Networks.TESTNET, dummyAccountKey); //passing isTermAccepted = true for authorization
   await client.init()
 
   // will return false as DOT market does not exist

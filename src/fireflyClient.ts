@@ -4,7 +4,6 @@ import { Contract, Wallet, providers, Signer, ethers } from "ethers";
 
 import {
   toBigNumberStr,
-  bnToString,
   bigNumber,
   toBigNumber,
   ORDER_SIDE,
@@ -27,6 +26,7 @@ import {
   OnboardingSigner,
   OnboardingMessageString,
   MARGIN_TYPE,
+  bnToString,
 } from "@firefly-exchange/library";
 
 import {
@@ -95,12 +95,15 @@ export class FireflyClient {
 
   private token = "" //auth token
 
+  private isTermAccepted = false
+
   /**
    * initializes the class instance
+   * @param _isTermAccepted boolean indicating if exchange terms and conditions are accepted
    * @param _network containing network rpc url and chain id
    * @param _acctPvtKey private key for the account to be used for placing orders
    */
-  constructor(_network: Network, _acctPvtKey?: string) {
+  constructor(_isTermAccepted: boolean, _network: Network, _acctPvtKey?: string) {
     this.network = _network;
 
     this.web3 = new Web3(_network.url);
@@ -110,6 +113,8 @@ export class FireflyClient {
     this.sockets = new Sockets(this.network.socketURL);
 
     this.onboardSigner = new OnboardingSigner(this.web3, this.network.chainId)
+
+    this.isTermAccepted = _isTermAccepted
 
     if (_acctPvtKey) {
       this.initializeWithPrivateKey(_acctPvtKey)
@@ -204,7 +209,7 @@ export class FireflyClient {
       .connect(this.getWallet())
       .balanceOf(this.getPublicAddress());
 
-    return bnToString(+balance); 
+    return bnToString(balance.toHexString()); 
   }
 
   /**
@@ -265,8 +270,7 @@ export class FireflyClient {
    * @returns Number representing boba balance in account
    */
   async getBobaBalance() {
-    const balance = await this.getWallet().getBalance()
-    return bnToString(balance.toHexString())
+    return bnToString((await this.getWallet().getBalance()).toHexString())
   }
 
   /**
@@ -982,7 +986,8 @@ export class FireflyClient {
       SERVICE_URLS.USER.AUTHORIZE,
       {
         signature: signedHash,
-        userAddress: this.getPublicAddress()
+        userAddress: this.getPublicAddress(),
+        isTermAccepted: this.isTermAccepted
       }
     );
     return response;

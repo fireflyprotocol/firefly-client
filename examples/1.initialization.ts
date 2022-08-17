@@ -10,7 +10,7 @@ async function main() {
     "a182091b4d5a090b65d604e36f68629a692e3bf2aa864bd3f037854034cdd676";
 
   // using predefined network
-  const client = new FireflyClient(Networks.TESTNET, dummyAccountKey);
+  const client = new FireflyClient(true, Networks.TESTNET, dummyAccountKey); //passing isTermAccepted = true for authorization
   // prints client address
   console.log(client.getPublicAddress());
 
@@ -22,7 +22,7 @@ async function main() {
     socketURL: "wss://dapi-testnet.firefly.exchange",
     onboardingUrl: "https://testnet.firefly.exchange"
   };
-  const clientCustomNetwork = new FireflyClient(custNetwork, dummyAccountKey);
+  const clientCustomNetwork = new FireflyClient(true, custNetwork, dummyAccountKey); //passing isTermAccepted = true for authorization
   await clientCustomNetwork.init()
   // prints client address
   console.log(clientCustomNetwork.getPublicAddress());
