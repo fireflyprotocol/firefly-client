@@ -4,7 +4,7 @@
  */
 
 /* eslint-disable no-console */
-import { Networks, FireflyClient, MARKET_SYMBOLS, ORDER_SIDE } from "../index";
+import { Networks, FireflyClient, MARKET_SYMBOLS, ORDER_SIDE, ORDER_TYPE } from "../index";
 
 async function main() {
   // no gas fee is required to create order signature.
@@ -22,6 +22,7 @@ async function main() {
     price: 11,
     quantity: 0.5,
     side: ORDER_SIDE.BUY,
+    orderType: ORDER_TYPE.LIMIT
   });
 
   console.log(response.data);

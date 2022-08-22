@@ -10,6 +10,7 @@ import {
   bnStrToBaseNumber,
   MinifiedCandleStick,
   BigNumber,
+  ORDER_TYPE,
 } from "@firefly-exchange/library";
 
 import {
@@ -189,6 +190,7 @@ describe("FireflyClient", () => {
           price: 0,
           quantity: 0.1,
           side: ORDER_SIDE.SELL,
+          orderType: ORDER_TYPE.MARKET
         })
       ).to.be.eventually.rejectedWith(
         "Provided Market Symbol(BTC-PERP) is not added to client library"
@@ -201,6 +203,7 @@ describe("FireflyClient", () => {
         price: 0,
         quantity: 0.1,
         side: ORDER_SIDE.SELL,
+        orderType: ORDER_TYPE.MARKET
       });
 
       expect(signedOrder.leverage).to.be.equal(1);
@@ -214,7 +217,8 @@ describe("FireflyClient", () => {
         price: 11,
         quantity: 0.5,
         side: ORDER_SIDE.SELL,
-        leverage: 3
+        leverage: 3,
+        orderType: ORDER_TYPE.LIMIT
       });
 
       const response = await client.placeSignedOrder({ ...signedOrder });                  
@@ -227,7 +231,8 @@ describe("FireflyClient", () => {
         price: 0,
         quantity: 0.5,
         side: ORDER_SIDE.SELL,
-        leverage: 3
+        leverage: 3,
+        orderType: ORDER_TYPE.MARKET
       });
       const response = await client.placeSignedOrder({ ...signedOrder });      
       expect(response.ok).to.be.equal(true);
@@ -239,7 +244,9 @@ describe("FireflyClient", () => {
         price: 11,
         quantity: 0.5,
         side: ORDER_SIDE.BUY,
-        leverage: 3
+        leverage: 3,
+        orderType: ORDER_TYPE.LIMIT,
+        clientId: "Test limit order"
       });
       
       expect(response.ok).to.be.equal(true);
@@ -257,9 +264,13 @@ describe("FireflyClient", () => {
         price: 11,
         quantity: 0.5,
         side: ORDER_SIDE.SELL,
-        leverage: 3
+        leverage: 3,
+        orderType: ORDER_TYPE.LIMIT
       });
-      const response = await client.placeSignedOrder({ ...signedOrder });
+      const response = await client.placeSignedOrder({ 
+        ...signedOrder,
+        clientId: "test cancel order" 
+      });
       
       const cancelSignature = await client.createOrderCancellationSignature({
         symbol: MARKET_SYMBOLS.DOT,
@@ -281,7 +292,8 @@ describe("FireflyClient", () => {
         price: 11,
         quantity: 0.5,
         side: ORDER_SIDE.SELL,
-        leverage: 3
+        leverage: 3,
+        orderType: ORDER_TYPE.LIMIT
       });
       const response = await client.placeSignedOrder({ ...signedOrder });
 
@@ -303,7 +315,8 @@ describe("FireflyClient", () => {
         price: 15,
         quantity: 0.5,
         side: ORDER_SIDE.SELL,
-        leverage: 3
+        leverage: 3,
+        orderType: ORDER_TYPE.LIMIT
       });
       expect(response.ok).to.be.equal(true);
 
@@ -556,7 +569,8 @@ describe("FireflyClient", () => {
           price: 15,
           quantity: 0.5,
           side: ORDER_SIDE.SELL,
-          leverage: 3
+          leverage: 3,
+          orderType: ORDER_TYPE.LIMIT
         });
       });
     });
@@ -580,7 +594,8 @@ describe("FireflyClient", () => {
           price: 0,
           quantity: 0.5,
           side: ORDER_SIDE.SELL,
-          leverage: 3
+          leverage: 3,
+          orderType: ORDER_TYPE.MARKET
         });        
       });
     });
@@ -600,7 +615,8 @@ describe("FireflyClient", () => {
           price: 12,
           quantity: 0.5,
           side: ORDER_SIDE.SELL,
-          leverage: 3
+          leverage: 3,
+          orderType: ORDER_TYPE.LIMIT
         });
       });
     });
@@ -622,7 +638,8 @@ describe("FireflyClient", () => {
           price: 0,
           quantity: 0.5,
           side: ORDER_SIDE.BUY,
-          leverage: 3
+          leverage: 3,
+          orderType: ORDER_TYPE.MARKET
         });
       });
     });
@@ -643,7 +660,8 @@ describe("FireflyClient", () => {
           price: 0,
           quantity: 0.5,
           side: ORDER_SIDE.BUY,
-          leverage: 3
+          leverage: 3,
+          orderType: ORDER_TYPE.MARKET
         });
       });
     });
@@ -669,7 +687,8 @@ describe("FireflyClient", () => {
           price: 0,
           quantity: 0.5,
           side: ORDER_SIDE.BUY,
-          leverage: 3
+          leverage: 3,
+          orderType: ORDER_TYPE.MARKET
         });
       });
     });

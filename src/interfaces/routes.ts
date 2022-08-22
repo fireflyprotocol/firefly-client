@@ -28,6 +28,7 @@ export interface RequiredOrderFields {
   price: number; // price at which to place order. Will be zero for a market order
   quantity: number; // quantity/size of order
   side: ORDER_SIDE; // BUY/SELL
+  orderType: ORDER_TYPE; //MARKET/LIMIT
 }
 
 export interface OrderSignatureRequest extends RequiredOrderFields {
@@ -48,11 +49,13 @@ export interface OrderSignatureResponse extends RequiredOrderFields {
 export interface PlaceOrderRequest extends OrderSignatureResponse {
   timeInForce?: TIME_IN_FORCE; // FOK/IOC/GTT by default all orders are GTT
   postOnly?: boolean; // true/false, default is true
+  clientId?: string;
 }
 
 export interface PostOrderRequest extends OrderSignatureRequest {
   timeInForce?: TIME_IN_FORCE;
   postOnly?: boolean;
+  clientId?: string;
 }
 
 interface OrderResponse {
