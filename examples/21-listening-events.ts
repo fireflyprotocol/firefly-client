@@ -9,6 +9,7 @@ import {
   MARKET_SYMBOLS,
   ORDER_SIDE,
   PlaceOrderResponse,
+  ORDER_TYPE,
 } from "../index";
 
 async function main() {
@@ -43,6 +44,7 @@ async function main() {
     price: 0,
     quantity: 0.5,
     side: ORDER_SIDE.BUY,
+    orderType: ORDER_TYPE.MARKET
   });
 }
 

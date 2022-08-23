@@ -392,6 +392,7 @@ export class FireflyClient {
       salt: order.salt.toNumber(),
       expiration: order.expiration.toNumber(),
       orderSignature: signedOrder.typedSignature,
+      orderType: params.orderType
     };
   }
 
@@ -407,7 +408,7 @@ export class FireflyClient {
       {
         symbol: params.symbol,
         userAddress: this.getPublicAddress().toLocaleLowerCase(),
-        orderType: params.price === 0 ? ORDER_TYPE.MARKET : ORDER_TYPE.LIMIT,
+        orderType: params.orderType,
         price: toBigNumberStr(params.price),
         quantity: toBigNumberStr(params.quantity),
         leverage: toBigNumberStr(params.leverage),
@@ -418,6 +419,7 @@ export class FireflyClient {
         orderSignature: params.orderSignature,
         timeInForce: params.timeInForce || TIME_IN_FORCE.GOOD_TILL_TIME,
         postOnly: params.postOnly || false,
+        clientId: params.clientId ? `firefly-client: ${params.clientId}` : "firefly-client"
       }
     );
 
@@ -435,6 +437,7 @@ export class FireflyClient {
       ...signedOrder,
       timeInForce: params.timeInForce,
       postOnly: params.postOnly,
+      clientId: params.clientId,
     });
 
     return response;
@@ -924,7 +927,7 @@ export class FireflyClient {
   private createOrderToSign(params: OrderSignatureRequest): Order {
     const expiration = new Date();
     //MARKET ORDER - set expiration of 1 minute
-    if (params.price === 0){
+    if (params.orderType === ORDER_TYPE.MARKET){
       expiration.setMinutes(expiration.getMinutes() + 1);
     }
     //LIMIT ORDER - set expiration of 1 month
