@@ -1,5 +1,3 @@
-import Web3 from "web3";
-
 import { Contract, Wallet, providers, Signer, ethers } from "ethers";
 
 import {
@@ -14,19 +12,18 @@ import {
   address,
   DAPIKlineResponse,
   ORDER_STATUS,
-  Price,
-  Fee,
   Network,
   SignedOrder,
   Order,
   OrderSigner,
   contracts_exchange,
-  USDT_ABI,
   bnStrToBaseNumber,
   OnboardingSigner,
   OnboardingMessageString,
   MARGIN_TYPE,
   bnToString,
+  Web3,
+  ADDRESSES
 } from "@firefly-exchange/library";
 
 import {
@@ -61,11 +58,10 @@ import {
   FundGasResponse,
 } from "./interfaces/routes";
 
+import { OnboardingMessage } from "@firefly-exchange/library/dist/src/interfaces/OnboardingMessage";
 import { APIService } from "./exchange/apiService";
 import { SERVICE_URLS } from "./exchange/apiUrls";
 import { Sockets } from "./exchange/sockets";
-import { calcMargin } from "@firefly-exchange/firefly-math";
-import { OnboardingMessage } from "@firefly-exchange/library/dist/src/interfaces/OnboardingMessage";
 import { AxiosRequestConfig, AxiosRequestHeaders } from "axios";
 
 export class FireflyClient {
@@ -96,6 +92,13 @@ export class FireflyClient {
   private token = "" //auth token
 
   private isTermAccepted = false
+
+//◥◤◥◤◥◤◥◤◥◤ Private Contracts Names ◥◤◥◤◥◤◥◤◥◤
+private _usdcToken = "USDC"
+private _perpetual = "Perpetual"
+private _marginBank = "MarginBank"
+private _orders = "Orders"
+//◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢
 
   /**
    * initializes the class instance
@@ -169,8 +172,8 @@ export class FireflyClient {
 
   /**
    * Allows caller to add a market, internally creates order signer for the provided market
-   * @param marksymbolet Symbol of MARKET in form of DOT-PERP, BTC-PERP etc.
-   * @param ordersContractAddress (Optional) address of orders contract address for market
+   * @param symbol Symbol of MARKET in form of DOT-PERP, BTC-PERP etc.
+   * @param ordersContract (Optional) address of orders contract address for market
    * @returns boolean true if market is added else false
    */
   addMarket(symbol: MarketSymbol, ordersContract?: address): boolean {
@@ -179,7 +182,7 @@ export class FireflyClient {
       return false;
     }
 
-    const contract = this.getContract("Orders", ordersContract, symbol);
+    const contract = this.getContract(this._orders, ordersContract, symbol);
 
     this.orderSigners.set(
       symbol,
@@ -204,7 +207,7 @@ export class FireflyClient {
    * @returns Number representing balance of user
    */
   async getUSDCBalance(contract?: address): Promise<string> {
-    const tokenContract = this.getContract("USDTToken", contract);
+    const tokenContract = this.getContract(this._usdcToken, contract);
     const balance = await (tokenContract as Contract)
       .connect(this.getWallet())
       .balanceOf(this.getPublicAddress());
@@ -218,7 +221,7 @@ export class FireflyClient {
    * @returns Number representing balance of user
    */
   async getMarginBankBalance(contract?: address): Promise<string> {
-    const marginBankContract = this.getContract("MarginBank", contract);
+    const marginBankContract = this.getContract(this._marginBank, contract);
     const balance = await (marginBankContract as contracts_exchange.MarginBank)
       .connect(this.getWallet())
       .getAccountBankBalance(this.getPublicAddress());
@@ -233,7 +236,7 @@ export class FireflyClient {
    * @returns Boolean true if user is funded, false otherwise
    */
   async mintTestUSDC(contract?: address): Promise<boolean> {
-    const tokenContract = this.getContract("USDTToken", contract);
+    const tokenContract = this.getContract(this._usdcToken, contract);
     // mint 10K usdc token
     await (
       await (tokenContract as Contract)
@@ -269,7 +272,7 @@ export class FireflyClient {
    * Returns boba balance in user's account
    * @returns Number representing boba balance in account
    */
-  async getBobaBalance() {
+  async getBobaBalance(): Promise<string> {
     return bnToString((await this.getWallet().getBalance()).toHexString())
   }
 
@@ -286,8 +289,8 @@ export class FireflyClient {
     usdtContract?: address,
     mbContract?: address
   ): Promise<boolean> {
-    const tokenContract = this.getContract("USDTToken", usdtContract);
-    const marginBankContract = this.getContract("MarginBank", mbContract);
+    const tokenContract = this.getContract(this._usdcToken, usdtContract);
+    const marginBankContract = this.getContract(this._marginBank, mbContract);
     const amountString = toBigNumberStr(amount);
 
     // approve usdc contract to allow margin bank to take funds out for user's behalf
@@ -322,7 +325,7 @@ export class FireflyClient {
     amount?: number,
     mbContract?: address
   ): Promise<boolean> {
-    const marginBankContract = this.getContract("MarginBank", mbContract);
+    const marginBankContract = this.getContract(this._marginBank, mbContract);
 
     const amountString = amount
       ? toBigNumberStr(amount)
@@ -350,7 +353,7 @@ export class FireflyClient {
    * @returns margin balance of positions of given symbol
    */
   async getAccountPositionBalance(symbol: MarketSymbol, perpContract?: address) {
-    const perpV1Contract = this.getContract("PerpetualProxy", perpContract, symbol);
+    const perpV1Contract = this.getContract(this._perpetual, perpContract, symbol);
     const marginBalance = await perpV1Contract.connect(this.getWallet()).getAccountPositionBalance(this.getPublicAddress());
     return marginBalance
   }
@@ -521,17 +524,15 @@ export class FireflyClient {
    * Updates user's leverage to given leverage
    * @param symbol market symbol get information about
    * @param leverage new leverage you want to change to
-   * @param perpetualAddress (address) address of Perpetual contract (comes in meta)
-   * @param marginBankAddress (address) address of Margin Bank contract (comes in meta)
+   * @param perpetualAddress (address) address of Perpetual contract
    * @returns boolean indicating if leverage updated successfully
    */
 
-  async updateLeverage(
+  async adjustLeverage(
     symbol: MarketSymbol, 
     leverage: number, 
-    perpetualAddress: address,
-    marginBankAddress: address,
-    ) {
+    perpetualAddress?: address,
+    ): Promise<boolean> {
     const userPosition = await this.getUserPosition({symbol: symbol})
     if (!userPosition.data) {
       throw Error(
@@ -543,73 +544,34 @@ export class FireflyClient {
 
     //if user position exists, make contract call to add or remove margin
     if (Object.keys(position).length > 0) { //TODO [BFLY-603]: this should be returned as array from dapi, remove this typecasting when done
-      //calculate new margin that'd be required
-      const bnNewMargin = bigNumber(calcMargin(
-        position.quantity, 
-        position.avgEntryPrice, 
-        toBigNumberStr(leverage)
-      ))
-      const bnCurrMargin = bigNumber(position.margin)
-      const marginToAdjust = bnCurrMargin.minus(bnNewMargin).abs().toFixed()
-      const isAdd = bnNewMargin.gt(bnCurrMargin);
-      
-      if (bigNumber(marginToAdjust).gt(bigNumber(0))) {
-        if (isAdd) {
-          const marginBankContract = this.getContract("MarginBank", marginBankAddress, symbol);
-
-          await (
-            await (marginBankContract as contracts_exchange.MarginBank)
-              .connect(this.getWallet())
-              .transferToPerpetual(
-                perpetualAddress,
-                this.getPublicAddress(),
-                marginToAdjust,
-                new Web3().eth.abi.encodeParameter(
-                  "bytes32",
-                  Web3.utils.asciiToHex("UpdateSLeverage")
-                )
-              )
-          ).wait();
-          return true
-        }
-        else {
-          const perpV1Contract = this.getContract("PerpetualProxy", perpetualAddress, symbol);
-
-          await (
-            await (perpV1Contract as contracts_exchange.PerpetualV1)
-              .connect(this.getWallet())
-              .withdrawFromPosition(
-                this.getPublicAddress(),
-                this.getPublicAddress(),
-                marginToAdjust,
-                new Web3().eth.abi.encodeParameter(
-                  "bytes32",
-                  Web3.utils.asciiToHex("UpdateSLeverage")
-                ),
-              )
-          ).wait();
-          return true
-        }
-      }
-      return false
+      const perpContract = this.getContract(this._perpetual, perpetualAddress, symbol);
+      await (
+        await (perpContract as contracts_exchange.Perpetual)
+        .connect(this.getWallet())
+        .adjustLeverage(
+          this.getPublicAddress(),
+          leverage
+        )
+      ).wait();
+      return true
     }
     //make api call
     else {
       const token = await this.getToken()
 
-      //make update leverage api call
-      const adjustLeverageResponse = await this.adjustLeverage({
+      //make update leverage api call on dapi
+      const updateLeverageResponse = await this.updateLeverage({
         symbol: symbol,
         leverage: leverage,
         authToken: token
       })
       
-      if (!adjustLeverageResponse.ok || !adjustLeverageResponse.data) {
+      if (!updateLeverageResponse.ok || !updateLeverageResponse.data) {
         throw Error(
-          `Adjust leverage error: ${adjustLeverageResponse.response.message}`
+          `Adjust leverage error: ${updateLeverageResponse.response.message}`
         );
       }
-      return adjustLeverageResponse.ok
+      return updateLeverageResponse.ok
     }
   }
 
@@ -642,6 +604,39 @@ export class FireflyClient {
       }
       return bnStrToBaseNumber(exchangeInfo.data.defaultLeverage)
     }
+ }
+
+ async adjustMargin(
+  symbol: MarketSymbol,
+  operationType: "Add" | "Remove",
+  amount: string,
+  perpetualAddress?: string
+  ): Promise<boolean> {
+
+    const perpContract = this.getContract(this._perpetual, perpetualAddress, symbol);
+    //ADD margin
+    if (operationType === "Add") {
+      await (
+        await (perpContract as contracts_exchange.Perpetual)
+        .connect(this.getWallet())
+        .addMargin(
+          this.getPublicAddress(),
+          amount
+        )
+      ).wait();
+    }
+    //REMOVE margin
+    else {
+      await (
+        await (perpContract as contracts_exchange.Perpetual)
+        .connect(this.getWallet())
+        .removeMargin(
+          this.getPublicAddress(),
+          amount
+        )
+      ).wait();
+    }
+    return true
  }
 
   /**
@@ -875,7 +870,7 @@ export class FireflyClient {
       try {
         contract = this.contractAddresses[market][
           contractName
-        ].address;
+        ];
       } catch (e) {
         contract = "";
       }
@@ -886,7 +881,7 @@ export class FireflyClient {
       try {
         contract = this.contractAddresses[
           contractName
-        ].address;
+        ];
       } catch (e) {
         contract = "";
       }
@@ -899,18 +894,19 @@ export class FireflyClient {
     }
 
     switch (contractName) {
-      case "PerpetualV1":
-      case "PerpetualProxy":
-        const perpV1Factory = new contracts_exchange.PerpetualV1__factory();
-        const perpV1 = perpV1Factory.attach(contract);
-        return perpV1 as any as contracts_exchange.PerpetualV1
-      case "USDTToken":
-        return new Contract(contract, USDT_ABI.abi);
-      case "MarginBank":
+      case this._perpetual:
+        const perpFactory = new contracts_exchange.Perpetual__factory();
+        const perp = perpFactory.attach(contract);
+        return perp as any as contracts_exchange.Perpetual
+      case this._usdcToken:
+        const dummyFactory = new contracts_exchange.DummyUSDC__factory();
+        const dummyUSDC = dummyFactory.attach(contract);
+        return dummyUSDC as any as contracts_exchange.DummyUSDC
+      case this._marginBank:
         const marginBankFactory = new contracts_exchange.MarginBank__factory();
         const marginBank = marginBankFactory.attach(contract);
         return marginBank as any as contracts_exchange.MarginBank;
-      case "Orders":
+      case this._orders:
         const ordersFactory = new contracts_exchange.Orders__factory();
         const orders = ordersFactory.attach(contract);
         return orders as any as contracts_exchange.Orders;
@@ -926,6 +922,7 @@ export class FireflyClient {
    */
   private createOrderToSign(params: OrderSignatureRequest): Order {
     const expiration = new Date();
+    const salt = new Date();
     //MARKET ORDER - set expiration of 1 minute
     if (params.orderType === ORDER_TYPE.MARKET){
       expiration.setMinutes(expiration.getMinutes() + 1);
@@ -936,19 +933,18 @@ export class FireflyClient {
     }
 
     return {
-      limitPrice: new Price(bigNumber(params.price)),
       isBuy: params.side === ORDER_SIDE.BUY,
+      price: toBigNumber(params.price),
       quantity: toBigNumber(params.quantity),
       leverage: toBigNumber(params.leverage || 1),
       maker: this.getPublicAddress().toLocaleLowerCase(),
       reduceOnly: params.reduceOnly || false,
-      triggerPrice: new Price(0),
-      limitFee: new Fee(0),
-      taker: "0x0000000000000000000000000000000000000000",
+      triggerPrice: toBigNumber(0),
+      taker: ADDRESSES.ZERO,
       expiration: bigNumber(
         params.expiration || Math.floor(expiration.getTime() / 1000) // /1000 to convert time in seconds
       ),
-      salt: bigNumber(params.salt || Math.floor(Math.random() * 1_000_000)),
+      salt: bigNumber(params.salt || Math.floor(salt.getTime())),
     } as Order;
   }
 
@@ -1000,7 +996,7 @@ export class FireflyClient {
    * Posts signed Auth Hash to dAPI and gets token in return if signature is valid
    * @returns GetAuthHashResponse which contains auth hash to be signed
    */
-   private async adjustLeverage(params: {symbol: MarketSymbol, leverage: number, authToken: string}) {
+   private async updateLeverage(params: {symbol: MarketSymbol, leverage: number, authToken: string}) {
 
     const headers: AxiosRequestHeaders = {
       "Authorization": `Bearer ${params.authToken}`
