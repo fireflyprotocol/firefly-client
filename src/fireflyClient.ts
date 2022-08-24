@@ -280,16 +280,16 @@ private _orders = "Orders"
    * Transfers usdc to margin bank to be used for placing orders and opening
    * positions on Firefly Exchange
    * @param amount the number of usdc to be transferred
-   * @param usdtContract (optional) address of usdc contract
+   * @param usdcContract (optional) address of usdc contract
    * @param mbContract (address) address of Margin Bank contract
    * @returns boolean true if funds are transferred, false otherwise
    */
   async depositToMarginBank(
     amount: number,
-    usdtContract?: address,
+    usdcContract?: address,
     mbContract?: address
   ): Promise<boolean> {
-    const tokenContract = this.getContract(this._usdcToken, usdtContract);
+    const tokenContract = this.getContract(this._usdcToken, usdcContract);
     const marginBankContract = this.getContract(this._marginBank, mbContract);
     const amountString = toBigNumberStr(amount);
 
@@ -354,7 +354,7 @@ private _orders = "Orders"
    */
   async getAccountPositionBalance(symbol: MarketSymbol, perpContract?: address) {
     const perpV1Contract = this.getContract(this._perpetual, perpContract, symbol);
-    const marginBalance = await perpV1Contract.connect(this.getWallet()).getAccountPositionBalance(this.getPublicAddress());
+    const marginBalance = await perpV1Contract.connect(this.getWallet()).getAccountBalance(this.getPublicAddress());
     return marginBalance
   }
 
@@ -550,7 +550,7 @@ private _orders = "Orders"
         .connect(this.getWallet())
         .adjustLeverage(
           this.getPublicAddress(),
-          leverage
+          toBigNumberStr(leverage)
         )
       ).wait();
       return true
@@ -609,7 +609,7 @@ private _orders = "Orders"
  async adjustMargin(
   symbol: MarketSymbol,
   operationType: "Add" | "Remove",
-  amount: string,
+  amount: number,
   perpetualAddress?: string
   ): Promise<boolean> {
 
@@ -621,7 +621,7 @@ private _orders = "Orders"
         .connect(this.getWallet())
         .addMargin(
           this.getPublicAddress(),
-          amount
+          toBigNumberStr(amount)
         )
       ).wait();
     }
@@ -632,7 +632,7 @@ private _orders = "Orders"
         .connect(this.getWallet())
         .removeMargin(
           this.getPublicAddress(),
-          amount
+          toBigNumberStr(amount)
         )
       ).wait();
     }

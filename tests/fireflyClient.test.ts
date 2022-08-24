@@ -21,7 +21,7 @@ import {
   GetPositionResponse,
   GetUserTradesResponse,
   GetAccountDataResponse,
-  Networks,
+  Networks
 } from "../index";
 
 chai.use(chaiAsPromised);
