@@ -606,6 +606,14 @@ private _orders = "Orders"
     }
  }
 
+ /**
+  * Add or remove margin from the open position
+  * @param symbol market symbol of the open position
+  * @param operationType operation you want to perform `Add` | `Remove` margin
+  * @param amount (number) amount user wants to add or remove from the position
+  * @param perpetualAddress (address) address of Perpetual contract
+  * @returns boolean value indicating if margin adjusted successfully
+  */
  async adjustMargin(
   symbol: MarketSymbol,
   operationType: "Add" | "Remove",
