@@ -1,32 +1,29 @@
-import Web3 from "web3";
-
 import { Contract, Wallet, providers, Signer, ethers } from "ethers";
 
 import {
-	toBigNumberStr,
-	bigNumber,
-	toBigNumber,
-	ORDER_SIDE,
-	ORDER_TYPE,
-	TIME_IN_FORCE,
-	SigningMethod,
-	MarketSymbol,
-	address,
-	DAPIKlineResponse,
-	ORDER_STATUS,
-	Price,
-	Fee,
-	Network,
-	SignedOrder,
-	Order,
-	OrderSigner,
-	contracts_exchange,
-	USDT_ABI,
-	bnStrToBaseNumber,
-	OnboardingSigner,
-	OnboardingMessageString,
-	MARGIN_TYPE,
-	bnToString,
+  toBigNumberStr,
+  bigNumber,
+  toBigNumber,
+  ORDER_SIDE,
+  ORDER_TYPE,
+  TIME_IN_FORCE,
+  SigningMethod,
+  MarketSymbol,
+  address,
+  DAPIKlineResponse,
+  ORDER_STATUS,
+  Network,
+  SignedOrder,
+  Order,
+  OrderSigner,
+  contracts_exchange,
+  bnStrToBaseNumber,
+  OnboardingSigner,
+  OnboardingMessageString,
+  MARGIN_TYPE,
+  bnToString,
+  Web3,
+  ADDRESSES
 } from "@firefly-exchange/library";
 
 import {
@@ -61,11 +58,10 @@ import {
 	FundGasResponse,
 } from "./interfaces/routes";
 
+import { OnboardingMessage } from "@firefly-exchange/library/dist/src/interfaces/OnboardingMessage";
 import { APIService } from "./exchange/apiService";
 import { SERVICE_URLS } from "./exchange/apiUrls";
 import { Sockets } from "./exchange/sockets";
-import { calcMargin } from "@firefly-exchange/firefly-math";
-import { OnboardingMessage } from "@firefly-exchange/library/dist/src/interfaces/OnboardingMessage";
 
 export class FireflyClient {
 	protected readonly network: Network;
@@ -94,14 +90,21 @@ export class FireflyClient {
 
 	private isTermAccepted = false;
 
-	/**
-	 * initializes the class instance
-	 * @param _isTermAccepted boolean indicating if exchange terms and conditions are accepted
-	 * @param _network containing network rpc url and chain id
-	 * @param _acctPvtKey private key for the account to be used for placing orders
-	 */
-	constructor(_isTermAccepted: boolean, _network: Network, _acctPvtKey?: string) {
-		this.network = _network;
+  //◥◤◥◤◥◤◥◤◥◤ Private Contracts Names ◥◤◥◤◥◤◥◤◥◤
+  private _usdcToken = "USDC"
+  private _perpetual = "Perpetual"
+  private _marginBank = "MarginBank"
+  private _orders = "Orders"
+  //◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢
+
+  /**
+   * initializes the class instance
+   * @param _isTermAccepted boolean indicating if exchange terms and conditions are accepted
+   * @param _network containing network rpc url and chain id
+   * @param _acctPvtKey private key for the account to be used for placing orders
+   */
+  constructor(_isTermAccepted: boolean, _network: Network, _acctPvtKey?: string) {
+    this.network = _network;
 
 		this.web3 = new Web3(_network.url);
 
@@ -127,809 +130,819 @@ export class FireflyClient {
 		this.web3 = new Web3(_web3Provider);
 
 		let provider = new ethers.providers.Web3Provider(_web3Provider);
-		this.signer = provider.getSigner();
-		this.walletAddress = await this.signer.getAddress();
+    this.signer = provider.getSigner()
+    this.walletAddress = await this.signer.getAddress()
 
-		if (_signingMethod) {
-			this.signingMethod = _signingMethod;
-		}
-	}
+    if (_signingMethod) {
+      this.signingMethod = _signingMethod
+    }
+  }
 
-	/**
-	 * initializes web3 and wallet with the given account private key
-	 * @param _acctPvtKey private key for the account to be used for placing orders
-	 */
-	initializeWithPrivateKey(_acctPvtKey: string) {
-		this.web3.eth.accounts.wallet.add(_acctPvtKey);
-		this.wallet = new Wallet(
-			_acctPvtKey,
-			new providers.JsonRpcProvider(this.network.url)
-		);
-	}
+  /**
+   * initializes web3 and wallet with the given account private key
+   * @param _acctPvtKey private key for the account to be used for placing orders
+   */
+  initializeWithPrivateKey(_acctPvtKey: string) {
+    this.web3.eth.accounts.wallet.add(_acctPvtKey);
+    this.wallet = new Wallet(
+      _acctPvtKey,
+      new providers.JsonRpcProvider(this.network.url)
+    );
+  }
 
-	/**
-	 * initializes contract addresses
-	 */
-	async init() {
-		//get contract addresses
-		const addresses = await this.getContractAddresses();
-		if (!addresses.ok) {
-			throw Error("Failed to fetch contract addresses");
-		}
-		this.contractAddresses = addresses.data;
+  /**
+   * initializes contract addresses
+   */
+  async init() {
+    //get contract addresses
+    const addresses = await this.getContractAddresses()
+    if (!addresses.ok) {
+      throw Error(
+        "Failed to fetch contract addresses"
+      );
+    }
+    this.contractAddresses = addresses.data
 
 		//onboard user if not onboarded
 		await this.userOnBoarding();
-	}
+  }
 
-	/**
-	 * Allows caller to add a market, internally creates order signer for the provided market
-	 * @param marksymbolet Symbol of MARKET in form of DOT-PERP, BTC-PERP etc.
-	 * @param ordersContractAddress (Optional) address of orders contract address for market
-	 * @returns boolean true if market is added else false
-	 */
-	addMarket(symbol: MarketSymbol, ordersContract?: address): boolean {
-		// if signer for market already exists return false
-		if (this.orderSigners.get(symbol)) {
-			return false;
-		}
+  /**
+   * Allows caller to add a market, internally creates order signer for the provided market
+   * @param symbol Symbol of MARKET in form of DOT-PERP, BTC-PERP etc.
+   * @param ordersContract (Optional) address of orders contract address for market
+   * @returns boolean true if market is added else false
+   */
+  addMarket(symbol: MarketSymbol, ordersContract?: address): boolean {
+    // if signer for market already exists return false
+    if (this.orderSigners.get(symbol)) {
+      return false;
+    }
 
-		const contract = this.getContract("Orders", ordersContract, symbol);
+    const contract = this.getContract(this._orders, ordersContract, symbol);
 
-		this.orderSigners.set(
-			symbol,
-			new OrderSigner(this.web3, Number(this.network.chainId), contract.address)
-		);
-		return true;
-	}
+    this.orderSigners.set(
+      symbol,
+      new OrderSigner(this.web3, Number(this.network.chainId), contract.address)
+    );
+    return true;
+  }
 
-	/**
-	 * Removes the provided symbol market order signer and also unsubsribes socket from it
-	 * @param market symbol of the market to be removed
-	 * @returns boolean  true if market is removed false other wise
-	 */
-	removeMarket(market: MarketSymbol): boolean {
-		this.sockets.unsubscribeGlobalUpdatesBySymbol(market);
-		return this.orderSigners.delete(market);
-	}
+  /**
+   * Removes the provided symbol market order signer and also unsubsribes socket from it
+   * @param market symbol of the market to be removed
+   * @returns boolean  true if market is removed false other wise
+   */
+  removeMarket(market: MarketSymbol): boolean {
+    this.sockets.unsubscribeGlobalUpdatesBySymbol(market);
+    return this.orderSigners.delete(market);
+  }
 
-	/**
-	 * Returns the USDC balance of user in USDC contract
-	 * @param contract (optional) address of USDC contract
-	 * @returns Number representing balance of user
-	 */
-	async getUSDCBalance(contract?: address): Promise<string> {
-		const tokenContract = this.getContract("USDTToken", contract);
-		const balance = await (tokenContract as Contract)
-			.connect(this.getWallet())
-			.balanceOf(this.getPublicAddress());
+  /**
+   * Returns the USDC balance of user in USDC contract
+   * @param contract (optional) address of USDC contract
+   * @returns Number representing balance of user
+   */
+  async getUSDCBalance(contract?: address): Promise<string> {
+    const tokenContract = this.getContract(this._usdcToken, contract);
+    const balance = await (tokenContract as Contract)
+      .connect(this.getWallet())
+      .balanceOf(this.getPublicAddress());
 
-		return bnToString(balance.toHexString());
-	}
+    return bnToString(balance.toHexString()); 
+  }
 
-	/**
-	 * Returns the usdc Balance(Free Collateral) of the account in Margin Bank contract
-	 * @param contract (optional) address of Margin Bank contract
-	 * @returns Number representing balance of user
-	 */
-	async getMarginBankBalance(contract?: address): Promise<string> {
-		const marginBankContract = this.getContract("MarginBank", contract);
-		const balance = await (marginBankContract as contracts_exchange.MarginBank)
-			.connect(this.getWallet())
-			.getAccountBankBalance(this.getPublicAddress());
+  /**
+   * Returns the usdc Balance(Free Collateral) of the account in Margin Bank contract
+   * @param contract (optional) address of Margin Bank contract
+   * @returns Number representing balance of user
+   */
+  async getMarginBankBalance(contract?: address): Promise<string> {
+    const marginBankContract = this.getContract(this._marginBank, contract);
+    const balance = await (marginBankContract as contracts_exchange.MarginBank)
+      .connect(this.getWallet())
+      .getAccountBankBalance(this.getPublicAddress());
 
-		return balance.toString();
-	}
+    return balance.toString();
+  }
 
-	/**
-	 * Faucet function, mints 10K USDC to wallet - Only works on Testnet
-	 * Assumes that the user wallet has Boba/Moonbase Tokens on Testnet
-	 * @param contract (optional) address of USDC contract
-	 * @returns Boolean true if user is funded, false otherwise
-	 */
-	async mintTestUSDC(contract?: address): Promise<boolean> {
-		const tokenContract = this.getContract("USDTToken", contract);
-		// mint 10K usdc token
-		await (
-			await (tokenContract as Contract)
-				.connect(this.getWallet())
-				.mint(this.getPublicAddress(), toBigNumberStr(10000))
-		).wait();
+  /**
+   * Faucet function, mints 10K USDC to wallet - Only works on Testnet
+   * Assumes that the user wallet has Boba/Moonbase Tokens on Testnet
+   * @param contract (optional) address of USDC contract
+   * @returns Boolean true if user is funded, false otherwise
+   */
+  async mintTestUSDC(contract?: address): Promise<boolean> {
+    const tokenContract = this.getContract(this._usdcToken, contract);
+    // mint 10K usdc token
+    await (
+      await (tokenContract as Contract)
+        .connect(this.getWallet())
+        .mint(this.getPublicAddress(), toBigNumberStr(10000))
+    ).wait();
 
-		return true;
-	}
+    return true;
+  }
 
-	/**
-	 * Funds gas tokens to user's account
-	 * @returns Fund gas reponse
-	 */
-	async fundGas() {
-		const response = await this.apiService.post<FundGasResponse>(
+  /**
+   * Funds gas tokens to user's account
+   * @returns Fund gas reponse
+   */
+  async fundGas() {
+    const response = await this.apiService.post<FundGasResponse>(
 			SERVICE_URLS.USER.FUND_GAS,
 			{},
 			{ isAuthenticationRequired: true }
 		);
 		return response;
-	}
+  }
 
-	/**
-	 * Returns boba balance in user's account
-	 * @returns Number representing boba balance in account
-	 */
-	async getBobaBalance() {
-		return bnToString((await this.getWallet().getBalance()).toHexString());
-	}
+  /**
+   * Returns boba balance in user's account
+   * @returns Number representing boba balance in account
+   */
+  async getBobaBalance(): Promise<string> {
+    return bnToString((await this.getWallet().getBalance()).toHexString())
+  }
 
-	/**
-	 * Transfers usdc to margin bank to be used for placing orders and opening
-	 * positions on Firefly Exchange
-	 * @param amount the number of usdc to be transferred
-	 * @param usdtContract (optional) address of usdc contract
-	 * @param mbContract (address) address of Margin Bank contract
-	 * @returns boolean true if funds are transferred, false otherwise
-	 */
-	async depositToMarginBank(
-		amount: number,
-		usdtContract?: address,
-		mbContract?: address
-	): Promise<boolean> {
-		const tokenContract = this.getContract("USDTToken", usdtContract);
-		const marginBankContract = this.getContract("MarginBank", mbContract);
-		const amountString = toBigNumberStr(amount);
+  /**
+   * Transfers usdc to margin bank to be used for placing orders and opening
+   * positions on Firefly Exchange
+   * @param amount the number of usdc to be transferred
+   * @param usdcContract (optional) address of usdc contract
+   * @param mbContract (address) address of Margin Bank contract
+   * @returns boolean true if funds are transferred, false otherwise
+   */
+  async depositToMarginBank(
+    amount: number,
+    usdcContract?: address,
+    mbContract?: address
+  ): Promise<boolean> {
+    const tokenContract = this.getContract(this._usdcToken, usdcContract);
+    const marginBankContract = this.getContract(this._marginBank, mbContract);
+    const amountString = toBigNumberStr(amount);
 
-		// approve usdc contract to allow margin bank to take funds out for user's behalf
-		await (
-			await (tokenContract as Contract)
-				.connect(this.getWallet())
-				.approve(
-					(marginBankContract as contracts_exchange.MarginBank).address,
-					amountString,
-					{}
-				)
-		).wait();
+    // approve usdc contract to allow margin bank to take funds out for user's behalf
+    await (
+      await (tokenContract as Contract)
+        .connect(this.getWallet())
+        .approve(
+          (marginBankContract as contracts_exchange.MarginBank).address,
+          amountString,
+          {}
+        )
+    ).wait();
 
-		// deposit `amount` usdc to margin bank
-		await (
-			await (marginBankContract as contracts_exchange.MarginBank)
-				.connect(this.getWallet())
-				.depositToBank(this.getPublicAddress(), amountString, {})
-		).wait();
+    // deposit `amount` usdc to margin bank
+    await (
+      await (marginBankContract as contracts_exchange.MarginBank)
+        .connect(this.getWallet())
+        .depositToBank(this.getPublicAddress(), amountString, {})
+    ).wait();
 
-		return true;
-	}
+    return true;
+  }
 
-	/**
-	 * Transfers usdc from MarginBank, back to usdc contract
-	 * @param amount (optional) if not provided, transfers all available usdc tokens
-	 * from Margin Bank to usdc contract
-	 * @param mbContract (address) address of Margin Bank contract
-	 * @returns boolean true if funds are withdrawn, false otherwise
-	 */
-	async withdrawFromMarginBank(
-		amount?: number,
-		mbContract?: address
-	): Promise<boolean> {
-		const marginBankContract = this.getContract("MarginBank", mbContract);
+  /**
+   * Transfers usdc from MarginBank, back to usdc contract
+   * @param amount (optional) if not provided, transfers all available usdc tokens
+   * from Margin Bank to usdc contract
+   * @param mbContract (address) address of Margin Bank contract
+   * @returns boolean true if funds are withdrawn, false otherwise
+   */
+  async withdrawFromMarginBank(
+    amount?: number,
+    mbContract?: address
+  ): Promise<boolean> {
+    const marginBankContract = this.getContract(this._marginBank, mbContract);
 
-		const amountString = amount
-			? toBigNumberStr(amount)
-			: await this.getMarginBankBalance(
-					(marginBankContract as contracts_exchange.MarginBank).address
-			  );
+    const amountString = amount
+      ? toBigNumberStr(amount)
+      : await this.getMarginBankBalance(
+        (marginBankContract as contracts_exchange.MarginBank).address
+      );
 
-		await (
-			await (marginBankContract as contracts_exchange.MarginBank)
-				.connect(this.getWallet())
-				.withdrawFromBank(
-					this.getPublicAddress(),
-					this.getPublicAddress(),
-					amountString
-				)
-		).wait();
+    await (
+      await (marginBankContract as contracts_exchange.MarginBank)
+        .connect(this.getWallet())
+        .withdrawFromBank(
+          this.getPublicAddress(),
+          this.getPublicAddress(),
+          amountString
+        )
+    ).wait();
 
-		return true;
-	}
+    return true;
+  }
 
-	/**
-	 * Gets margin of position open
-	 * @param symbol market symbol get information about
-	 * @param perpContract (address) address of Perpetual address comes in metaInfo
-	 * @returns margin balance of positions of given symbol
-	 */
-	async getAccountPositionBalance(symbol: MarketSymbol, perpContract?: address) {
-		const perpV1Contract = this.getContract("PerpetualProxy", perpContract, symbol);
-		const marginBalance = await perpV1Contract
-			.connect(this.getWallet())
-			.getAccountPositionBalance(this.getPublicAddress());
-		return marginBalance;
-	}
+  /**
+   * Gets margin of position open
+   * @param symbol market symbol get information about
+   * @param perpContract (address) address of Perpetual address comes in metaInfo
+   * @returns margin balance of positions of given symbol
+   */
+  async getAccountPositionBalance(symbol: MarketSymbol, perpContract?: address) {
+    const perpV1Contract = this.getContract(this._perpetual, perpContract, symbol);
+    const marginBalance = await perpV1Contract.connect(this.getWallet()).getAccountBalance(this.getPublicAddress());
+    return marginBalance
+  }
 
-	/**
-	 * Creates order signature and returns it. The signed order can be placed on exchange
-	 * @param params OrderSignatureRequest params needed to be signed
-	 * @returns OrderSignatureResponse with the payload signed on-chain along with order signature
-	 */
-	async createSignedOrder(
-		params: OrderSignatureRequest
-	): Promise<OrderSignatureResponse> {
-		const order = this.createOrderToSign(params);
+  /**
+   * Creates order signature and returns it. The signed order can be placed on exchange
+   * @param params OrderSignatureRequest params needed to be signed
+   * @returns OrderSignatureResponse with the payload signed on-chain along with order signature
+   */
+  async createSignedOrder(
+    params: OrderSignatureRequest
+  ): Promise<OrderSignatureResponse> {
+    const order = this.createOrderToSign(params);
 
-		const signer = this.orderSigners.get(params.symbol);
-		if (!signer) {
-			throw Error(
-				`Provided Market Symbol(${params.symbol}) is not added to client library`
-			);
-		}
+    const signer = this.orderSigners.get(params.symbol);
+    if (!signer) {
+      throw Error(
+        `Provided Market Symbol(${params.symbol}) is not added to client library`
+      );
+    }
+  
+    const orderSignature = await (signer as OrderSigner).signOrder(
+      order,
+      this.getSigningMethod()
+    );
 
-		const orderSignature = await (signer as OrderSigner).signOrder(
-			order,
-			this.getSigningMethod()
-		);
+    const signedOrder: SignedOrder = {
+      ...order,
+      typedSignature: orderSignature,
+    };
 
-		const signedOrder: SignedOrder = {
-			...order,
-			typedSignature: orderSignature,
-		};
+    return {
+      symbol: params.symbol,
+      price: params.price,
+      quantity: params.quantity,
+      side: params.side,
+      leverage: params.leverage || 1,
+      reduceOnly: order.reduceOnly,
+      salt: order.salt.toNumber(),
+      expiration: order.expiration.toNumber(),
+      orderSignature: signedOrder.typedSignature,
+      orderType: params.orderType
+    };
+  }
 
-		return {
-			symbol: params.symbol,
-			price: params.price,
-			quantity: params.quantity,
-			side: params.side,
-			leverage: params.leverage || 1,
-			reduceOnly: order.reduceOnly,
-			salt: order.salt.toNumber(),
-			expiration: order.expiration.toNumber(),
-			orderSignature: signedOrder.typedSignature,
-			orderType: params.orderType,
-		};
-	}
+  /**
+   * Places a signed order on firefly exchange
+   * @param params PlaceOrderRequest containing the signed order created using createSignedOrder
+   * @returns PlaceOrderResponse containing status and data. If status is not 201, order placement failed.
+   */
+  async placeSignedOrder(params: PlaceOrderRequest) {
 
-	/**
-	 * Places a signed order on firefly exchange
-	 * @param params PlaceOrderRequest containing the signed order created using createSignedOrder
-	 * @returns PlaceOrderResponse containing status and data. If status is not 201, order placement failed.
-	 */
-	async placeSignedOrder(params: PlaceOrderRequest) {
-		const response = await this.apiService.post<PlaceOrderResponse>(
-			SERVICE_URLS.ORDERS.ORDERS,
-			{
-				symbol: params.symbol,
-				userAddress: this.getPublicAddress().toLocaleLowerCase(),
-				orderType: params.orderType,
-				price: toBigNumberStr(params.price),
-				quantity: toBigNumberStr(params.quantity),
-				leverage: toBigNumberStr(params.leverage),
-				side: params.side,
-				reduceOnly: params.reduceOnly,
-				salt: params.salt,
-				expiration: params.expiration,
-				orderSignature: params.orderSignature,
-				timeInForce: params.timeInForce || TIME_IN_FORCE.GOOD_TILL_TIME,
-				postOnly: params.postOnly || false,
-				clientId: params.clientId
-					? `firefly-client: ${params.clientId}`
-					: "firefly-client",
-			}
-		);
+    const response = await this.apiService.post<PlaceOrderResponse>(
+      SERVICE_URLS.ORDERS.ORDERS,
+      {
+        symbol: params.symbol,
+        userAddress: this.getPublicAddress().toLocaleLowerCase(),
+        orderType: params.orderType,
+        price: toBigNumberStr(params.price),
+        quantity: toBigNumberStr(params.quantity),
+        leverage: toBigNumberStr(params.leverage),
+        side: params.side,
+        reduceOnly: params.reduceOnly,
+        salt: params.salt,
+        expiration: params.expiration,
+        orderSignature: params.orderSignature,
+        timeInForce: params.timeInForce || TIME_IN_FORCE.GOOD_TILL_TIME,
+        postOnly: params.postOnly || false,
+        clientId: params.clientId ? `firefly-client: ${params.clientId}` : "firefly-client"
+      }
+    );
 
-		return response;
-	}
+    return response;
+  }
 
-	/**
-	 * Given an order payload, signs it on chain and submits to exchange for placement
-	 * @param params PostOrderRequest
-	 * @returns PlaceOrderResponse
-	 */
-	async postOrder(params: PostOrderRequest) {
-		const signedOrder = await this.createSignedOrder(params);
-		const response = await this.placeSignedOrder({
-			...signedOrder,
-			timeInForce: params.timeInForce,
-			postOnly: params.postOnly,
-			clientId: params.clientId,
-		});
+  /**
+   * Given an order payload, signs it on chain and submits to exchange for placement
+   * @param params PostOrderRequest
+   * @returns PlaceOrderResponse
+   */
+  async postOrder(params: PostOrderRequest) {
+    const signedOrder = await this.createSignedOrder(params);
+    const response = await this.placeSignedOrder({
+      ...signedOrder,
+      timeInForce: params.timeInForce,
+      postOnly: params.postOnly,
+      clientId: params.clientId,
+    });
 
-		return response;
-	}
+    return response;
+  }
 
-	/**
-	 * Creates signature for cancelling orders
-	 * @param params OrderCancelSignatureRequest containing market symbol and order hashes to be cancelled
-	 * @returns generated signature string
-	 */
-	async createOrderCancellationSignature(
-		params: OrderCancelSignatureRequest
-	): Promise<string> {
-		const signer = this.orderSigners.get(params.symbol);
-		if (!signer) {
-			throw Error(
-				`Provided Market Symbol(${params.symbol}) is not added to client library`
-			);
-		}
+  /**
+   * Creates signature for cancelling orders
+   * @param params OrderCancelSignatureRequest containing market symbol and order hashes to be cancelled
+   * @returns generated signature string
+   */
+  async createOrderCancellationSignature(
+    params: OrderCancelSignatureRequest
+  ): Promise<string> {
+    const signer = this.orderSigners.get(params.symbol);
+    if (!signer) {
+      throw Error(
+        `Provided Market Symbol(${params.symbol}) is not added to client library`
+      );
+    }
 
-		return signer.signCancelOrdersByHash(
-			params.hashes,
-			this.getPublicAddress().toLowerCase(),
-			this.getSigningMethod()
-		);
-	}
+    return signer.signCancelOrdersByHash(
+      params.hashes,
+      this.getPublicAddress().toLowerCase(),
+      this.getSigningMethod()
+    );
+  }
 
-	/**
-	 * Posts to exchange for cancellation of provided orders
-	 * @param params OrderCancellationRequest containing order hashes to be cancelled and cancellation signature
-	 * @returns response from exchange server
-	 */
-	async placeCancelOrder(params: OrderCancellationRequest) {
-		const response = await this.apiService.delete<CancelOrderResponse>(
-			SERVICE_URLS.ORDERS.ORDERS_HASH,
-			{
-				symbol: params.symbol,
-				userAddress: this.getPublicAddress(),
-				orderHashes: params.hashes,
-				cancelSignature: params.signature,
-			}
-		);
-		return response;
-	}
+  /**
+   * Posts to exchange for cancellation of provided orders
+   * @param params OrderCancellationRequest containing order hashes to be cancelled and cancellation signature
+   * @returns response from exchange server
+   */
+  async placeCancelOrder(params: OrderCancellationRequest) {
+    const response = await this.apiService.delete<CancelOrderResponse>(
+      SERVICE_URLS.ORDERS.ORDERS_HASH,
+      {
+        symbol: params.symbol,
+        userAddress: this.getPublicAddress(),
+        orderHashes: params.hashes,
+        cancelSignature: params.signature,
+      }
+    );
+    return response;
+  }
 
-	async postCancelOrder(params: OrderCancelSignatureRequest) {
-		if (params.hashes.length <= 0) {
-			throw Error(`No orders to cancel`);
-		}
-		const signature = await this.createOrderCancellationSignature(params);
-		const response = await this.placeCancelOrder({
-			...params,
-			signature,
-		});
-		return response;
-	}
+  async postCancelOrder(params: OrderCancelSignatureRequest) {
+    if (params.hashes.length <= 0) {
+      throw Error(
+        `No orders to cancel`
+      );
+    }
+    const signature = await this.createOrderCancellationSignature(params);
+    const response = await this.placeCancelOrder({
+      ...params,
+      signature,
+    });
+    return response;
+  }
 
-	/**
-	 * Cancels all open orders for a given market
-	 * @param symbol DOT-PERP, market symbol
-	 * @returns cancellation response
-	 */
-	async cancelAllOpenOrders(symbol: MarketSymbol) {
-		const openOrders = await this.getUserOrders({
-			symbol,
-			status: ORDER_STATUS.OPEN,
-		});
+  /**
+   * Cancels all open orders for a given market
+   * @param symbol DOT-PERP, market symbol
+   * @returns cancellation response
+   */
+  async cancelAllOpenOrders(symbol: MarketSymbol) {
+    const openOrders = await this.getUserOrders({
+      symbol,
+      status: ORDER_STATUS.OPEN,
+    });
 
-		const hashes = (await openOrders.data?.map((order) => order.hash)) as string[];
+    const hashes = (await openOrders.data?.map(
+      (order) => order.hash
+    )) as string[];
 
-		const response = await this.postCancelOrder({ hashes, symbol });
+    const response = await this.postCancelOrder({ hashes, symbol });
 
-		return response;
-	}
+    return response;
+  }
 
-	/**
-	 * Updates user's leverage to given leverage
-	 * @param symbol market symbol get information about
-	 * @param leverage new leverage you want to change to
-	 * @param perpetualAddress (address) address of Perpetual contract (comes in meta)
-	 * @param marginBankAddress (address) address of Margin Bank contract (comes in meta)
-	 * @returns boolean indicating if leverage updated successfully
-	 */
+  /**
+   * Updates user's leverage to given leverage
+   * @param symbol market symbol get information about
+   * @param leverage new leverage you want to change to
+   * @param perpetualAddress (address) address of Perpetual contract
+   * @returns boolean indicating if leverage updated successfully
+   */
 
-	async updateLeverage(
-		symbol: MarketSymbol,
-		leverage: number,
-		perpetualAddress: address,
-		marginBankAddress: address
-	) {
-		const userPosition = await this.getUserPosition({ symbol: symbol });
-		if (!userPosition.data) {
-			throw Error(`User positions data doesn't exist`);
-		}
+  async adjustLeverage(
+    symbol: MarketSymbol, 
+    leverage: number, 
+    perpetualAddress?: address,
+    ): Promise<boolean> {
+    const userPosition = await this.getUserPosition({symbol: symbol})
+    if (!userPosition.data) {
+      throw Error(
+        `User positions data doesn't exist`
+      );
+    }
 
-		const position = userPosition.data as any as GetPositionResponse;
+    const position = userPosition.data as any as GetPositionResponse
 
-		//if user position exists, make contract call to add or remove margin
-		if (Object.keys(position).length > 0) {
-			//TODO [BFLY-603]: this should be returned as array from dapi, remove this typecasting when done
-			//calculate new margin that'd be required
-			const bnNewMargin = bigNumber(
-				calcMargin(
-					position.quantity,
-					position.avgEntryPrice,
-					toBigNumberStr(leverage)
-				)
-			);
-			const bnCurrMargin = bigNumber(position.margin);
-			const marginToAdjust = bnCurrMargin.minus(bnNewMargin).abs().toFixed();
-			const isAdd = bnNewMargin.gt(bnCurrMargin);
-
-			if (bigNumber(marginToAdjust).gt(bigNumber(0))) {
-				if (isAdd) {
-					const marginBankContract = this.getContract(
-						"MarginBank",
-						marginBankAddress,
-						symbol
-					);
-
-					await (
-						await (marginBankContract as contracts_exchange.MarginBank)
-							.connect(this.getWallet())
-							.transferToPerpetual(
-								perpetualAddress,
-								this.getPublicAddress(),
-								marginToAdjust,
-								new Web3().eth.abi.encodeParameter(
-									"bytes32",
-									Web3.utils.asciiToHex("UpdateSLeverage")
-								)
-							)
-					).wait();
-					return true;
-				} else {
-					const perpV1Contract = this.getContract(
-						"PerpetualProxy",
-						perpetualAddress,
-						symbol
-					);
-
-					await (
-						await (perpV1Contract as contracts_exchange.PerpetualV1)
-							.connect(this.getWallet())
-							.withdrawFromPosition(
-								this.getPublicAddress(),
-								this.getPublicAddress(),
-								marginToAdjust,
-								new Web3().eth.abi.encodeParameter(
-									"bytes32",
-									Web3.utils.asciiToHex("UpdateSLeverage")
-								)
-							)
-					).wait();
-					return true;
-				}
-			}
-			return false;
-		}
-		//make api call
-		else {
-			//make update leverage api call
-			const adjustLeverageResponse = await this.adjustLeverage({
+    //if user position exists, make contract call to add or remove margin
+    if (Object.keys(position).length > 0) { //TODO [BFLY-603]: this should be returned as array from dapi, remove this typecasting when done
+      const perpContract = this.getContract(this._perpetual, perpetualAddress, symbol);
+      await (
+        await (perpContract as contracts_exchange.Perpetual)
+        .connect(this.getWallet())
+        .adjustLeverage(
+          this.getPublicAddress(),
+          toBigNumberStr(leverage)
+        )
+      ).wait();
+      return true
+    }
+    //make api call
+    else {
+      //make update leverage api call on dapi
+      const updateLeverageResponse = await this.updateLeverage({
 				symbol: symbol,
 				leverage: leverage,
 			});
+      
+      if (!updateLeverageResponse.ok || !updateLeverageResponse.data) {
+        throw Error(
+          `Adjust leverage error: ${updateLeverageResponse.response.message}`
+        );
+      }
+      return updateLeverageResponse.ok
+    }
+  }
 
-			if (!adjustLeverageResponse.ok || !adjustLeverageResponse.data) {
-				throw Error(
-					`Adjust leverage error: ${adjustLeverageResponse.response.message}`
-				);
-			}
-			return adjustLeverageResponse.ok;
-		}
-	}
+  /**
+   * Gets Users default leverage.
+   * @param symbol market symbol get information about
+   * @returns user default leverage
+   */
+ async getUserDefaultLeverage(symbol: MarketSymbol) {
+    const accData = await this.getUserAccountData()
+    if (!accData.data) {
+      throw Error(
+        `Account data does not exist`
+      );
+    }
+    const accDataByMarket = accData.data.accountDataByMarket.filter(data => {      
+      return data.symbol == symbol
+    })    
+    ///found accountDataByMarket
+    if (accDataByMarket && accDataByMarket.length > 0) {      
+      return bnStrToBaseNumber(accDataByMarket[0].selectedLeverage)
+    }
+    ///user is new and symbol data is not present in accountDataByMarket
+    else {
+      const exchangeInfo = await this.getExchangeInfo(symbol)
+      if (!exchangeInfo.data) {
+        throw Error(
+          `Provided Market Symbol(${symbol}) does not exist`
+        );
+      }
+      return bnStrToBaseNumber(exchangeInfo.data.defaultLeverage)
+    }
+ }
 
-	/**
-	 * Gets Users default leverage.
-	 * @param symbol market symbol get information about
-	 * @returns user default leverage
-	 */
-	async getUserDefaultLeverage(symbol: MarketSymbol) {
-		const accData = await this.getUserAccountData();
-		if (!accData.data) {
-			throw Error(`Account data does not exist`);
-		}
-		const accDataByMarket = accData.data.accountDataByMarket.filter((data) => {
-			return data.symbol == symbol;
-		});
-		///found accountDataByMarket
-		if (accDataByMarket && accDataByMarket.length > 0) {
-			return bnStrToBaseNumber(accDataByMarket[0].selectedLeverage);
-		}
-		///user is new and symbol data is not present in accountDataByMarket
-		else {
-			const exchangeInfo = await this.getExchangeInfo(symbol);
-			if (!exchangeInfo.data) {
-				throw Error(`Provided Market Symbol(${symbol}) does not exist`);
-			}
-			return bnStrToBaseNumber(exchangeInfo.data.defaultLeverage);
-		}
-	}
+ /**
+  * Add or remove margin from the open position
+  * @param symbol market symbol of the open position
+  * @param operationType operation you want to perform `Add` | `Remove` margin
+  * @param amount (number) amount user wants to add or remove from the position
+  * @param perpetualAddress (address) address of Perpetual contract
+  * @returns boolean value indicating if margin adjusted successfully
+  */
+ async adjustMargin(
+  symbol: MarketSymbol,
+  operationType: "Add" | "Remove",
+  amount: number,
+  perpetualAddress?: string
+  ): Promise<boolean> {
 
-	/**
-	 * Gets Orders placed by the user. Returns the first 50 orders by default.
-	 * @param params of type OrderRequest,
-	 * @returns OrderResponse array
-	 */
-	async getUserOrders(params: GetOrderRequest) {
-		const response = await this.apiService.get<GetOrderResponse[]>(
-			SERVICE_URLS.USER.ORDERS,
-			{
-				...params,
-				userAddress: this.getPublicAddress(),
-			}
-		);
-		return response;
-	}
+    const perpContract = this.getContract(this._perpetual, perpetualAddress, symbol);
+    //ADD margin
+    if (operationType === "Add") {
+      await (
+        await (perpContract as contracts_exchange.Perpetual)
+        .connect(this.getWallet())
+        .addMargin(
+          this.getPublicAddress(),
+          toBigNumberStr(amount)
+        )
+      ).wait();
+    }
+    //REMOVE margin
+    else {
+      await (
+        await (perpContract as contracts_exchange.Perpetual)
+        .connect(this.getWallet())
+        .removeMargin(
+          this.getPublicAddress(),
+          toBigNumberStr(amount)
+        )
+      ).wait();
+    }
+    return true
+ }
 
-	/**
-	 * Gets user open position. If the market is not specified then will return first 50 open positions for 50 markets.
-	 * @param params GetPositionRequest
-	 * @returns GetPositionResponse
-	 */
-	async getUserPosition(params: GetPositionRequest) {
-		const response = await this.apiService.get<GetPositionResponse[]>(
-			SERVICE_URLS.USER.USER_POSITIONS,
-			{ ...params, userAddress: this.getPublicAddress() }
-		);
-		return response;
-	}
+  /**
+   * Gets Orders placed by the user. Returns the first 50 orders by default.
+   * @param params of type OrderRequest,
+   * @returns OrderResponse array
+   */
+  async getUserOrders(params: GetOrderRequest) {
+    const response = await this.apiService.get<GetOrderResponse[]>(
+      SERVICE_URLS.USER.ORDERS,
+      {
+        ...params,
+        userAddress: this.getPublicAddress(),
+      }
+    );
+    return response;
+  }
 
-	/**
-	 * Gets state of orderbook for provided market. At max top 50 bids/asks are retrievable
-	 * @param params GetOrdebookRequest
-	 * @returns GetOrderbookResponse
-	 */
-	async getOrderbook(params: GetOrderbookRequest) {
-		const response = await this.apiService.get<GetOrderBookResponse>(
-			SERVICE_URLS.MARKET.ORDER_BOOK,
-			params
-		);
+  /**
+   * Gets user open position. If the market is not specified then will return first 50 open positions for 50 markets.
+   * @param params GetPositionRequest
+   * @returns GetPositionResponse
+   */
+  async getUserPosition(params: GetPositionRequest) {
+    const response = await this.apiService.get<GetPositionResponse[]>(
+      SERVICE_URLS.USER.USER_POSITIONS,
+      { ...params, userAddress: this.getPublicAddress() }
+    );
+    return response;
+  }
 
-		return response;
-	}
+  /**
+   * Gets state of orderbook for provided market. At max top 50 bids/asks are retrievable
+   * @param params GetOrdebookRequest
+   * @returns GetOrderbookResponse
+   */
+  async getOrderbook(params: GetOrderbookRequest) {
+    const response = await this.apiService.get<GetOrderBookResponse>(
+      SERVICE_URLS.MARKET.ORDER_BOOK,
+      params
+    );
 
-	/**
-	 * Gets user trades
-	 * @param params PlaceOrderResponse
-	 * @returns GetUserTradesResponse
-	 */
-	async getUserTrades(params: GetUserTradesRequest) {
-		const response = await this.apiService.get<GetUserTradesResponse>(
-			SERVICE_URLS.USER.USER_TRADES,
-			{ ...params, userAddress: this.getPublicAddress() }
-		);
+    return response;
+  }
 
-		return response;
-	}
+  /**
+   * Gets user trades
+   * @param params PlaceOrderResponse
+   * @returns GetUserTradesResponse
+   */
+  async getUserTrades(params: GetUserTradesRequest) {
+    const response = await this.apiService.get<GetUserTradesResponse>(
+      SERVICE_URLS.USER.USER_TRADES,
+      { ...params, userAddress: this.getPublicAddress() }
+    );
 
-	/**
-	 * Gets user Account Data
-	 * @returns GetAccountDataResponse
-	 */
-	async getUserAccountData() {
-		const response = await this.apiService.get<GetAccountDataResponse>(
-			SERVICE_URLS.USER.ACCOUNT,
-			{ userAddress: this.getPublicAddress() }
-		);
-		return response;
-	}
+    return response;
+  }
 
-	/**
-	 * Gets user transaction history
-	 * @param params GetTransactionHistoryRequest
-	 * @returns GetUserTransactionHistoryResponse
-	 */
-	async getUserTransactionHistory(params: GetTransactionHistoryRequest) {
-		const response = await this.apiService.get<GetUserTransactionHistoryResponse[]>(
-			SERVICE_URLS.USER.USER_TRANSACTION_HISTORY,
-			{
-				...params,
-				userAddress: this.getPublicAddress(),
-			}
-		);
-		return response;
-	}
+  /**
+   * Gets user Account Data
+   * @returns GetAccountDataResponse
+   */
+  async getUserAccountData() {
+    const response = await this.apiService.get<GetAccountDataResponse>(
+      SERVICE_URLS.USER.ACCOUNT,
+      { userAddress: this.getPublicAddress() }
+    );
+    return response;
+  }
 
-	/**
-	 * Gets market recent trades
-	 * @param params GetMarketRecentTradesRequest
-	 * @returns GetMarketRecentTradesResponse
-	 */
-	async getMarketRecentTrades(params: GetMarketRecentTradesRequest) {
-		const response = await this.apiService.get<GetMarketRecentTradesResponse>(
-			SERVICE_URLS.MARKET.RECENT_TRADE,
-			params
-		);
-		return response;
-	}
+  /**
+   * Gets user transaction history
+   * @param params GetTransactionHistoryRequest
+   * @returns GetUserTransactionHistoryResponse
+   */
+  async getUserTransactionHistory(params: GetTransactionHistoryRequest) {
+    const response = await this.apiService.get<
+      GetUserTransactionHistoryResponse[]
+    >(SERVICE_URLS.USER.USER_TRANSACTION_HISTORY, {
+      ...params,
+      userAddress: this.getPublicAddress(),
+    });
+    return response;
+  }
 
-	/**
-	 * Gets market candle stick data
-	 * @param params GetMarketRecentTradesRequest
-	 * @returns DAPIKlineResponse
-	 */
-	async getMarketCandleStickData(params: GetCandleStickRequest) {
-		const response = await this.apiService.get<DAPIKlineResponse>(
-			SERVICE_URLS.MARKET.CANDLE_STICK_DATA,
-			params
-		);
-		return response;
-	}
+  /**
+   * Gets market recent trades
+   * @param params GetMarketRecentTradesRequest
+   * @returns GetMarketRecentTradesResponse
+   */
+  async getMarketRecentTrades(params: GetMarketRecentTradesRequest) {
+    const response = await this.apiService.get<GetMarketRecentTradesResponse>(
+      SERVICE_URLS.MARKET.RECENT_TRADE,
+      params
+    );
+    return response;
+  }
 
-	/**
-	 * Gets publically available market info about market(s)
-	 * @param symbol (optional) market symbol get information about, by default fetches info on all available markets
-	 * @returns ExchangeInfo or ExchangeInfo[] in case no market was provided as input
-	 */
-	async getExchangeInfo(symbol?: MarketSymbol) {
-		const response = await this.apiService.get<ExchangeInfo>(
-			SERVICE_URLS.MARKET.EXCHANGE_INFO,
-			{ symbol }
-		);
-		return response;
-	}
+  /**
+   * Gets market candle stick data
+   * @param params GetMarketRecentTradesRequest
+   * @returns DAPIKlineResponse
+   */
+  async getMarketCandleStickData(params: GetCandleStickRequest) {
+    const response = await this.apiService.get<DAPIKlineResponse>(
+      SERVICE_URLS.MARKET.CANDLE_STICK_DATA,
+      params
+    );
+    return response;
+  }
 
-	/**
-	 * Gets MarketData data for market(s)
-	 * @param symbol (optional) market symbol get information about, by default fetches info on all available markets
-	 * @returns MarketData or MarketData[] in case no market was provided as input
-	 */
-	async getMarketData(symbol?: MarketSymbol) {
-		const response = await this.apiService.get<MarketData>(
-			SERVICE_URLS.MARKET.MARKET_DATA,
-			{ symbol }
-		);
-		return response;
-	}
+  /**
+   * Gets publically available market info about market(s)
+   * @param symbol (optional) market symbol get information about, by default fetches info on all available markets
+   * @returns ExchangeInfo or ExchangeInfo[] in case no market was provided as input
+   */
+  async getExchangeInfo(symbol?: MarketSymbol) {
+    const response = await this.apiService.get<ExchangeInfo>(
+      SERVICE_URLS.MARKET.EXCHANGE_INFO,
+      { symbol }
+    );
+    return response;
+  }
 
-	/**
-	 * Gets Meta data of the market(s)
-	 * @param symbol (optional) market symbol get information about, by default fetches info on all available markets
-	 * @returns MarketMeta or MarketMeta[] in case no market was provided as input
-	 */
-	async getMarketMetaInfo(symbol?: MarketSymbol) {
-		const response = await this.apiService.get<MarketMeta>(SERVICE_URLS.MARKET.META, {
-			symbol,
-		});
-		return response;
-	}
+  /**
+   * Gets MarketData data for market(s)
+   * @param symbol (optional) market symbol get information about, by default fetches info on all available markets
+   * @returns MarketData or MarketData[] in case no market was provided as input
+   */
+  async getMarketData(symbol?: MarketSymbol) {
+    const response = await this.apiService.get<MarketData>(
+      SERVICE_URLS.MARKET.MARKET_DATA,
+      { symbol }
+    );
+    return response;
+  }
 
-	/**
-	 * Gets the list of market symbols available on exchange
-	 * @returns array of strings representing MARKET SYMBOLS
-	 */
-	async getMarketSymbols() {
-		const response = await this.apiService.get<string[]>(SERVICE_URLS.MARKET.SYMBOLS);
-		return response;
-	}
+  /**
+   * Gets Meta data of the market(s)
+   * @param symbol (optional) market symbol get information about, by default fetches info on all available markets
+   * @returns MarketMeta or MarketMeta[] in case no market was provided as input
+   */
+  async getMarketMetaInfo(symbol?: MarketSymbol) {
+    const response = await this.apiService.get<MarketMeta>(
+      SERVICE_URLS.MARKET.META,
+      { symbol }
+    );
+    return response;
+  }
 
-	/**
-	 * Gets contract addresses of market
-	 * @param symbol (optional) market symbol get information about, by default fetches info on all available markets
-	 * @returns deployed contract addresses
-	 */
-	async getContractAddresses(symbol?: MarketSymbol) {
-		const response = await this.apiService.get<Record<string, object>>(
-			SERVICE_URLS.MARKET.CONTRACT_ADDRESSES,
-			{ symbol }
-		);
-		return response;
-	}
+  /**
+   * Gets the list of market symbols available on exchange
+   * @returns array of strings representing MARKET SYMBOLS
+   */
+ async getMarketSymbols() {
+    const response = await this.apiService.get<string[]>(
+      SERVICE_URLS.MARKET.SYMBOLS
+    );
+    return response
+ }
 
-	/**
-	 * Gets status of the exchange
-	 * @returns StatusResponse
-	 */
-	async getExchangeStatus() {
-		const response = await this.apiService.get<StatusResponse>(
-			SERVICE_URLS.MARKET.STATUS
-		);
-		return response;
-	}
+ /**
+  * Gets contract addresses of market 
+  * @param symbol (optional) market symbol get information about, by default fetches info on all available markets
+  * @returns deployed contract addresses
+  */
+ async getContractAddresses(symbol?: MarketSymbol) {
+  const response = await this.apiService.get<Record<string,object>>(
+    SERVICE_URLS.MARKET.CONTRACT_ADDRESSES,
+    { symbol }
+  );
+  return response
+ }
 
-	/**
-	 * Returns the public address of account connected with the client
-	 * @returns string | address
-	 */
-	getPublicAddress(): address {
-		const address = this.wallet ? this.wallet.address : this.walletAddress;
-		if (address == "") {
-			throw Error(`Invalid user address`);
-		}
-		return address;
-	}
+  /**
+   * Gets status of the exchange
+   * @returns StatusResponse
+   */
+  async getExchangeStatus() {
+    const response = await this.apiService.get<StatusResponse>(
+      SERVICE_URLS.MARKET.STATUS
+    );
+    return response;
+  }
 
-	getWallet() {
-		const walletOrSigner = this.wallet ? this.wallet : this.signer;
-		if (!walletOrSigner) {
-			throw Error(`Invalid Signer`);
-		}
-		return walletOrSigner;
-	}
+  /**
+   * Returns the public address of account connected with the client
+   * @returns string | address
+   */
+  getPublicAddress(): address {
+    const address = this.wallet ? this.wallet.address : this.walletAddress
+    if (address == ""){
+      throw Error(
+        `Invalid user address`
+      );
+    }
+    return address
+  }
 
-	getSigningMethod() {
-		return this.wallet ? SigningMethod.Hash : this.signingMethod;
-	}
+  getWallet() {  
+    const walletOrSigner = this.wallet ? this.wallet : this.signer
+    if (!walletOrSigner){
+      throw Error(
+        `Invalid Signer`
+      );
+    } 
+    return walletOrSigner
+  }
 
-	//= ==============================================================//
-	//                    PRIVATE HELPER FUNCTIONS
-	//= ==============================================================//
+  getSigningMethod() {
+    return this.wallet ? SigningMethod.Hash : this.signingMethod
+  }
 
-	/**
-	 * Private function to return a global(Test usdc Token / Margin Bank) contract
-	 * @param contract address of contract
-	 * @returns Contract | MarginBank or throws error
-	 */
-	private getContract(
-		contractName: string,
-		contract?: address,
-		market?: MarketSymbol
-	): Contract | contracts_exchange.MarginBank | contracts_exchange.Orders {
-		// if a market name is provided and contract address is not provided
-		if (market && !contract) {
-			try {
-				contract = this.contractAddresses[market][contractName].address;
-			} catch (e) {
-				contract = "";
-			}
-		}
+  //= ==============================================================//
+  //                    PRIVATE HELPER FUNCTIONS
+  //= ==============================================================//
 
-		// if contract address is not provided and also market name is not provided
-		if (!market && !contract) {
-			try {
-				contract = this.contractAddresses[contractName].address;
-			} catch (e) {
-				contract = "";
-			}
-		}
+  /**
+   * Private function to return a global(Test usdc Token / Margin Bank) contract
+   * @param contract address of contract
+   * @returns Contract | MarginBank or throws error
+   */
+  private getContract(
+    contractName: string,
+    contract?: address,
+    market?: MarketSymbol
+  ): Contract | contracts_exchange.MarginBank | contracts_exchange.Orders {
+    // if a market name is provided and contract address is not provided
+    if (market && !contract) {
+      try {
+        contract = this.contractAddresses[market][
+          contractName
+        ];
+      } catch (e) {
+        contract = "";
+      }
+    }
 
-		if (contract === "" || contract === undefined) {
-			throw Error(
-				`Contract "${contractName}" not found in contract addresses for network id ${this.network.chainId}`
-			);
-		}
+    // if contract address is not provided and also market name is not provided
+    if (!market && !contract) {
+      try {
+        contract = this.contractAddresses[
+          contractName
+        ];
+      } catch (e) {
+        contract = "";
+      }
+    }
 
-		switch (contractName) {
-			case "PerpetualV1":
-			case "PerpetualProxy":
-				const perpV1Factory = new contracts_exchange.PerpetualV1__factory();
-				const perpV1 = perpV1Factory.attach(contract);
-				return perpV1 as any as contracts_exchange.PerpetualV1;
-			case "USDTToken":
-				return new Contract(contract, USDT_ABI.abi);
-			case "MarginBank":
-				const marginBankFactory = new contracts_exchange.MarginBank__factory();
-				const marginBank = marginBankFactory.attach(contract);
-				return marginBank as any as contracts_exchange.MarginBank;
-			case "Orders":
-				const ordersFactory = new contracts_exchange.Orders__factory();
-				const orders = ordersFactory.attach(contract);
-				return orders as any as contracts_exchange.Orders;
-			default:
-				throw Error(`Unknown contract name received: ${contractName}`);
-		}
-	}
+    if (contract === "" || contract === undefined) {
+      throw Error(
+        `Contract "${contractName}" not found in contract addresses for network id ${this.network.chainId}`
+      );
+    }
 
-	/**
-	 * Private function to create order payload that is to be signed on-chain
-	 * @param params OrderSignatureRequest
-	 * @returns Order
-	 */
-	private createOrderToSign(params: OrderSignatureRequest): Order {
-		const expiration = new Date();
-		//MARKET ORDER - set expiration of 1 minute
-		if (params.orderType === ORDER_TYPE.MARKET) {
-			expiration.setMinutes(expiration.getMinutes() + 1);
-		}
-		//LIMIT ORDER - set expiration of 1 month
-		else {
-			expiration.setMonth(expiration.getMonth() + 1);
-		}
+    switch (contractName) {
+      case this._perpetual:
+        const perpFactory = new contracts_exchange.Perpetual__factory();
+        const perp = perpFactory.attach(contract);
+        return perp as any as contracts_exchange.Perpetual
+      case this._usdcToken:
+        const dummyFactory = new contracts_exchange.DummyUSDC__factory();
+        const dummyUSDC = dummyFactory.attach(contract);
+        return dummyUSDC as any as contracts_exchange.DummyUSDC
+      case this._marginBank:
+        const marginBankFactory = new contracts_exchange.MarginBank__factory();
+        const marginBank = marginBankFactory.attach(contract);
+        return marginBank as any as contracts_exchange.MarginBank;
+      case this._orders:
+        const ordersFactory = new contracts_exchange.Orders__factory();
+        const orders = ordersFactory.attach(contract);
+        return orders as any as contracts_exchange.Orders;
+      default:
+        throw Error(`Unknown contract name received: ${contractName}`);
+    }
+  }
 
-		return {
-			limitPrice: new Price(bigNumber(params.price)),
-			isBuy: params.side === ORDER_SIDE.BUY,
-			quantity: toBigNumber(params.quantity),
-			leverage: toBigNumber(params.leverage || 1),
-			maker: this.getPublicAddress().toLocaleLowerCase(),
-			reduceOnly: params.reduceOnly || false,
-			triggerPrice: new Price(0),
-			limitFee: new Fee(0),
-			taker: "0x0000000000000000000000000000000000000000",
-			expiration: bigNumber(
-				params.expiration || Math.floor(expiration.getTime() / 1000) // /1000 to convert time in seconds
-			),
-			salt: bigNumber(params.salt || Math.floor(Math.random() * 1_000_000)),
-		} as Order;
-	}
+  /**
+   * Private function to create order payload that is to be signed on-chain
+   * @param params OrderSignatureRequest
+   * @returns Order
+   */
+  private createOrderToSign(params: OrderSignatureRequest): Order {
+    const expiration = new Date();
+    const salt = new Date();
+    //MARKET ORDER - set expiration of 1 minute
+    if (params.orderType === ORDER_TYPE.MARKET){
+      expiration.setMinutes(expiration.getMinutes() + 1);
+    }
+    //LIMIT ORDER - set expiration of 1 month
+    else {
+      expiration.setMonth(expiration.getMonth() + 1);
+    }
 
-	/**
+    return {
+      isBuy: params.side === ORDER_SIDE.BUY,
+      price: toBigNumber(params.price),
+      quantity: toBigNumber(params.quantity),
+      leverage: toBigNumber(params.leverage || 1),
+      maker: this.getPublicAddress().toLocaleLowerCase(),
+      reduceOnly: params.reduceOnly || false,
+      triggerPrice: toBigNumber(0),
+      taker: ADDRESSES.ZERO,
+      expiration: bigNumber(
+        params.expiration || Math.floor(expiration.getTime() / 1000) // /1000 to convert time in seconds
+      ),
+      salt: bigNumber(params.salt || Math.floor(salt.getTime())),
+    } as Order;
+  }
+
+  /**
 	 * Creates message to be signed, creates signature and authorize it from dapi
 	 * @returns auth token
 	 */
@@ -953,28 +966,28 @@ export class FireflyClient {
 		this.apiService.setAuthToken(authTokenResponse.data.token);
 	}
 
-	/**
-	 * Posts signed Auth Hash to dAPI and gets token in return if signature is valid
-	 * @returns GetAuthHashResponse which contains auth hash to be signed
-	 */
-	private async authorizeSignedHash(signedHash: string) {
-		const response = await this.apiService.post<AuthorizeHashResponse>(
-			SERVICE_URLS.USER.AUTHORIZE,
-			{
-				signature: signedHash,
-				userAddress: this.getPublicAddress(),
-				isTermAccepted: this.isTermAccepted,
-			}
-		);
-		return response;
-	}
+  /**
+   * Posts signed Auth Hash to dAPI and gets token in return if signature is valid
+   * @returns GetAuthHashResponse which contains auth hash to be signed
+   */
+  private async authorizeSignedHash(signedHash: string) {
+    const response = await this.apiService.post<AuthorizeHashResponse>(
+      SERVICE_URLS.USER.AUTHORIZE,
+      {
+        signature: signedHash,
+        userAddress: this.getPublicAddress(),
+        isTermAccepted: this.isTermAccepted
+      }
+    );
+    return response;
+  }
 
-	/**
-	 * Posts signed Auth Hash to dAPI and gets token in return if signature is valid
-	 * @returns GetAuthHashResponse which contains auth hash to be signed
-	 */
-	private async adjustLeverage(params: { symbol: MarketSymbol; leverage: number }) {
-		const response = await this.apiService.post<AdjustLeverageResponse>(
+  /**
+   * Posts signed Auth Hash to dAPI and gets token in return if signature is valid
+   * @returns GetAuthHashResponse which contains auth hash to be signed
+   */
+  private async updateLeverage(params: {symbol: MarketSymbol, leverage: number}) {
+    const response = await this.apiService.post<AdjustLeverageResponse>(
 			SERVICE_URLS.USER.ADJUST_LEVERGAE,
 			{
 				symbol: params.symbol,
@@ -985,5 +998,5 @@ export class FireflyClient {
 			{ isAuthenticationRequired: true }
 		);
 		return response;
-	}
+  }
 }
