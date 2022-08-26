@@ -589,13 +589,10 @@ export class FireflyClient {
 		}
 		//make api call
 		else {
-			const token = await this.getToken();
-
 			//make update leverage api call
 			const adjustLeverageResponse = await this.adjustLeverage({
 				symbol: symbol,
 				leverage: leverage,
-				authToken: token,
 			});
 
 			if (!adjustLeverageResponse.ok || !adjustLeverageResponse.data) {
@@ -976,11 +973,7 @@ export class FireflyClient {
 	 * Posts signed Auth Hash to dAPI and gets token in return if signature is valid
 	 * @returns GetAuthHashResponse which contains auth hash to be signed
 	 */
-	private async adjustLeverage(params: {
-		symbol: MarketSymbol;
-		leverage: number;
-		authToken: string;
-	}) {
+	private async adjustLeverage(params: { symbol: MarketSymbol; leverage: number }) {
 		const response = await this.apiService.post<AdjustLeverageResponse>(
 			SERVICE_URLS.USER.ADJUST_LEVERGAE,
 			{
