@@ -27,78 +27,75 @@ import {
 } from "@firefly-exchange/library";
 
 import {
-  GetOrderResponse,
-  GetOrderRequest,
-  OrderSignatureRequest,
-  OrderSignatureResponse,
-  PlaceOrderRequest,
-  PlaceOrderResponse,
-  GetPositionRequest,
-  GetPositionResponse,
-  OrderCancelSignatureRequest,
-  OrderCancellationRequest,
-  GetOrderbookRequest,
-  GetOrderBookResponse,
-  PostOrderRequest,
-  GetUserTradesRequest,
-  GetUserTradesResponse,
-  GetAccountDataResponse,
-  GetTransactionHistoryRequest,
-  GetUserTransactionHistoryResponse,
-  GetMarketRecentTradesRequest,
-  GetMarketRecentTradesResponse,
-  GetCandleStickRequest,
-  ExchangeInfo,
-  MarketData,
-  MarketMeta,
-  StatusResponse,
-  AuthorizeHashResponse,
-  AdjustLeverageResponse,
-  CancelOrderResponse,
-  FundGasResponse,
+	GetOrderResponse,
+	GetOrderRequest,
+	OrderSignatureRequest,
+	OrderSignatureResponse,
+	PlaceOrderRequest,
+	PlaceOrderResponse,
+	GetPositionRequest,
+	GetPositionResponse,
+	OrderCancelSignatureRequest,
+	OrderCancellationRequest,
+	GetOrderbookRequest,
+	GetOrderBookResponse,
+	PostOrderRequest,
+	GetUserTradesRequest,
+	GetUserTradesResponse,
+	GetAccountDataResponse,
+	GetTransactionHistoryRequest,
+	GetUserTransactionHistoryResponse,
+	GetMarketRecentTradesRequest,
+	GetMarketRecentTradesResponse,
+	GetCandleStickRequest,
+	ExchangeInfo,
+	MarketData,
+	MarketMeta,
+	StatusResponse,
+	AuthorizeHashResponse,
+	AdjustLeverageResponse,
+	CancelOrderResponse,
+	FundGasResponse,
 } from "./interfaces/routes";
 
 import { OnboardingMessage } from "@firefly-exchange/library/dist/src/interfaces/OnboardingMessage";
 import { APIService } from "./exchange/apiService";
 import { SERVICE_URLS } from "./exchange/apiUrls";
 import { Sockets } from "./exchange/sockets";
-import { AxiosRequestConfig, AxiosRequestHeaders } from "axios";
 
 export class FireflyClient {
-  protected readonly network: Network;
+	protected readonly network: Network;
 
-  private web3: Web3;
+	private web3: Web3;
 
-  private wallet: Wallet | undefined;
+	private wallet: Wallet | undefined;
 
-  private orderSigners: Map<MarketSymbol, OrderSigner> = new Map();
+	private orderSigners: Map<MarketSymbol, OrderSigner> = new Map();
 
-  private onboardSigner: OnboardingSigner;
+	private onboardSigner: OnboardingSigner;
 
-  private apiService: APIService;
+	private apiService: APIService;
 
-  public sockets: Sockets;
+	public sockets: Sockets;
 
-  public marketSymbols: string[] = []; //to save array market symbols [DOT-PERP, SOL-PERP]
+	public marketSymbols: string[] = []; //to save array market symbols [DOT-PERP, SOL-PERP]
 
-  private walletAddress = "" //to save user's public address when connecting from UI
+	private walletAddress = ""; //to save user's public address when connecting from UI
 
-  private signer: Signer | undefined //to save provider when connecting from UI
+	private signer: Signer | undefined; //to save provider when connecting from UI
 
-  private signingMethod: SigningMethod = SigningMethod.MetaMaskLatest //to save signing method when integrating on UI
+	private signingMethod: SigningMethod = SigningMethod.MetaMaskLatest; //to save signing method when integrating on UI
 
-  private contractAddresses: any
+	private contractAddresses: any;
 
-  private token = "" //auth token
+	private isTermAccepted = false;
 
-  private isTermAccepted = false
-
-//◥◤◥◤◥◤◥◤◥◤ Private Contracts Names ◥◤◥◤◥◤◥◤◥◤
-private _usdcToken = "USDC"
-private _perpetual = "Perpetual"
-private _marginBank = "MarginBank"
-private _orders = "Orders"
-//◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢
+  //◥◤◥◤◥◤◥◤◥◤ Private Contracts Names ◥◤◥◤◥◤◥◤◥◤
+  private _usdcToken = "USDC"
+  private _perpetual = "Perpetual"
+  private _marginBank = "MarginBank"
+  private _orders = "Orders"
+  //◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢
 
   /**
    * initializes the class instance
@@ -109,29 +106,29 @@ private _orders = "Orders"
   constructor(_isTermAccepted: boolean, _network: Network, _acctPvtKey?: string) {
     this.network = _network;
 
-    this.web3 = new Web3(_network.url);
+		this.web3 = new Web3(_network.url);
 
-    this.apiService = new APIService(this.network.apiGateway);
+		this.apiService = new APIService(this.network.apiGateway);
 
-    this.sockets = new Sockets(this.network.socketURL);
+		this.sockets = new Sockets(this.network.socketURL);
 
-    this.onboardSigner = new OnboardingSigner(this.web3, this.network.chainId)
+		this.onboardSigner = new OnboardingSigner(this.web3, this.network.chainId);
 
-    this.isTermAccepted = _isTermAccepted
+		this.isTermAccepted = _isTermAccepted;
 
-    if (_acctPvtKey) {
-      this.initializeWithPrivateKey(_acctPvtKey)
-    }
-  }
+		if (_acctPvtKey) {
+			this.initializeWithPrivateKey(_acctPvtKey);
+		}
+	}
 
-  /**
-   * initializes web3 with the given provider and creates a signer to sign transactions like placing order
-   * @param _web3Provider provider HttpProvider | IpcProvider | WebsocketProvider | AbstractProvider | string
-   * @param _signingMethod method to sign transactions with, by default its MetaMaskLatest
-   */
-  async initializeWithProvider(_web3Provider: any, _signingMethod?: SigningMethod) {
-    this.web3 = new Web3(_web3Provider)
-    
+	/**
+	 * initializes web3 with the given provider and creates a signer to sign transactions like placing order
+	 * @param _web3Provider provider HttpProvider | IpcProvider | WebsocketProvider | AbstractProvider | string
+	 * @param _signingMethod method to sign transactions with, by default its MetaMaskLatest
+	 */
+	async initializeWithProvider(_web3Provider: any, _signingMethod?: SigningMethod) {
+		this.web3 = new Web3(_web3Provider);
+
 		let provider = new ethers.providers.Web3Provider(_web3Provider);
     this.signer = provider.getSigner()
     this.walletAddress = await this.signer.getAddress()
@@ -166,8 +163,8 @@ private _orders = "Orders"
     }
     this.contractAddresses = addresses.data
 
-    //get auth token
-    await this.getToken()
+		//onboard user if not onboarded
+		await this.userOnBoarding();
   }
 
   /**
@@ -252,20 +249,12 @@ private _orders = "Orders"
    * @returns Fund gas reponse
    */
   async fundGas() {
-    const token = await this.getToken()
-    const headers: AxiosRequestHeaders = {
-      "Authorization": `Bearer ${token}`
-    }
-    const configs: AxiosRequestConfig = {
-      headers: headers
-    }
-
     const response = await this.apiService.post<FundGasResponse>(
-      SERVICE_URLS.USER.FUND_GAS,
-      {},
-      configs
-    );
-    return response;
+			SERVICE_URLS.USER.FUND_GAS,
+			{},
+			{ isAuthenticationRequired: true }
+		);
+		return response;
   }
 
   /**
@@ -557,14 +546,11 @@ private _orders = "Orders"
     }
     //make api call
     else {
-      const token = await this.getToken()
-
       //make update leverage api call on dapi
       const updateLeverageResponse = await this.updateLeverage({
-        symbol: symbol,
-        leverage: leverage,
-        authToken: token
-      })
+				symbol: symbol,
+				leverage: leverage,
+			});
       
       if (!updateLeverageResponse.ok || !updateLeverageResponse.data) {
         throw Error(
@@ -957,32 +943,28 @@ private _orders = "Orders"
   }
 
   /**
-   * Creates message to be signed, creates signature and authorize it from dapi
-   * @returns auth token
-   */
-   private async getToken() {
-    if (this.token !== "") {
-      return this.token
-    }
+	 * Creates message to be signed, creates signature and authorize it from dapi
+	 * @returns auth token
+	 */
+	private async userOnBoarding() {
+		const message: OnboardingMessage = {
+			action: OnboardingMessageString.ONBOARDING,
+			onlySignOn: this.network.onboardingUrl,
+		};
+		//sign onboarding message
+		const signature = await this.onboardSigner.sign(
+			this.getPublicAddress(),
+			SigningMethod.TypedData,
+			message
+		);
+		//authorize signature created by dAPI
+		const authTokenResponse = await this.authorizeSignedHash(signature);
 
-    const message: OnboardingMessage = {
-      action: OnboardingMessageString.ONBOARDING,
-      onlySignOn: this.network.onboardingUrl
-    }
-    //sign onboarding message
-    const signature = await this.onboardSigner.sign(this.getPublicAddress(), SigningMethod.TypedData, message)      
-    //authorize signature created by dAPI
-    const authTokenResponse = await this.authorizeSignedHash(signature)
-
-    if (!authTokenResponse.ok || !authTokenResponse.data) {
-      throw Error(
-        `Authorization error: ${authTokenResponse.response.message}`
-      );
-    }
-
-    this.token = authTokenResponse.data.token
-    return this.token
-  }
+		if (!authTokenResponse.ok || !authTokenResponse.data) {
+			throw Error(`Authorization error: ${authTokenResponse.response.message}`);
+		}
+		this.apiService.setAuthToken(authTokenResponse.data.token);
+	}
 
   /**
    * Posts signed Auth Hash to dAPI and gets token in return if signature is valid
@@ -1004,24 +986,17 @@ private _orders = "Orders"
    * Posts signed Auth Hash to dAPI and gets token in return if signature is valid
    * @returns GetAuthHashResponse which contains auth hash to be signed
    */
-   private async updateLeverage(params: {symbol: MarketSymbol, leverage: number, authToken: string}) {
-
-    const headers: AxiosRequestHeaders = {
-      "Authorization": `Bearer ${params.authToken}`
-    }
-    const configs: AxiosRequestConfig = {
-      headers: headers
-    }
+  private async updateLeverage(params: {symbol: MarketSymbol, leverage: number}) {
     const response = await this.apiService.post<AdjustLeverageResponse>(
-      SERVICE_URLS.USER.ADJUST_LEVERGAE,
-      {
-        symbol: params.symbol,
-        address: this.getPublicAddress(),
-        leverage: toBigNumberStr(params.leverage),
-        marginType: MARGIN_TYPE.ISOLATED,
-      },
-      configs
-    );
-    return response;
+			SERVICE_URLS.USER.ADJUST_LEVERGAE,
+			{
+				symbol: params.symbol,
+				address: this.getPublicAddress(),
+				leverage: toBigNumberStr(params.leverage),
+				marginType: MARGIN_TYPE.ISOLATED,
+			},
+			{ isAuthenticationRequired: true }
+		);
+		return response;
   }
 }
