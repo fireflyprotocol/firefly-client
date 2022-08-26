@@ -3,7 +3,7 @@ import { getValue, isEmpty } from "@firefly-exchange/library";
 
 export class APIService {
 	private apiService: AxiosInstance;
-	private token: string = undefined;
+	private token: string | undefined = undefined;
 	constructor(url: string) {
 		this.apiService = axios.create({
 			baseURL: url,
@@ -84,7 +84,7 @@ export class APIService {
 		return this.handleResponse<T>(response);
 	}
 
-	async setToken(token: string) {
+	async setAuthToken(token: string) {
 		this.token = token;
 	}
 	//= ==============================================================//
