@@ -40,6 +40,10 @@
             }
          ],
         "max-len": ["error", { "ignoreComments": true,  "code": 160 }],
-        "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }]
+        "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }],
+        "guard-for-in":0,
+        "no-restricted-syntax": 0
+        
     }
+   
 }
