@@ -11,18 +11,18 @@ import {
   MinifiedCandleStick,
   BigNumber,
   ORDER_TYPE,
+  Web3
 } from "@firefly-exchange/library";
 
 import {
-  Networks,
   FireflyClient,
   PlaceOrderResponse,
   GetMarketRecentTradesResponse,
   GetPositionResponse,
   GetUserTradesResponse,
   GetAccountDataResponse,
+  Networks
 } from "../index";
-import Web3 from "web3";
 
 chai.use(chaiAsPromised);
 
