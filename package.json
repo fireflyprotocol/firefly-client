@@ -65,7 +65,7 @@
     "decentralized",
     "orderbook"
   ],
-       "lint-staged": {
+    "lint-staged": {
     "**/*.{js,ts}": "prettier --write",
     "**/*.{js,ts}": "eslint --fix"
   }
