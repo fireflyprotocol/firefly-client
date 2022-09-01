@@ -66,6 +66,6 @@
     "orderbook"
   ],
   "lint-staged": {
-    "**/*.{js,ts}": "eslint --fix"
+          "**/*.{js,ts}": "eslint --fix"
   }
 }
