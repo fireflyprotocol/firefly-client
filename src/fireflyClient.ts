@@ -23,7 +23,8 @@ import {
   MARGIN_TYPE,
   bnToString,
   Web3,
-  ADDRESSES
+  ADDRESSES,
+  ADJUST_MARGIN
 } from "@firefly-exchange/library";
 
 import {
@@ -62,6 +63,7 @@ import { OnboardingMessage } from "@firefly-exchange/library/dist/src/interfaces
 import { APIService } from "./exchange/apiService";
 import { SERVICE_URLS } from "./exchange/apiUrls";
 import { Sockets } from "./exchange/sockets";
+import { Networks } from "./constants";
 
 export class FireflyClient {
 	protected readonly network: Network;
@@ -233,6 +235,13 @@ export class FireflyClient {
    * @returns Boolean true if user is funded, false otherwise
    */
   async mintTestUSDC(contract?: address): Promise<boolean> {
+
+    if (this.network != Networks.TESTNET && this.network != Networks.DEV) {
+      throw Error(
+        `Function does not work on PRODUCTION`
+      ); 
+    }
+
     const tokenContract = this.getContract(this._usdcToken, contract);
     // mint 10K usdc token
     await (
@@ -336,15 +345,14 @@ export class FireflyClient {
   }
 
   /**
-   * Gets margin of position open
+   * Gets balance of position open
    * @param symbol market symbol get information about
    * @param perpContract (address) address of Perpetual address comes in metaInfo
-   * @returns margin balance of positions of given symbol
+   * @returns balance of positions of given symbol
    */
   async getAccountPositionBalance(symbol: MarketSymbol, perpContract?: address) {
     const perpV1Contract = this.getContract(this._perpetual, perpContract, symbol);
-    const marginBalance = await perpV1Contract.connect(this.getWallet()).getAccountBalance(this.getPublicAddress());
-    return marginBalance
+    return await perpV1Contract.connect(this.getWallet()).getAccountBalance(this.getPublicAddress());
   }
 
   /**
@@ -602,14 +610,14 @@ export class FireflyClient {
   */
  async adjustMargin(
   symbol: MarketSymbol,
-  operationType: "Add" | "Remove",
+  operationType: ADJUST_MARGIN,
   amount: number,
   perpetualAddress?: string
   ): Promise<boolean> {
 
     const perpContract = this.getContract(this._perpetual, perpetualAddress, symbol);
     //ADD margin
-    if (operationType === "Add") {
+    if (operationType === ADJUST_MARGIN.Add) {
       await (
         await (perpContract as contracts_exchange.Perpetual)
         .connect(this.getWallet())

@@ -604,10 +604,10 @@
     socket.io-client "^4.5.1"
     web3 "^1.7.3"
 
-"@firefly-exchange/library@^1.0.35":
-  version "1.0.35"
-  resolved "https://registry.yarnpkg.com/@firefly-exchange/library/-/library-1.0.35.tgz#0f30e80929980973b70687a7941167f6a9862f49"
-  integrity sha512-klk6OacV/Ff2jsSCKP/fXJeSRKZ6J+q6jB/CZyv1uwmAMWjbJj9AJnhqadY6VFO4Yz0uUAixFmA59qeR5ItHEg==
+"@firefly-exchange/library@^1.0.36":
+  version "1.0.36"
+  resolved "https://registry.yarnpkg.com/@firefly-exchange/library/-/library-1.0.36.tgz#108fec2271bfc5771b95fed1e7612bd466126371"
+  integrity sha512-iEzxXfT+pL6jA9rUgTDl5DIbbgzsIFAwHRe9v75i2bbw/ebiR81wIRG6yGj+aWqfpMyq9AqurW8iB2BNvwzTBg==
   dependencies:
     bignumber "^1.1.0"
     bignumber.js "^9.0.2"
