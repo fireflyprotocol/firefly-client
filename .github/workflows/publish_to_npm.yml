@@ -1,6 +1,6 @@
 on:
   push:
-    branches: [main]
+    branches: [main-v2]
   workflow_dispatch:
 name: Publish to NPM
 jobs:
