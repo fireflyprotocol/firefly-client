@@ -11,7 +11,7 @@ import {
   MinifiedCandleStick,
   BigNumber,
   ORDER_TYPE,
-  Web3
+  Web3,
 } from "@firefly-exchange/library";
 
 import {
@@ -34,7 +34,7 @@ let client: FireflyClient;
 
 describe("FireflyClient", () => {
   //set environment from here
-  const network = Networks.DEV 
+  const network = Networks.SANDBOX 
 
   beforeEach(async () => {
     client = new FireflyClient(true, network, testAcctKey);
@@ -165,9 +165,24 @@ describe("FireflyClient", () => {
       client.addMarket(MARKET_SYMBOLS.DOT);
     });
 
-    it("should get user default leverage", async () => {
-      const lev = await client.getUserDefaultLeverage(MARKET_SYMBOLS.DOT)      
-      expect(lev).to.equal(3) //default leverage of DOT on our exchange
+    it("set and get leverage", async () => {
+      //Given
+      const web3 = new Web3(network.url)
+      const wallet = web3.eth.accounts.create()
+      const clientTemp = new FireflyClient(
+        true,
+        network,
+        wallet.privateKey
+      );
+      await clientTemp.init()
+      //When
+      const newLeverage = 4
+      const res = await clientTemp.adjustLeverage(MARKET_SYMBOLS.DOT, newLeverage) //set leverage
+      const lev = await clientTemp.getUserDefaultLeverage(MARKET_SYMBOLS.DOT) //get leverage
+
+      //Then
+      expect(res).to.eq(true)
+      expect(lev).to.equal(4)
     })
   })
 
@@ -221,7 +236,7 @@ describe("FireflyClient", () => {
         orderType: ORDER_TYPE.LIMIT
       });
 
-      const response = await client.placeSignedOrder({ ...signedOrder });                  
+      const response = await client.placeSignedOrder({ ...signedOrder });   
       expect(response.ok).to.be.equal(true);
     });
 
