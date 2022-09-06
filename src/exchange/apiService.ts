@@ -91,7 +91,7 @@ export class APIService {
 	//                    PRIVATE HELPER FUNCTIONS
 	//= ==============================================================//
 
-	private transformRequest(data: any, headers?: any) {
+	private transformRequest = (data: any, headers?: any) => {
 		headers["Authorization"] = `Bearer ${this.token}`;
 		return JSON.stringify(data);
 	}
