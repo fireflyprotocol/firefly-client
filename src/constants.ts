@@ -9,8 +9,22 @@ export const Networks = {
   DEV: {
     url: "https://l2-dev.firefly.exchange/",
     chainId: 78602,
-    apiGateway: "https://dapi-dev.firefly.exchange/",
+    apiGateway: "https://dapi-dev.firefly.exchange",
     socketURL: "wss://dev.firefly.exchange/",
     onboardingUrl: "https://dev.firefly.exchange"
+  },
+  SANDBOX: {
+    url: "https://l2-dev.firefly.exchange/",
+    chainId: 78602,
+    apiGateway: "https://dapi-dev-sandbox.firefly.exchange",
+    socketURL: "wss://dapi-dev-sandbox.firefly.exchange/",
+    onboardingUrl: "https://dev-sandbox.firefly.exchange"
+  },
+  PRODUCTION: {
+    url: "",
+    chainId: 0,
+    apiGateway: "",
+    socketURL: "",
+    onboardingUrl: ""
   }
 };

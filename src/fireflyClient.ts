@@ -236,7 +236,7 @@ export class FireflyClient {
    */
   async mintTestUSDC(contract?: address): Promise<boolean> {
 
-    if (this.network != Networks.TESTNET && this.network != Networks.DEV) {
+    if (this.network == Networks.PRODUCTION) {
       throw Error(
         `Function does not work on PRODUCTION`
       ); 
@@ -585,7 +585,7 @@ export class FireflyClient {
       return data.symbol == symbol
     })    
     ///found accountDataByMarket
-    if (accDataByMarket && accDataByMarket.length > 0) {      
+    if (accDataByMarket && accDataByMarket.length > 0) {  
       return bnStrToBaseNumber(accDataByMarket[0].selectedLeverage)
     }
     ///user is new and symbol data is not present in accountDataByMarket
@@ -881,7 +881,7 @@ export class FireflyClient {
     // if contract address is not provided and also market name is not provided
     if (!market && !contract) {
       try {
-        contract = this.contractAddresses[
+        contract = this.contractAddresses["auxiliaryContractsAddresses"][
           contractName
         ];
       } catch (e) {
@@ -959,12 +959,14 @@ export class FireflyClient {
 			action: OnboardingMessageString.ONBOARDING,
 			onlySignOn: this.network.onboardingUrl,
 		};
+
 		//sign onboarding message
 		const signature = await this.onboardSigner.sign(
-			this.getPublicAddress(),
+			this.getPublicAddress().toLowerCase(),
 			SigningMethod.TypedData,
 			message
 		);
+   
 		//authorize signature created by dAPI
 		const authTokenResponse = await this.authorizeSignedHash(signature);
 
