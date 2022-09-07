@@ -592,10 +592,10 @@
     sinon-chai "^2.14.0"
     ts-node "^3.3.0"
 
-"@firefly-exchange/library@1.0.37":
-  version "1.0.37"
-  resolved "https://registry.yarnpkg.com/@firefly-exchange/library/-/library-1.0.37.tgz#d12ea816f75e8b81e10e28a384008b2184edf7f5"
-  integrity sha512-2qUjaFK/luUt/K/Hp0wjGHXaw58BZM/RKye5g8gC/vEtlmHnNvy+MJL0VsbA2/T+ctJYTqGAm4BNkJJuxffgvg==
+"@firefly-exchange/library@1.0.41":
+  version "1.0.41"
+  resolved "https://registry.yarnpkg.com/@firefly-exchange/library/-/library-1.0.41.tgz#2a31b1e1fac1d96cffe3257c54fc18d95e1af7c0"
+  integrity sha512-pCch9YFkkgELcHGdNyxLp2qLzEjU7z/9ML/jy3L7EjvNngHkrBUNAfe4PMZy6KfUnXzWKZ6L1lAeKGeTwE9mcA==
   dependencies:
     bignumber "^1.1.0"
     bignumber.js "^9.0.2"
@@ -605,8 +605,8 @@
     lodash "^4.17.21"
     mocha "^10.0.0"
     socket.io-client "^4.5.1"
-    ts-mocha "^9.0.2"
-    web3 "1.7.5"
+    ts-mocha "^10.0.0"
+    web3 "^1.7.5"
 
 "@firefly-exchange/library@^1.0.14":
   version "1.0.21"
@@ -4837,6 +4837,15 @@ tr46@~0.0.3:
   resolved "https://registry.yarnpkg.com/tr46/-/tr46-0.0.3.tgz#8184fd347dac9cdc185992f3a6622e14b9d9ab6a"
   integrity sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==
 
+ts-mocha@^10.0.0:
+  version "10.0.0"
+  resolved "https://registry.yarnpkg.com/ts-mocha/-/ts-mocha-10.0.0.tgz#41a8d099ac90dbbc64b06976c5025ffaebc53cb9"
+  integrity sha512-VRfgDO+iiuJFlNB18tzOfypJ21xn2xbuZyDvJvqpTbWgkAgD17ONGr8t+Tl8rcBtOBdjXp5e/Rk+d39f7XBHRw==
+  dependencies:
+    ts-node "7.0.1"
+  optionalDependencies:
+    tsconfig-paths "^3.5.0"
+
 ts-mocha@^9.0.2:
   version "9.0.2"
   resolved "https://registry.npmjs.org/ts-mocha/-/ts-mocha-9.0.2.tgz"
@@ -5528,19 +5537,6 @@ web3-utils@1.7.5:
     randombytes "^2.1.0"
     utf8 "3.0.0"
 
-web3@1.7.5:
-  version "1.7.5"
-  resolved "https://registry.yarnpkg.com/web3/-/web3-1.7.5.tgz#4e185d2058195b5775109b3f27cdea65a34a036e"
-  integrity sha512-3jHZTWyXt975AOXgnZKayiSWDLpoSKk9fZtLk1hURQtt7AdSbXPT8AK9ooBCm0Dt3GYaOeNcHGaiHC3gtyqhLg==
-  dependencies:
-    web3-bzz "1.7.5"
-    web3-core "1.7.5"
-    web3-eth "1.7.5"
-    web3-eth-personal "1.7.5"
-    web3-net "1.7.5"
-    web3-shh "1.7.5"
-    web3-utils "1.7.5"
-
 web3@^1.7.3:
   version "1.7.3"
   resolved "https://registry.npmjs.org/web3/-/web3-1.7.3.tgz"
@@ -5553,6 +5549,19 @@ web3@^1.7.3:
     web3-net "1.7.3"
     web3-shh "1.7.3"
     web3-utils "1.7.3"
+
+web3@^1.7.5:
+  version "1.7.5"
+  resolved "https://registry.yarnpkg.com/web3/-/web3-1.7.5.tgz#4e185d2058195b5775109b3f27cdea65a34a036e"
+  integrity sha512-3jHZTWyXt975AOXgnZKayiSWDLpoSKk9fZtLk1hURQtt7AdSbXPT8AK9ooBCm0Dt3GYaOeNcHGaiHC3gtyqhLg==
+  dependencies:
+    web3-bzz "1.7.5"
+    web3-core "1.7.5"
+    web3-eth "1.7.5"
+    web3-eth-personal "1.7.5"
+    web3-net "1.7.5"
+    web3-shh "1.7.5"
+    web3-utils "1.7.5"
 
 webidl-conversions@^3.0.0:
   version "3.0.1"
