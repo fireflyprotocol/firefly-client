@@ -21,7 +21,7 @@ import {
   GetPositionResponse,
   GetUserTradesResponse,
   GetAccountDataResponse,
-  Networks
+  Networks,
 } from "../index";
 
 chai.use(chaiAsPromised);
@@ -33,12 +33,12 @@ const testAcctPubAddr = "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF";
 let client: FireflyClient;
 
 describe("FireflyClient", () => {
-  //set environment from here
-  const network = Networks.SANDBOX 
+  // set environment from here
+  const network = Networks.SANDBOX;
 
   beforeEach(async () => {
     client = new FireflyClient(true, network, testAcctKey);
-    await client.init()
+    await client.init();
   });
 
   afterEach(() => {
@@ -54,12 +54,12 @@ describe("FireflyClient", () => {
   });
 
   describe("Market", () => {
-    it("should add DOT-PERP market", async () => {      
+    it("should add DOT-PERP market", async () => {
       expect(client.addMarket(MARKET_SYMBOLS.DOT)).to.be.equal(true);
     });
 
     it("should add DOT-PERP market with custom orders contract address", async () => {
-      expect( 
+      expect(
         client.addMarket(
           MARKET_SYMBOLS.DOT,
           "0x36AAc8c385E5FA42F6A7F62Ee91b5C2D813C451C"
@@ -101,53 +101,43 @@ describe("FireflyClient", () => {
     });
   });
 
-  describe("Fund Gas", () => {    
+  describe("Fund Gas", () => {
     it("fund gas token", async () => {
-      //Given
-      const web3 = new Web3(network.url)
-      const wallet = web3.eth.accounts.create()
-      const clientTemp = new FireflyClient(
-        true,
-        network,
-        wallet.privateKey
-      );
-      await clientTemp.init()
-      //When
-      const response = await clientTemp.fundGas()
-      //Then
-      expect(response.ok).to.eq(true)
+      // Given
+      const web3 = new Web3(network.url);
+      const wallet = web3.eth.accounts.create();
+      const clientTemp = new FireflyClient(true, network, wallet.privateKey);
+      await clientTemp.init();
+      // When
+      const response = await clientTemp.fundGas();
+      // Then
+      expect(response.ok).to.eq(true);
     });
 
     it("get boba token balance", async () => {
-      //Given
-      const web3 = new Web3(network.url)
-      const wallet = web3.eth.accounts.create()
-      const clientTemp = new FireflyClient(
-        true,
-        network,
-        wallet.privateKey
-      );
-      await clientTemp.init()
-      //When
-      await clientTemp.fundGas() //should fund 0.01 boba
-      const response = await clientTemp.getBobaBalance()
-      expect(new BigNumber(response).gte(new BigNumber(0))).to.eq(true)
-    })
-  })
+      // Given
+      const web3 = new Web3(network.url);
+      const wallet = web3.eth.accounts.create();
+      const clientTemp = new FireflyClient(true, network, wallet.privateKey);
+      await clientTemp.init();
+      // When
+      await clientTemp.fundGas(); // should fund 0.01 boba
+      const response = await clientTemp.getBobaBalance();
+      expect(new BigNumber(response).gte(new BigNumber(0))).to.eq(true);
+    });
+  });
 
   describe("Balance", () => {
     it("should get 10K Test USDCs", async () => {
       expect(await client.mintTestUSDC()).to.be.equal(true);
-      expect(
-        bnStrToBaseNumber(await client.getUSDCBalance())
-      ).to.be.gte(10000);
+      expect(bnStrToBaseNumber(await client.getUSDCBalance())).to.be.gte(10000);
     });
 
     it("should move 1 USDC token to Margin Bank", async () => {
       expect(await client.depositToMarginBank(1)).to.be.equal(true);
-      expect(
-        bnStrToBaseNumber(await client.getMarginBankBalance())
-      ).to.be.gte(1);
+      expect(bnStrToBaseNumber(await client.getMarginBankBalance())).to.be.gte(
+        1
+      );
     });
 
     it("should withdraw 1 USDC token from Margin Bank", async () => {
@@ -166,25 +156,24 @@ describe("FireflyClient", () => {
     });
 
     it("set and get leverage", async () => {
-      //Given
-      const web3 = new Web3(network.url)
-      const wallet = web3.eth.accounts.create()
-      const clientTemp = new FireflyClient(
-        true,
-        network,
-        wallet.privateKey
-      );
-      await clientTemp.init()
-      //When
-      const newLeverage = 4
-      const res = await clientTemp.adjustLeverage(MARKET_SYMBOLS.DOT, newLeverage) //set leverage
-      const lev = await clientTemp.getUserDefaultLeverage(MARKET_SYMBOLS.DOT) //get leverage
+      // Given
+      const web3 = new Web3(network.url);
+      const wallet = web3.eth.accounts.create();
+      const clientTemp = new FireflyClient(true, network, wallet.privateKey);
+      await clientTemp.init();
+      // When
+      const newLeverage = 4;
+      const res = await clientTemp.adjustLeverage(
+        MARKET_SYMBOLS.DOT,
+        newLeverage
+      ); // set leverage will do contract call as the account using is new
+      const lev = await clientTemp.getUserDefaultLeverage(MARKET_SYMBOLS.DOT); // get leverage
 
-      //Then
-      expect(res).to.eq(true)
-      expect(lev).to.equal(4)
-    })
-  })
+      // Then
+      expect(res).to.eq(true);
+      expect(lev).to.equal(4);
+    });
+  });
 
   describe("Create/Place/Post Orders", () => {
     beforeEach(async () => {
@@ -194,8 +183,8 @@ describe("FireflyClient", () => {
     it("should put 10K in margin bank", async () => {
       const minted = await client.mintTestUSDC();
       const deposited = await client.depositToMarginBank(10000);
-      expect(minted).to.eq(true)
-      expect(deposited).to.eq(true)
+      expect(minted).to.eq(true);
+      expect(deposited).to.eq(true);
     });
 
     it("should throw error as DOT market is not added to client", async () => {
@@ -205,7 +194,7 @@ describe("FireflyClient", () => {
           price: 0,
           quantity: 0.1,
           side: ORDER_SIDE.SELL,
-          orderType: ORDER_TYPE.MARKET
+          orderType: ORDER_TYPE.MARKET,
         })
       ).to.be.eventually.rejectedWith(
         "Provided Market Symbol(BTC-PERP) is not added to client library"
@@ -218,7 +207,7 @@ describe("FireflyClient", () => {
         price: 0,
         quantity: 0.1,
         side: ORDER_SIDE.SELL,
-        orderType: ORDER_TYPE.MARKET
+        orderType: ORDER_TYPE.MARKET,
       });
 
       expect(signedOrder.leverage).to.be.equal(1);
@@ -233,10 +222,10 @@ describe("FireflyClient", () => {
         quantity: 0.5,
         side: ORDER_SIDE.SELL,
         leverage: 3,
-        orderType: ORDER_TYPE.LIMIT
+        orderType: ORDER_TYPE.LIMIT,
       });
 
-      const response = await client.placeSignedOrder({ ...signedOrder });   
+      const response = await client.placeSignedOrder({ ...signedOrder });
       expect(response.ok).to.be.equal(true);
     });
 
@@ -247,9 +236,9 @@ describe("FireflyClient", () => {
         quantity: 0.5,
         side: ORDER_SIDE.SELL,
         leverage: 3,
-        orderType: ORDER_TYPE.MARKET
+        orderType: ORDER_TYPE.MARKET,
       });
-      const response = await client.placeSignedOrder({ ...signedOrder });      
+      const response = await client.placeSignedOrder({ ...signedOrder });
       expect(response.ok).to.be.equal(true);
     });
 
@@ -261,9 +250,9 @@ describe("FireflyClient", () => {
         side: ORDER_SIDE.BUY,
         leverage: 3,
         orderType: ORDER_TYPE.LIMIT,
-        clientId: "Test limit order"
+        clientId: "Test limit order",
       });
-      
+
       expect(response.ok).to.be.equal(true);
     });
   });
@@ -280,13 +269,13 @@ describe("FireflyClient", () => {
         quantity: 0.5,
         side: ORDER_SIDE.SELL,
         leverage: 3,
-        orderType: ORDER_TYPE.LIMIT
+        orderType: ORDER_TYPE.LIMIT,
       });
-      const response = await client.placeSignedOrder({ 
+      const response = await client.placeSignedOrder({
         ...signedOrder,
-        clientId: "test cancel order" 
+        clientId: "test cancel order",
       });
-      
+
       const cancelSignature = await client.createOrderCancellationSignature({
         symbol: MARKET_SYMBOLS.DOT,
         hashes: [response.response.data.hash],
@@ -297,7 +286,7 @@ describe("FireflyClient", () => {
         hashes: [response.response.data.hash],
         signature: cancelSignature,
       });
-      
+
       expect(cancellationResponse.ok).to.be.equal(true);
     });
 
@@ -308,7 +297,7 @@ describe("FireflyClient", () => {
         quantity: 0.5,
         side: ORDER_SIDE.SELL,
         leverage: 3,
-        orderType: ORDER_TYPE.LIMIT
+        orderType: ORDER_TYPE.LIMIT,
       });
       const response = await client.placeSignedOrder({ ...signedOrder });
 
@@ -331,7 +320,7 @@ describe("FireflyClient", () => {
         quantity: 0.5,
         side: ORDER_SIDE.SELL,
         leverage: 3,
-        orderType: ORDER_TYPE.LIMIT
+        orderType: ORDER_TYPE.LIMIT,
       });
       expect(response.ok).to.be.equal(true);
 
@@ -392,21 +381,17 @@ describe("FireflyClient", () => {
     });
 
     it("should return zero open positions for the user", async () => {
-      //Given
-      const web3 = new Web3(network.url)
-      const wallet = web3.eth.accounts.create()
-      const clientTemp = new FireflyClient(
-        true,
-        network,
-        wallet.privateKey
-      );
-      await clientTemp.init()
+      // Given
+      const web3 = new Web3(network.url);
+      const wallet = web3.eth.accounts.create();
+      const clientTemp = new FireflyClient(true, network, wallet.privateKey);
+      await clientTemp.init();
 
-      //When
+      // When
       clientTemp.addMarket(MARKET_SYMBOLS.DOT);
       const response = await clientTemp.getUserPosition({});
 
-      //Then
+      // Then
       expect(response.ok).to.be.equal(true);
       expect(response.response.data.length).to.be.equal(0);
 
@@ -418,7 +403,7 @@ describe("FireflyClient", () => {
         symbol: MARKET_SYMBOLS.DOT,
       });
 
-      const position = response.data as any as GetPositionResponse
+      const position = response.data as any as GetPositionResponse;
       if (Object.keys(position).length > 0) {
         expect(response.response.data.symbol).to.be.equal(MARKET_SYMBOLS.DOT);
       }
@@ -436,21 +421,17 @@ describe("FireflyClient", () => {
     });
 
     it("should return zero trades for the user", async () => {
-      //Given
-      const web3 = new Web3(network.url)
-      const wallet = web3.eth.accounts.create()
-      const clientTemp = new FireflyClient(
-        true,
-        network,
-        wallet.privateKey
-      );
-      await clientTemp.init()
+      // Given
+      const web3 = new Web3(network.url);
+      const wallet = web3.eth.accounts.create();
+      const clientTemp = new FireflyClient(true, network, wallet.privateKey);
+      await clientTemp.init();
 
-      //When
+      // When
       clientTemp.addMarket(MARKET_SYMBOLS.DOT);
       const response = await clientTemp.getUserTrades({});
 
-      //Then
+      // Then
       expect(response.ok).to.be.equal(true);
       expect(response.response.data.length).to.be.equal(0);
       clientTemp.sockets.close();
@@ -487,7 +468,7 @@ describe("FireflyClient", () => {
   it("should get contract address", async () => {
     const response = await client.getContractAddresses();
     expect(response.ok).to.be.equal(true);
-  })
+  });
 
   it("should get User Account Data", async () => {
     const response = await client.getUserAccountData();
@@ -541,7 +522,7 @@ describe("FireflyClient", () => {
   });
 
   it("should get market symbols", async () => {
-    const response = await client.getMarketSymbols()    
+    const response = await client.getMarketSymbols();
     expect(response.ok).to.be.equal(true);
   });
 
@@ -562,12 +543,12 @@ describe("FireflyClient", () => {
     });
 
     it("should receive an event from candle stick", (done) => {
-      const callback = (candle : MinifiedCandleStick) => {
-        expect(candle[candle.length-1]).to.be.equal(MARKET_SYMBOLS.DOT);
+      const callback = (candle: MinifiedCandleStick) => {
+        expect(candle[candle.length - 1]).to.be.equal(MARKET_SYMBOLS.DOT);
         done();
       };
-      client.sockets.onCandleStickUpdate(MARKET_SYMBOLS.DOT,"1m",callback);
-    })
+      client.sockets.onCandleStickUpdate(MARKET_SYMBOLS.DOT, "1m", callback);
+    });
 
     it("should receive an event for orderbook update when an order is placed on exchange", (done) => {
       const callback = ({ orderbook }: any) => {
@@ -585,7 +566,7 @@ describe("FireflyClient", () => {
           quantity: 0.5,
           side: ORDER_SIDE.SELL,
           leverage: 3,
-          orderType: ORDER_TYPE.LIMIT
+          orderType: ORDER_TYPE.LIMIT,
         });
       });
     });
@@ -610,8 +591,8 @@ describe("FireflyClient", () => {
           quantity: 0.5,
           side: ORDER_SIDE.SELL,
           leverage: 3,
-          orderType: ORDER_TYPE.MARKET
-        });        
+          orderType: ORDER_TYPE.MARKET,
+        });
       });
     });
 
@@ -631,7 +612,7 @@ describe("FireflyClient", () => {
           quantity: 0.5,
           side: ORDER_SIDE.SELL,
           leverage: 3,
-          orderType: ORDER_TYPE.LIMIT
+          orderType: ORDER_TYPE.LIMIT,
         });
       });
     });
@@ -654,7 +635,7 @@ describe("FireflyClient", () => {
           quantity: 0.5,
           side: ORDER_SIDE.BUY,
           leverage: 3,
-          orderType: ORDER_TYPE.MARKET
+          orderType: ORDER_TYPE.MARKET,
         });
       });
     });
@@ -676,7 +657,7 @@ describe("FireflyClient", () => {
           quantity: 0.5,
           side: ORDER_SIDE.BUY,
           leverage: 3,
-          orderType: ORDER_TYPE.MARKET
+          orderType: ORDER_TYPE.MARKET,
         });
       });
     });
@@ -703,7 +684,7 @@ describe("FireflyClient", () => {
           quantity: 0.5,
           side: ORDER_SIDE.BUY,
           leverage: 3,
-          orderType: ORDER_TYPE.MARKET
+          orderType: ORDER_TYPE.MARKET,
         });
       });
     });
