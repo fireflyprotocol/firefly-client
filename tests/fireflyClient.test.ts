@@ -309,7 +309,7 @@ describe("FireflyClient", () => {
 
       expect(cancellationResponse.ok).to.be.equal(false);
       expect(cancellationResponse.response.message).to.be.equal(
-        "Invalid Order Signature."
+        "Invalid Order Signature"
       );
     });
 
