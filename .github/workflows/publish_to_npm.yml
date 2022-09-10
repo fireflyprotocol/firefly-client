@@ -1,6 +1,6 @@
 on:
   pull_request:
-    branches: [main-v2]
+    branches: [main]
     types:
       - closed
 name: Publish to NPM
