@@ -985,7 +985,7 @@ export class FireflyClient {
       ),
       salt: bigNumber(params.salt || Math.floor(salt.getTime())),
     } as Order;
-  };
+  }
 
   /**
    * Posts signed Auth Hash to dAPI and gets token in return if signature is valid
