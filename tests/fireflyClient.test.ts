@@ -34,7 +34,7 @@ let client: FireflyClient;
 
 describe("FireflyClient", () => {
   //set environment from here
-  const network = Networks.SANDBOX 
+  const network = Networks.SANDBOX;
 
   beforeEach(async () => {
     client = new FireflyClient(true, network, testAcctKey);
@@ -320,7 +320,7 @@ describe("FireflyClient", () => {
 
       expect(cancellationResponse.ok).to.be.equal(false);
       expect(cancellationResponse.response.message).to.be.equal(
-        "Invalid Order Signature."
+        "Invalid Order Signature"
       );
     });
 
