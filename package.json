@@ -41,7 +41,7 @@
   },
   "dependencies": {
     "@firefly-exchange/firefly-math": "1.0.29",
-    "@firefly-exchange/library": "1.0.44",
+    "@firefly-exchange/library": "1.0.45",
     "axios": "^0.27.2",
     "chai": "^4.3.6",
     "chai-as-promised": "^7.1.1",
