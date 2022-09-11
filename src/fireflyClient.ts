@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Contract, Wallet, providers, Signer, ethers } from "ethers";
 
 import {
@@ -27,6 +28,7 @@ import {
   ADJUST_MARGIN,
 } from "@firefly-exchange/library";
 
+import { OnboardingMessage } from "@firefly-exchange/library/dist/src/interfaces/OnboardingMessage";
 import {
   GetOrderResponse,
   GetOrderRequest,
@@ -59,7 +61,6 @@ import {
   FundGasResponse,
 } from "./interfaces/routes";
 
-import { OnboardingMessage } from "@firefly-exchange/library/dist/src/interfaces/OnboardingMessage";
 import { APIService } from "./exchange/apiService";
 import { SERVICE_URLS } from "./exchange/apiUrls";
 import { Sockets } from "./exchange/sockets";
@@ -80,24 +81,29 @@ export class FireflyClient {
 
   public sockets: Sockets;
 
-  public marketSymbols: string[] = []; //to save array market symbols [DOT-PERP, SOL-PERP]
+  public marketSymbols: string[] = []; // to save array market symbols [DOT-PERP, SOL-PERP]
 
-  private walletAddress = ""; //to save user's public address when connecting from UI
+  private walletAddress = ""; // to save user's public address when connecting from UI
 
-  private signer: Signer | undefined; //to save provider when connecting from UI
+  private signer: Signer | undefined; // to save provider when connecting from UI
 
-  private signingMethod: SigningMethod = SigningMethod.MetaMaskLatest; //to save signing method when integrating on UI
+  private signingMethod: SigningMethod = SigningMethod.MetaMaskLatest; // to save signing method when integrating on UI
 
   private contractAddresses: any;
 
   private isTermAccepted = false;
 
-  //◥◤◥◤◥◤◥◤◥◤ Private Contracts Names ◥◤◥◤◥◤◥◤◥◤
+  private maxBlockGasLimit = 0;
+
+  // ◥◤◥◤◥◤◥◤◥◤ Private Contracts Names ◥◤◥◤◥◤◥◤◥◤
   private _usdcToken = "USDC";
+
   private _perpetual = "Perpetual";
+
   private _marginBank = "MarginBank";
+
   private _orders = "Orders";
-  //◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢
+  // ◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢
 
   /**
    * initializes the class instance
@@ -137,7 +143,7 @@ export class FireflyClient {
     _signingMethod?: SigningMethod
   ) => {
     this.web3 = new Web3(_web3Provider);
-    let provider = new ethers.providers.Web3Provider(_web3Provider);
+    const provider = new ethers.providers.Web3Provider(_web3Provider);
 
     this.signer = provider.getSigner();
     this.onboardSigner = new OnboardingSigner(this.web3, this.network.chainId);
@@ -164,17 +170,19 @@ export class FireflyClient {
    * initializes contract addresses
    */
   init = async (userOnboarding: boolean = true) => {
-    //get contract addresses
+    // get contract addresses
     const addresses = await this.getContractAddresses();
     if (!addresses.ok) {
       throw Error("Failed to fetch contract addresses");
     }
     this.contractAddresses = addresses.data;
 
-    //onboard user if not onboarded
+    // onboard user if not onboarded
     if (userOnboarding) {
       await this.userOnBoarding();
     }
+
+    this.maxBlockGasLimit = (await this.web3.eth.getBlock("latest")).gasLimit;
   };
 
   /**
@@ -252,7 +260,9 @@ export class FireflyClient {
     await (
       await (tokenContract as Contract)
         .connect(this.getWallet())
-        .mint(this.getPublicAddress(), toBigNumberStr(10000))
+        .mint(this.getPublicAddress(), toBigNumberStr(10000), {
+          gasLimit: this.maxBlockGasLimit,
+        })
     ).wait();
 
     return true;
@@ -260,7 +270,7 @@ export class FireflyClient {
 
   /**
    * Funds gas tokens to user's account
-   * @returns Fund gas reponse
+   * @returns Fund gas response
    */
   fundGas = async () => {
     const response = await this.apiService.post<FundGasResponse>(
@@ -303,7 +313,7 @@ export class FireflyClient {
         .approve(
           (marginBankContract as contracts_exchange.MarginBank).address,
           amountString,
-          {}
+          { gasLimit: this.maxBlockGasLimit }
         )
     ).wait();
 
@@ -311,7 +321,9 @@ export class FireflyClient {
     await (
       await (marginBankContract as contracts_exchange.MarginBank)
         .connect(this.getWallet())
-        .depositToBank(this.getPublicAddress(), amountString, {})
+        .depositToBank(this.getPublicAddress(), amountString, {
+          gasLimit: this.maxBlockGasLimit,
+        })
     ).wait();
 
     return true;
@@ -342,7 +354,8 @@ export class FireflyClient {
         .withdrawFromBank(
           this.getPublicAddress(),
           this.getPublicAddress(),
-          amountString
+          amountString,
+          { gasLimit: this.maxBlockGasLimit }
         )
     ).wait();
 
@@ -359,12 +372,8 @@ export class FireflyClient {
     symbol: MarketSymbol,
     perpContract?: address
   ) => {
-    const perpV1Contract = this.getContract(
-      this._perpetual,
-      perpContract,
-      symbol
-    );
-    return await perpV1Contract
+    const contract = this.getContract(this._perpetual, perpContract, symbol);
+    return contract
       .connect(this.getWallet())
       .getAccountBalance(this.getPublicAddress());
   };
@@ -543,16 +552,16 @@ export class FireflyClient {
     leverage: number,
     perpetualAddress?: address
   ): Promise<boolean> => {
-    const userPosition = await this.getUserPosition({ symbol: symbol });
+    const userPosition = await this.getUserPosition({ symbol });
     if (!userPosition.data) {
       throw Error(`User positions data doesn't exist`);
     }
 
     const position = userPosition.data as any as GetPositionResponse;
 
-    //if user position exists, make contract call to add or remove margin
+    // if user position exists, make contract call to add or remove margin
     if (Object.keys(position).length > 0) {
-      //TODO [BFLY-603]: this should be returned as array from dapi, remove this typecasting when done
+      // TODO [BFLY-603]: this should be returned as array from dapi, remove this typecasting when done
       const perpContract = this.getContract(
         this._perpetual,
         perpetualAddress,
@@ -561,25 +570,26 @@ export class FireflyClient {
       await (
         await (perpContract as contracts_exchange.Perpetual)
           .connect(this.getWallet())
-          .adjustLeverage(this.getPublicAddress(), toBigNumberStr(leverage))
+          .adjustLeverage(this.getPublicAddress(), toBigNumberStr(leverage), {
+            gasLimit: this.maxBlockGasLimit,
+          })
       ).wait();
       return true;
     }
-    //make api call
-    else {
-      //make update leverage api call on dapi
-      const updateLeverageResponse = await this.updateLeverage({
-        symbol: symbol,
-        leverage: leverage,
-      });
+    // make api call
 
-      if (!updateLeverageResponse.ok || !updateLeverageResponse.data) {
-        throw Error(
-          `Adjust leverage error: ${updateLeverageResponse.response.message}`
-        );
-      }
-      return updateLeverageResponse.ok;
+    // make update leverage api call on dapi
+    const updateLeverageResponse = await this.updateLeverage({
+      symbol,
+      leverage,
+    });
+
+    if (!updateLeverageResponse.ok || !updateLeverageResponse.data) {
+      throw Error(
+        `Adjust leverage error: ${updateLeverageResponse.response.message}`
+      );
     }
+    return updateLeverageResponse.ok;
   };
 
   /**
@@ -595,18 +605,17 @@ export class FireflyClient {
     const accDataByMarket = accData.data.accountDataByMarket.filter((data) => {
       return data.symbol === symbol;
     });
-    ///found accountDataByMarket
+    /// found accountDataByMarket
     if (accDataByMarket && accDataByMarket.length > 0) {
       return bnStrToBaseNumber(accDataByMarket[0].selectedLeverage);
     }
-    ///user is new and symbol data is not present in accountDataByMarket
-    else {
-      const exchangeInfo = await this.getExchangeInfo(symbol);
-      if (!exchangeInfo.data) {
-        throw Error(`Provided Market Symbol(${symbol}) does not exist`);
-      }
-      return bnStrToBaseNumber(exchangeInfo.data.defaultLeverage);
+    /// user is new and symbol data is not present in accountDataByMarket
+
+    const exchangeInfo = await this.getExchangeInfo(symbol);
+    if (!exchangeInfo.data) {
+      throw Error(`Provided Market Symbol(${symbol}) does not exist`);
     }
+    return bnStrToBaseNumber(exchangeInfo.data.defaultLeverage);
   };
 
   /**
@@ -628,20 +637,24 @@ export class FireflyClient {
       perpetualAddress,
       symbol
     );
-    //ADD margin
+    // ADD margin
     if (operationType === ADJUST_MARGIN.Add) {
       await (
         await (perpContract as contracts_exchange.Perpetual)
           .connect(this.getWallet())
-          .addMargin(this.getPublicAddress(), toBigNumberStr(amount))
+          .addMargin(this.getPublicAddress(), toBigNumberStr(amount), {
+            gasLimit: this.maxBlockGasLimit,
+          })
       ).wait();
     }
-    //REMOVE margin
+    // REMOVE margin
     else {
       await (
         await (perpContract as contracts_exchange.Perpetual)
           .connect(this.getWallet())
-          .removeMargin(this.getPublicAddress(), toBigNumberStr(amount))
+          .removeMargin(this.getPublicAddress(), toBigNumberStr(amount), {
+            gasLimit: this.maxBlockGasLimit,
+          })
       ).wait();
     }
     return true;
@@ -871,14 +884,14 @@ export class FireflyClient {
         onlySignOn: this.network.onboardingUrl,
       };
 
-      //sign onboarding message
+      // sign onboarding message
       const signature = await this.onboardSigner.sign(
         this.getPublicAddress().toLowerCase(),
         this.getOnboardSigningMethod(),
         message
       );
 
-      //authorize signature created by dAPI
+      // authorize signature created by dAPI
       const authTokenResponse = await this.authorizeSignedHash(signature);
 
       if (!authTokenResponse.ok || !authTokenResponse.data) {
@@ -889,7 +902,7 @@ export class FireflyClient {
       userAuthToken = authTokenResponse.data.token;
     }
     this.apiService.setAuthToken(userAuthToken);
-    //TODO: remove this when all endpoints on frontend are integrated from client library
+    // TODO: remove this when all endpoints on frontend are integrated from client library
     return userAuthToken;
   };
 
@@ -920,7 +933,7 @@ export class FireflyClient {
     if (!market && !contract) {
       try {
         contract =
-          this.contractAddresses["auxiliaryContractsAddresses"][contractName];
+          this.contractAddresses.auxiliaryContractsAddresses[contractName];
       } catch (e) {
         contract = "";
       }
@@ -962,11 +975,11 @@ export class FireflyClient {
   private createOrderToSign = (params: OrderSignatureRequest): Order => {
     const expiration = new Date();
     const salt = new Date();
-    //MARKET ORDER - set expiration of 1 minute
+    // MARKET ORDER - set expiration of 1 minute
     if (params.orderType === ORDER_TYPE.MARKET) {
       expiration.setMinutes(expiration.getMinutes() + 1);
     }
-    //LIMIT ORDER - set expiration of 1 month
+    // LIMIT ORDER - set expiration of 1 month
     else {
       expiration.setMonth(expiration.getMonth() + 1);
     }
@@ -985,7 +998,7 @@ export class FireflyClient {
       ),
       salt: bigNumber(params.salt || Math.floor(salt.getTime())),
     } as Order;
-  }
+  };
 
   /**
    * Posts signed Auth Hash to dAPI and gets token in return if signature is valid
