@@ -8,7 +8,7 @@ export const SERVICE_URLS = {
     META: "/meta",
     STATUS: "/status",
     SYMBOLS: "/marketData/symbols",
-    CONTRACT_ADDRESSES: "/marketData/contractAddresses"
+    CONTRACT_ADDRESSES: "/marketData/contractAddresses",
   },
   USER: {
     USER_POSITIONS: "/userPosition",
@@ -18,7 +18,7 @@ export const SERVICE_URLS = {
     USER_TRANSACTION_HISTORY: "/userTransactionHistory",
     AUTHORIZE: "/authorize",
     ADJUST_LEVERGAE: "/account/adjustLeverage",
-    FUND_GAS: "/account/fundGas"
+    FUND_GAS: "/account/fundGas",
   },
   ORDERS: {
     ORDERS: "/orders",
