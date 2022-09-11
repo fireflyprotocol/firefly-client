@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 /* eslint-disable no-undef */
 import chai, { assert, expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
@@ -7,7 +8,6 @@ import {
   MARKET_SYMBOLS,
   ORDER_STATUS,
   ORDER_SIDE,
-  bnStrToBaseNumber,
   MinifiedCandleStick,
   BigNumber,
   ORDER_TYPE,
@@ -130,14 +130,12 @@ describe("FireflyClient", () => {
   describe("Balance", () => {
     it("should get 10K Test USDCs", async () => {
       expect(await client.mintTestUSDC()).to.be.equal(true);
-      expect(bnStrToBaseNumber(await client.getUSDCBalance())).to.be.gte(10000);
+      expect(await client.getUSDCBalance()).to.be.gte(10000);
     });
 
     it("should move 1 USDC token to Margin Bank", async () => {
       expect(await client.depositToMarginBank(1)).to.be.equal(true);
-      expect(bnStrToBaseNumber(await client.getMarginBankBalance())).to.be.gte(
-        1
-      );
+      expect(await client.getMarginBankBalance()).to.be.gte(1);
     });
 
     it("should withdraw 1 USDC token from Margin Bank", async () => {
@@ -146,7 +144,7 @@ describe("FireflyClient", () => {
 
     it("should move all USDC token from Margin Bank", async () => {
       expect(await client.withdrawFromMarginBank()).to.be.equal(true);
-      expect(await client.getMarginBankBalance()).to.be.eql("0");
+      expect(await client.getMarginBankBalance()).to.be.eql(0);
     });
   });
 

@@ -221,13 +221,13 @@ export class FireflyClient {
    * @param contract (optional) address of USDC contract
    * @returns Number representing balance of user
    */
-  getUSDCBalance = async (contract?: address): Promise<string> => {
+  getUSDCBalance = async (contract?: address): Promise<number> => {
     const tokenContract = this.getContract(this._usdcToken, contract);
     const balance = await (tokenContract as Contract)
       .connect(this.getWallet())
       .balanceOf(this.getPublicAddress());
 
-    return bnToString(balance.toHexString());
+    return bnStrToBaseNumber(bnToString(balance.toHexString()));
   };
 
   /**
@@ -235,13 +235,13 @@ export class FireflyClient {
    * @param contract (optional) address of Margin Bank contract
    * @returns Number representing balance of user
    */
-  getMarginBankBalance = async (contract?: address): Promise<string> => {
+  getMarginBankBalance = async (contract?: address): Promise<number> => {
     const marginBankContract = this.getContract(this._marginBank, contract);
     const balance = await (marginBankContract as contracts_exchange.MarginBank)
       .connect(this.getWallet())
       .getAccountBankBalance(this.getPublicAddress());
 
-    return balance.toString();
+    return bnStrToBaseNumber(bnToString(balance.toHexString()));
   };
 
   /**
@@ -285,8 +285,10 @@ export class FireflyClient {
    * Returns boba balance in user's account
    * @returns Number representing boba balance in account
    */
-  getBobaBalance = async (): Promise<string> => {
-    return bnToString((await this.getWallet().getBalance()).toHexString());
+  getBobaBalance = async (): Promise<number> => {
+    return bnStrToBaseNumber(
+      bnToString((await this.getWallet().getBalance()).toHexString())
+    );
   };
 
   /**
