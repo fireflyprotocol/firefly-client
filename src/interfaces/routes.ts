@@ -21,14 +21,14 @@ export interface GetOrderRequest extends GetTransactionHistoryRequest {
   status: ORDER_STATUS; // status of orders to be fetched
 }
 
-export interface GetPositionRequest extends GetTransactionHistoryRequest { }
+export interface GetPositionRequest extends GetTransactionHistoryRequest {}
 
 export interface RequiredOrderFields {
   symbol: MarketSymbol; // market for which to create order
   price: number; // price at which to place order. Will be zero for a market order
   quantity: number; // quantity/size of order
   side: ORDER_SIDE; // BUY/SELL
-  orderType: ORDER_TYPE; //MARKET/LIMIT
+  orderType: ORDER_TYPE; // MARKET/LIMIT
 }
 
 export interface OrderSignatureRequest extends RequiredOrderFields {
@@ -93,9 +93,7 @@ export interface GetOrderResponse extends OrderResponse {
   triggerPrice: string;
 }
 
-export interface PlaceOrderResponse extends OrderResponse {
-  
-}
+export interface PlaceOrderResponse extends OrderResponse {}
 
 export interface OrderCancelSignatureRequest {
   symbol: MarketSymbol;
@@ -107,16 +105,16 @@ export interface OrderCancellationRequest extends OrderCancelSignatureRequest {
 }
 
 export type CancelOrder = {
-	hash: string;
-	reason?: string;
+  hash: string;
+  reason?: string;
 };
 
 export type CancelOrderResponse = {
-	message: string;
-	data: {
-		acceptedForCancelling: CancelOrder[];
-		failedCancelling: CancelOrder[];
-	};
+  message: string;
+  data: {
+    acceptedForCancelling: CancelOrder[];
+    failedCancelling: CancelOrder[];
+  };
 };
 
 export interface GetOrderbookRequest {
@@ -283,7 +281,7 @@ export interface ExchangeInfo {
   defaultLeverage: string;
   contractType: string;
   status: string;
-  maxAllowedOrderQuantityRules: OrderQuantityRules[]
+  maxAllowedOrderQuantityRules: OrderQuantityRules[];
 }
 
 export interface MarketData {
@@ -334,17 +332,17 @@ export interface StatusResponse {
 }
 
 export interface AuthorizeHashResponse {
-  token: string
+  token: string;
 }
 
 export interface AdjustLeverageResponse {
-  symbol: string
-  address: string
-  leverage: string
-  marginType: string
-  maxNotionalValue: string
+  symbol: string;
+  address: string;
+  leverage: string;
+  marginType: string;
+  maxNotionalValue: string;
 }
 
 export interface FundGasResponse {
-  message: string
+  message: string;
 }

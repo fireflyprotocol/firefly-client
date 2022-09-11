@@ -28,6 +28,7 @@ export class Sockets {
   }
 
   createDynamicUrl(dynamicUrl: string, object: any) {
+    // eslint-disable-next-line no-restricted-syntax, guard-for-in
     for (const key in object) {
       dynamicUrl = dynamicUrl.replace(`{${key}}`, object[key]);
     }
@@ -117,13 +118,15 @@ export class Sockets {
   onCandleStickUpdate = (
     symbol: string,
     interval: string,
-    cb: (candle: MinifiedCandleStick) => void,
+    cb: (candle: MinifiedCandleStick) => void
   ) => {
-    this.socketInstance.on(this.createDynamicUrl(
-      SOCKET_EVENTS.GET_LAST_KLINE_WITH_INTERVAL, {
-			symbol: symbol,
-			interval: interval,
-		}), cb);
+    this.socketInstance.on(
+      this.createDynamicUrl(SOCKET_EVENTS.GET_LAST_KLINE_WITH_INTERVAL, {
+        symbol,
+        interval,
+      }),
+      cb
+    );
   };
 
   onExchangeHealthChange = (

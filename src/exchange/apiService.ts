@@ -3,7 +3,9 @@ import { getValue, isEmpty } from "@firefly-exchange/library";
 
 export class APIService {
   private apiService: AxiosInstance;
+
   private token: string | undefined = undefined;
+
   constructor(url: string) {
     this.apiService = axios.create({
       baseURL: url,
@@ -92,7 +94,7 @@ export class APIService {
   //= ==============================================================//
 
   private transformRequest = (data: any, headers?: any) => {
-    headers["Authorization"] = `Bearer ${this.token}`;
+    headers.Authorization = `Bearer ${this.token}`;
     return JSON.stringify(data);
   };
 

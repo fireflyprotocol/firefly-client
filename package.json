@@ -40,10 +40,9 @@
     "prettier": "^2.6.2"
   },
   "dependencies": {
-    "@firefly-exchange/firefly-math": "1.0.19",
-    "@firefly-exchange/library": "1.0.41",
+    "@firefly-exchange/firefly-math": "1.0.28",
+    "@firefly-exchange/library": "1.0.43",
     "axios": "^0.27.2",
-    "bignumber.js": "^9.0.2",
     "chai": "^4.3.6",
     "chai-as-promised": "^7.1.1",
     "es6-promisify": "^7.0.0",
@@ -52,10 +51,7 @@
     "mocha": "^10.0.0",
     "socket.io-client": "^4.5.1",
     "ts-mocha": "^9.0.2",
-    "typescript": "^4.6.4",
-    "web3": "^1.7.3",
-    "web3-core": "^1.7.3",
-    "web3-core-helpers": "^1.7.3"
+    "typescript": "^4.6.4"
   },
   "keywords": [
     "client",
