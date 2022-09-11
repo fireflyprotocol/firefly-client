@@ -411,17 +411,15 @@
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
 
-"@firefly-exchange/firefly-math@1.0.28":
-  version "1.0.28"
-  resolved "https://registry.yarnpkg.com/@firefly-exchange/firefly-math/-/firefly-math-1.0.28.tgz#647deb2541f52fb4f068d6f215fe6f0aa912fedb"
-  integrity sha512-drwD+7QmUV/y2e6m5vMi4hzCVc7AcMsy5GIWj5o3nhkehvceyRLUg9is07L6CBgOGJEtOQFfdjO7JyTgxkYv8A==
+"@firefly-exchange/firefly-math@1.0.29":
+  version "1.0.29"
+  resolved "https://registry.yarnpkg.com/@firefly-exchange/firefly-math/-/firefly-math-1.0.29.tgz#bc0ec48163f9a8fd6a1b0c564331a6227b955069"
+  integrity sha512-KaPHALeMuMzUJ5fjzV1aX+RSzTMveFiCzvHGI312HfN2u24/RuNAsqAWoVjR7S30aX6JqhtcMYCEhbn0wiAiOQ==
   dependencies:
-    "@firefly-exchange/library" "^1.0.42"
+    "@firefly-exchange/library" "1.0.43"
     "@types/chai" "^4.0.4"
-    "@types/mocha" "^2.2.44"
     "@types/sinon" "^2.3.7"
     "@types/sinon-chai" "^2.7.29"
-    bignumber.js "^9.0.1"
     chai "^4.1.2"
     lint-staged "^13.0.3"
     minimist "^1.2.6"
@@ -431,10 +429,26 @@
     sinon-chai "^2.14.0"
     ts-node "^3.3.0"
 
-"@firefly-exchange/library@1.0.43", "@firefly-exchange/library@^1.0.42":
+"@firefly-exchange/library@1.0.43":
   version "1.0.43"
   resolved "https://registry.yarnpkg.com/@firefly-exchange/library/-/library-1.0.43.tgz#a868c90cb142ea24e26bda08aaa30fd17a9f51cb"
   integrity sha512-wTgRTdF9NxLCPziMwphTeueo42lZmHVWVY6ddXUcLWR+XM63TThykFrGCZPJrMtVU68fgP7o2V0PXtRRLUbrZQ==
+  dependencies:
+    bignumber "^1.1.0"
+    bignumber.js "^9.0.2"
+    chai "^4.3.6"
+    chai-as-promised "^7.1.1"
+    ethers "^5.6.8"
+    lodash "^4.17.21"
+    mocha "^10.0.0"
+    socket.io-client "^4.5.1"
+    ts-mocha "^10.0.0"
+    web3 "^1.7.5"
+
+"@firefly-exchange/library@1.0.44":
+  version "1.0.44"
+  resolved "https://registry.yarnpkg.com/@firefly-exchange/library/-/library-1.0.44.tgz#63c2ef607a2c8af1034328730d44e3d3e9ea5a8d"
+  integrity sha512-+jWkf3FpQm2R8zJ7u0o2C9Mm8x5jGhu4R0AioDT21LNE1xWUdHBrpBqXa8Z0Ssi+kH6o/qIrsW1YKf+s6p/3kw==
   dependencies:
     bignumber "^1.1.0"
     bignumber.js "^9.0.2"
@@ -662,11 +676,6 @@
   version "4.14.184"
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.184.tgz#23f96cd2a21a28e106dc24d825d4aa966de7a9fe"
   integrity sha512-RoZphVtHbxPZizt4IcILciSWiC6dcn+eZ8oX9IWEYfDMcocdd42f7NPI6fQj+6zI8y4E0L7gu2pcZKLGTRaV9Q==
-
-"@types/mocha@^2.2.44":
-  version "2.2.48"
-  resolved "https://registry.yarnpkg.com/@types/mocha/-/mocha-2.2.48.tgz#3523b126a0b049482e1c3c11877460f76622ffab"
-  integrity sha512-nlK/iyETgafGli8Zh9zJVCTicvU3iajSkRwOh3Hhiva598CMqNJ4NcVCGMTGKpGpTYj/9R8RLzS9NAykSSCqGw==
 
 "@types/mocha@^9.1.0":
   version "9.1.1"
@@ -1084,7 +1093,7 @@ bech32@1.1.4:
   resolved "https://registry.yarnpkg.com/bech32/-/bech32-1.1.4.tgz#e38c9f37bf179b8eb16ae3a772b40c356d4832e9"
   integrity sha512-s0IrSOzLlbvX7yp4WBfPITzpAU8sqQcpsmwXDiKwrG4r491vwCO/XpejasRNl0piBMe/DvP4Tz0mIS/X1DPJBQ==
 
-bignumber.js@^9.0.0, bignumber.js@^9.0.1, bignumber.js@^9.0.2:
+bignumber.js@^9.0.0, bignumber.js@^9.0.2:
   version "9.1.0"
   resolved "https://registry.yarnpkg.com/bignumber.js/-/bignumber.js-9.1.0.tgz#8d340146107fe3a6cb8d40699643c302e8773b62"
   integrity sha512-4LwHK4nfDOraBCtst+wOWIHbu1vhvAPJK8g8nROd4iuc3PSEjWif/qwbkh8jwCJz6yDBvtU4KPynETgrfh7y3A==
@@ -4712,11 +4721,6 @@ timed-out@^4.0.0, timed-out@^4.0.1:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/timed-out/-/timed-out-4.0.1.tgz#f32eacac5a175bea25d7fab565ab3ed8741ef56f"
   integrity sha512-G7r3AhovYtr5YKOWQkta8RKAPb+J9IsO4uVmzjl8AZwfhs8UcUwTiD6gcJYSgOtzyjvQKrKYn41syHbUWMkafA==
-
-timers@^0.1.1:
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/timers/-/timers-0.1.1.tgz#86ac5c78c1ee419694f35a58de4fd4183cfb9c1e"
-  integrity sha512-pkJC8uIP/gxDHxNQUBUbjHyl6oZfT+ofn7tbaHW+CFIUjI+Q2MBbHcx1JSBQfhDaTcO9bNg328q0i7Vk5PismQ==
 
 to-regex-range@^5.0.1:
   version "5.0.1"

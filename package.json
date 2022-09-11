@@ -40,8 +40,8 @@
     "prettier": "^2.6.2"
   },
   "dependencies": {
-    "@firefly-exchange/firefly-math": "1.0.28",
-    "@firefly-exchange/library": "1.0.43",
+    "@firefly-exchange/firefly-math": "1.0.29",
+    "@firefly-exchange/library": "1.0.44",
     "axios": "^0.27.2",
     "chai": "^4.3.6",
     "chai-as-promised": "^7.1.1",
