@@ -95,6 +95,9 @@ export class FireflyClient {
 
   private maxBlockGasLimit = 0;
 
+  // the number of decimals supported by USDC contract
+  private MarginTokenPrecision = 6;
+
   // ◥◤◥◤◥◤◥◤◥◤ Private Contracts Names ◥◤◥◤◥◤◥◤◥◤
   private _usdcToken = "USDC";
 
@@ -227,7 +230,10 @@ export class FireflyClient {
       .connect(this.getWallet())
       .balanceOf(this.getPublicAddress());
 
-    return bnStrToBaseNumber(bnToString(balance.toHexString()));
+    return bnStrToBaseNumber(
+      bnToString(balance.toHexString()),
+      this.MarginTokenPrecision
+    );
   };
 
   /**
@@ -260,9 +266,13 @@ export class FireflyClient {
     await (
       await (tokenContract as Contract)
         .connect(this.getWallet())
-        .mint(this.getPublicAddress(), toBigNumberStr(10000), {
-          gasLimit: this.maxBlockGasLimit,
-        })
+        .mint(
+          this.getPublicAddress(),
+          toBigNumberStr(10000, this.MarginTokenPrecision),
+          {
+            gasLimit: this.maxBlockGasLimit,
+          }
+        )
     ).wait();
 
     return true;
@@ -306,7 +316,7 @@ export class FireflyClient {
   ): Promise<boolean> => {
     const tokenContract = this.getContract(this._usdcToken, usdcContract);
     const marginBankContract = this.getContract(this._marginBank, mbContract);
-    const amountString = toBigNumberStr(amount);
+    const amountString = toBigNumberStr(amount, this.MarginTokenPrecision);
 
     // approve usdc contract to allow margin bank to take funds out for user's behalf
     await (
@@ -344,11 +354,17 @@ export class FireflyClient {
   ): Promise<boolean> => {
     const marginBankContract = this.getContract(this._marginBank, mbContract);
 
-    const amountString = amount
-      ? toBigNumberStr(amount)
-      : await this.getMarginBankBalance(
-          (marginBankContract as contracts_exchange.MarginBank).address
-        );
+    let amountNumber = amount;
+    if (!amount) {
+      // get all margin bank balance when amount not provided by user
+      amountNumber = await this.getMarginBankBalance(
+        (marginBankContract as contracts_exchange.MarginBank).address
+      );
+    }
+    const amountString = toBigNumberStr(
+      amountNumber!,
+      this.MarginTokenPrecision
+    );
 
     await (
       await (marginBankContract as contracts_exchange.MarginBank)

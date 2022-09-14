@@ -8,7 +8,6 @@ import {
   address,
   CANCEL_REASON,
   Interval,
-  OrderQuantityRules,
 } from "@firefly-exchange/library";
 
 export interface GetTransactionHistoryRequest {
@@ -126,7 +125,6 @@ export interface GetPositionResponse {
   userAddress: address;
   symbol: MarketSymbol;
   marginType: MARGIN_TYPE;
-
   side: ORDER_SIDE;
   avgEntryPrice: string;
   quantity: string;
@@ -137,10 +135,8 @@ export interface GetPositionResponse {
   positionValue: string;
   unrealizedProfit: string;
   unrealizedProfitPercent: string;
-
   midMarketPrice: string;
   indexPrice: string;
-
   updatedAt: number;
   createdAt: number;
 }
@@ -261,14 +257,14 @@ export interface GetCandleStickRequest {
 /* Market Endpoints */
 export interface ExchangeInfo {
   symbol: MarketSymbol;
-  maintMarginReq: string;
-  inititalMarginReq: string;
+  maintenanceMarginReq: string;
+  initialMarginReq: string;
   baseAssetSymbol: string;
   baseAssetName: string;
   quoteAssetSymbol: string;
   quoteAssetName: string;
-  baseAssetPrecision: number;
-  quoteAssetPrecision: number;
+  stepSize: number;
+  tickSize: number;
   minOrderSize: number;
   maxMarketOrderSize: string;
   maxLimitOrderSize: string;
@@ -277,11 +273,12 @@ export interface ExchangeInfo {
   defaultMakerFee: string;
   defaultTakerFee: string;
   liquidationFee: string;
-  marketTakeBound: string;
+  mtbLong: string;
+  mtbShort: string;
   defaultLeverage: string;
-  contractType: string;
   status: string;
-  maxAllowedOrderQuantityRules: OrderQuantityRules[];
+  insurancePoolPercentage: string;
+  maxAllowedOrderQuantityRules: [];
 }
 
 export interface MarketData {
@@ -316,14 +313,12 @@ export interface MarketData {
 
 export interface MarketMeta {
   symbol: MarketSymbol;
+  domainHash: string;
   rpcURI: string;
-  onboardingWebsiteUrl: string;
+  networkID: string;
   orderAddress: address;
   perpetualAddress: address;
-  marginBankAddress: address;
-  liquidatorProxyAddress: address;
-  networkID: string;
-  priceOracleAddress: address;
+  onboardingWebsiteUrl: string;
 }
 
 export interface StatusResponse {

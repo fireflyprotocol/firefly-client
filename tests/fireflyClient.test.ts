@@ -34,7 +34,7 @@ let client: FireflyClient;
 
 describe("FireflyClient", () => {
   // set environment from here
-  const network = Networks.SANDBOX;
+  const network = Networks.DEV;
 
   beforeEach(async () => {
     client = new FireflyClient(true, network, testAcctKey);
@@ -129,17 +129,22 @@ describe("FireflyClient", () => {
 
   describe("Balance", () => {
     it("should get 10K Test USDCs", async () => {
+      const usdcBalance = await client.getUSDCBalance();
       expect(await client.mintTestUSDC()).to.be.equal(true);
-      expect(await client.getUSDCBalance()).to.be.gte(10000);
+      expect(await client.getUSDCBalance()).to.be.gte(usdcBalance + 10000);
     });
 
     it("should move 1 USDC token to Margin Bank", async () => {
+      const usdcBalance = await client.getUSDCBalance();
       expect(await client.depositToMarginBank(1)).to.be.equal(true);
       expect(await client.getMarginBankBalance()).to.be.gte(1);
+      expect(await client.getUSDCBalance()).to.be.gte(usdcBalance - 1);
     });
 
     it("should withdraw 1 USDC token from Margin Bank", async () => {
+      const usdcBalance = await client.getUSDCBalance();
       expect(await client.withdrawFromMarginBank(1)).to.be.equal(true);
+      expect(await client.getUSDCBalance()).to.be.gte(usdcBalance + 1);
     });
 
     it("should move all USDC token from Margin Bank", async () => {
