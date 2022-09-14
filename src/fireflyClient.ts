@@ -992,7 +992,6 @@ export class FireflyClient {
    */
   private createOrderToSign = (params: OrderSignatureRequest): Order => {
     const expiration = new Date();
-    const salt = new Date();
     // MARKET ORDER - set expiration of 1 minute
     if (params.orderType === ORDER_TYPE.MARKET) {
       expiration.setMinutes(expiration.getMinutes() + 1);
@@ -1014,7 +1013,7 @@ export class FireflyClient {
       expiration: bigNumber(
         params.expiration || Math.floor(expiration.getTime() / 1000) // /1000 to convert time in seconds
       ),
-      salt: bigNumber(params.salt || Math.floor(salt.getTime())),
+      salt: bigNumber(params.salt || this.randomNumber(1_000_000_000)),
     } as Order;
   };
 
@@ -1053,5 +1052,9 @@ export class FireflyClient {
       { isAuthenticationRequired: true }
     );
     return response;
+  };
+
+  private randomNumber = (max: number) => {
+    return Math.floor((Date.now() + Math.random() + Math.random()) * max);
   };
 }
