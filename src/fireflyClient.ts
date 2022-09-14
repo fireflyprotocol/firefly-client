@@ -95,7 +95,8 @@ export class FireflyClient {
 
   private maxBlockGasLimit = 0;
 
-  private marginBankPrecision = 6;
+  // the number of decimals supported by USDC contract
+  private MarginTokenPrecision = 6;
 
   // ◥◤◥◤◥◤◥◤◥◤ Private Contracts Names ◥◤◥◤◥◤◥◤◥◤
   private _usdcToken = "USDC";
@@ -231,7 +232,7 @@ export class FireflyClient {
 
     return bnStrToBaseNumber(
       bnToString(balance.toHexString()),
-      this.marginBankPrecision
+      this.MarginTokenPrecision
     );
   };
 
@@ -267,7 +268,7 @@ export class FireflyClient {
         .connect(this.getWallet())
         .mint(
           this.getPublicAddress(),
-          toBigNumberStr(10000, this.marginBankPrecision),
+          toBigNumberStr(10000, this.MarginTokenPrecision),
           {
             gasLimit: this.maxBlockGasLimit,
           }
@@ -315,7 +316,7 @@ export class FireflyClient {
   ): Promise<boolean> => {
     const tokenContract = this.getContract(this._usdcToken, usdcContract);
     const marginBankContract = this.getContract(this._marginBank, mbContract);
-    const amountString = toBigNumberStr(amount, this.marginBankPrecision);
+    const amountString = toBigNumberStr(amount, this.MarginTokenPrecision);
 
     // approve usdc contract to allow margin bank to take funds out for user's behalf
     await (
@@ -355,14 +356,14 @@ export class FireflyClient {
 
     let amountNumber = amount;
     if (!amount) {
-      //get all margin bank balance when amount not provided by user
+      // get all margin bank balance when amount not provided by user
       amountNumber = await this.getMarginBankBalance(
         (marginBankContract as contracts_exchange.MarginBank).address
       );
     }
     const amountString = toBigNumberStr(
       amountNumber!,
-      this.marginBankPrecision
+      this.MarginTokenPrecision
     );
 
     await (
