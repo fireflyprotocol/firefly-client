@@ -1013,7 +1013,7 @@ export class FireflyClient {
       expiration: bigNumber(
         params.expiration || Math.floor(expiration.getTime() / 1000) // /1000 to convert time in seconds
       ),
-      salt: bigNumber(params.salt || this.randomNumber(10000)),
+      salt: bigNumber(params.salt || this.randomNumber(1_000_000_000)),
     } as Order;
   };
 
