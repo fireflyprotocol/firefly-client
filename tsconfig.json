@@ -16,6 +16,9 @@
     "skipLibCheck": true /* Skip type checking all .d.ts files. */,
     "sourceMap": true /* Generates corresponding '.map' file. */,
     "declaration": true /* Generates corresponding '.d.ts' file. */,
-    "lib": ["es2015", "dom"]
+    "lib": [
+      "es2015",
+      "dom"
+    ] /* Specify library files to be included in the compilation. */
   }
 }
