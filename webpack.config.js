@@ -1,14 +1,9 @@
 const path = require("path");
 const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
-const nodeExternals = require("webpack-node-externals");
+const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
 
 module.exports = {
   mode: "production",
-  target: "node", // use require() & use NodeJs CommonJS style
-  externals: [nodeExternals()], // in order to ignore all modules in node_modules folder
-  externalsPresets: {
-    node: true, // in order to ignore built-in modules like path, fs, etc.
-  },
   entry: {
     client: "./src/fireflyClient.ts",
     "client.min": "./src/fireflyClient.ts",
@@ -17,11 +12,11 @@ module.exports = {
     path: path.resolve(__dirname, "bundles"),
     filename: "[name].js",
     libraryTarget: "umd",
-    library: "MyLib",
+    library: "Client",
     umdNamedDefine: true,
   },
   resolve: {
-    extensions: [".ts", ".tsx", ".js"],
+    extensions: [".ts", ".js"],
   },
   devtool: "source-map",
   plugins: [
@@ -29,14 +24,18 @@ module.exports = {
       sourceMap: true,
       include: /\.min\.js$/,
     }),
+    new NodePolyfillPlugin(),
   ],
   module: {
     rules: [
       {
-        test: /\.tsx?$/,
+        test: /\.ts?$/,
         use: "ts-loader",
-        exclude: /node_modules/,
+        exclude: [/node_modules/, /test/],
       },
     ],
+  },
+  resolveLoader: {
+    modules: [path.join(__dirname, "node_modules")],
   },
 };
