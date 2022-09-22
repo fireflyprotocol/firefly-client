@@ -462,7 +462,8 @@ export class FireflyClient {
         clientId: params.clientId
           ? `firefly-client: ${params.clientId}`
           : "firefly-client",
-      }
+      },
+      { isAuthenticationRequired: true }
     );
 
     return response;
@@ -520,7 +521,8 @@ export class FireflyClient {
         userAddress: this.getPublicAddress(),
         orderHashes: params.hashes,
         cancelSignature: params.signature,
-      }
+      },
+      { isAuthenticationRequired: true }
     );
     return response;
   };
@@ -689,7 +691,8 @@ export class FireflyClient {
       {
         ...params,
         userAddress: this.getPublicAddress(),
-      }
+      },
+      { isAuthenticationRequired: true }
     );
     return response;
   };
@@ -702,7 +705,8 @@ export class FireflyClient {
   getUserPosition = async (params: GetPositionRequest) => {
     const response = await this.apiService.get<GetPositionResponse[]>(
       SERVICE_URLS.USER.USER_POSITIONS,
-      { ...params, userAddress: this.getPublicAddress() }
+      { ...params, userAddress: this.getPublicAddress() },
+      { isAuthenticationRequired: true }
     );
     return response;
   };
@@ -729,7 +733,8 @@ export class FireflyClient {
   getUserTrades = async (params: GetUserTradesRequest) => {
     const response = await this.apiService.get<GetUserTradesResponse>(
       SERVICE_URLS.USER.USER_TRADES,
-      { ...params, userAddress: this.getPublicAddress() }
+      { ...params, userAddress: this.getPublicAddress() },
+      { isAuthenticationRequired: true }
     );
 
     return response;
@@ -742,7 +747,8 @@ export class FireflyClient {
   getUserAccountData = async () => {
     const response = await this.apiService.get<GetAccountDataResponse>(
       SERVICE_URLS.USER.ACCOUNT,
-      { userAddress: this.getPublicAddress() }
+      { userAddress: this.getPublicAddress() },
+      { isAuthenticationRequired: true }
     );
     return response;
   };
@@ -755,10 +761,14 @@ export class FireflyClient {
   getUserTransactionHistory = async (params: GetTransactionHistoryRequest) => {
     const response = await this.apiService.get<
       GetUserTransactionHistoryResponse[]
-    >(SERVICE_URLS.USER.USER_TRANSACTION_HISTORY, {
-      ...params,
-      userAddress: this.getPublicAddress(),
-    });
+    >(
+      SERVICE_URLS.USER.USER_TRANSACTION_HISTORY,
+      {
+        ...params,
+        userAddress: this.getPublicAddress(),
+      },
+      { isAuthenticationRequired: true }
+    );
     return response;
   };
 
