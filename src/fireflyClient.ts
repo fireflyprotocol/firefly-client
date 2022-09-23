@@ -690,7 +690,6 @@ export class FireflyClient {
       SERVICE_URLS.USER.ORDERS,
       {
         ...params,
-        userAddress: this.getPublicAddress(),
       },
       { isAuthenticationRequired: true }
     );
@@ -705,7 +704,7 @@ export class FireflyClient {
   getUserPosition = async (params: GetPositionRequest) => {
     const response = await this.apiService.get<GetPositionResponse[]>(
       SERVICE_URLS.USER.USER_POSITIONS,
-      { ...params, userAddress: this.getPublicAddress() },
+      { ...params },
       { isAuthenticationRequired: true }
     );
     return response;
@@ -733,7 +732,7 @@ export class FireflyClient {
   getUserTrades = async (params: GetUserTradesRequest) => {
     const response = await this.apiService.get<GetUserTradesResponse>(
       SERVICE_URLS.USER.USER_TRADES,
-      { ...params, userAddress: this.getPublicAddress() },
+      { ...params },
       { isAuthenticationRequired: true }
     );
 
@@ -747,7 +746,7 @@ export class FireflyClient {
   getUserAccountData = async () => {
     const response = await this.apiService.get<GetAccountDataResponse>(
       SERVICE_URLS.USER.ACCOUNT,
-      { userAddress: this.getPublicAddress() },
+      {},
       { isAuthenticationRequired: true }
     );
     return response;
@@ -765,7 +764,6 @@ export class FireflyClient {
       SERVICE_URLS.USER.USER_TRANSACTION_HISTORY,
       {
         ...params,
-        userAddress: this.getPublicAddress(),
       },
       { isAuthenticationRequired: true }
     );
