@@ -518,7 +518,6 @@ export class FireflyClient {
       SERVICE_URLS.ORDERS.ORDERS_HASH,
       {
         symbol: params.symbol,
-        userAddress: this.getPublicAddress(),
         orderHashes: params.hashes,
         cancelSignature: params.signature,
       },
