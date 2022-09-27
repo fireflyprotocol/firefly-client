@@ -369,12 +369,9 @@ export class FireflyClient {
     await (
       await (marginBankContract as contracts_exchange.MarginBank)
         .connect(this.getWallet())
-        .withdrawFromBank(
-          this.getPublicAddress(),
-          this.getPublicAddress(),
-          amountString,
-          { gasLimit: this.maxBlockGasLimit }
-        )
+        .withdrawFromBank(this.getPublicAddress(), amountString, {
+          gasLimit: this.maxBlockGasLimit,
+        })
     ).wait();
 
     return true;
