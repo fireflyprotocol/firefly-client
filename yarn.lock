@@ -483,6 +483,7 @@
   version "1.0.55"
   resolved "https://registry.yarnpkg.com/@firefly-exchange/library/-/library-1.0.55.tgz#b339a9931e7dc4d4830652dc808b127674173348"
   integrity sha512-vSQQelya8Zhkae0zXBMSugOXdL90pmc5XtZycq/60kANI4x1HYf4Jido8X7otwtSMqzxW0bzzqqqO8Tmm50sNQ==
+
   dependencies:
     bignumber "^1.1.0"
     bignumber.js "^9.0.2"
