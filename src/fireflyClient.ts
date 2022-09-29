@@ -19,16 +19,14 @@ import {
   OrderSigner,
   contracts_exchange,
   bnStrToBaseNumber,
-  OnboardingSigner,
-  OnboardingMessageString,
   MARGIN_TYPE,
   bnToString,
   Web3,
   ADDRESSES,
   ADJUST_MARGIN,
+  OnboardingSigner,
 } from "@firefly-exchange/library";
 
-import { OnboardingMessage } from "@firefly-exchange/library/dist/src/interfaces/OnboardingMessage";
 import {
   GetOrderResponse,
   GetOrderRequest,
@@ -74,8 +72,6 @@ export class FireflyClient {
   private wallet: Wallet | undefined;
 
   private orderSigners: Map<MarketSymbol, OrderSigner> = new Map();
-
-  private onboardSigner: OnboardingSigner;
 
   private apiService: APIService;
 
@@ -127,8 +123,6 @@ export class FireflyClient {
 
     this.sockets = new Sockets(this.network.socketURL);
 
-    this.onboardSigner = new OnboardingSigner(this.web3, this.network.chainId);
-
     this.isTermAccepted = _isTermAccepted;
 
     if (_acctPvtKey) {
@@ -149,7 +143,6 @@ export class FireflyClient {
     const provider = new ethers.providers.Web3Provider(_web3Provider);
 
     this.signer = provider.getSigner();
-    this.onboardSigner = new OnboardingSigner(this.web3, this.network.chainId);
     this.walletAddress = await this.signer.getAddress();
 
     if (_signingMethod) {
@@ -901,16 +894,11 @@ export class FireflyClient {
   userOnBoarding = async (token?: string) => {
     let userAuthToken = token;
     if (!userAuthToken) {
-      const message: OnboardingMessage = {
-        action: OnboardingMessageString.ONBOARDING,
-        onlySignOn: this.network.onboardingUrl,
-      };
-
       // sign onboarding message
-      const signature = await this.onboardSigner.sign(
-        this.getPublicAddress().toLowerCase(),
-        this.getOnboardSigningMethod(),
-        message
+      const signature = await OnboardingSigner.createOnboardSignature(
+        this.network.onboardingUrl,
+        this.wallet?.privateKey,
+        this.signer
       );
 
       // authorize signature created by dAPI

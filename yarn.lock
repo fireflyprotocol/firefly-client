@@ -479,11 +479,10 @@
     ts-mocha "^10.0.0"
     web3 "^1.7.5"
 
-"@firefly-exchange/library@^1.0.55":
-  version "1.0.55"
-  resolved "https://registry.yarnpkg.com/@firefly-exchange/library/-/library-1.0.55.tgz#b339a9931e7dc4d4830652dc808b127674173348"
-  integrity sha512-vSQQelya8Zhkae0zXBMSugOXdL90pmc5XtZycq/60kANI4x1HYf4Jido8X7otwtSMqzxW0bzzqqqO8Tmm50sNQ==
-
+"@firefly-exchange/library@^1.0.56":
+  version "1.0.56"
+  resolved "https://registry.yarnpkg.com/@firefly-exchange/library/-/library-1.0.56.tgz#37183ebc504e8b3854a40ac9d3339d974dd19b07"
+  integrity sha512-Ogjbir2yRkaz7ntpNkZ0CWspVK20qG15G//MMqUZiNNA1xs97hkD6uWX+Msi+TedtL/wYSfEDQ1bDlTJIgVnbw==
   dependencies:
     bignumber "^1.1.0"
     bignumber.js "^9.0.2"
