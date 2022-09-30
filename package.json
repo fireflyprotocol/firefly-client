@@ -46,7 +46,6 @@
     "webpack-node-externals": "^3.0.0"
   },
   "dependencies": {
-    "@firefly-exchange/firefly-math": "1.0.29",
     "@firefly-exchange/library": "^1.0.56",
     "axios": "^0.27.2",
     "chai": "^4.3.6",
