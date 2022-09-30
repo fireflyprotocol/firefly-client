@@ -24,6 +24,7 @@ import {
   Web3,
   ADDRESSES,
   ADJUST_MARGIN,
+  OnboardingSigner,
 } from "@firefly-exchange/library";
 
 import {
@@ -62,7 +63,6 @@ import { APIService } from "./exchange/apiService";
 import { SERVICE_URLS } from "./exchange/apiUrls";
 import { Sockets } from "./exchange/sockets";
 import { Networks } from "./constants";
-import { OnboardingSigner } from "@firefly-exchange/library";
 
 export class FireflyClient {
   protected readonly network: Network;
