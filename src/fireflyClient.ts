@@ -81,7 +81,9 @@ export class FireflyClient {
 
   private walletAddress = ""; // to save user's public address when connecting from UI
 
-  private signer: Signer | undefined; // to save provider when connecting from UI
+  private signer: Signer | undefined; // to save signer when connecting from UI
+
+  private web3Provider: any | undefined; // to save raw web3 provider when connecting from UI
 
   private signingMethod: SigningMethod = SigningMethod.MetaMaskLatest; // to save signing method when integrating on UI
 
@@ -139,6 +141,7 @@ export class FireflyClient {
     _web3Provider: any,
     _signingMethod?: SigningMethod
   ) => {
+    this.web3Provider = _web3Provider
     this.web3 = new Web3(_web3Provider);
     const provider = new ethers.providers.Web3Provider(_web3Provider);
 
@@ -897,8 +900,8 @@ export class FireflyClient {
       // sign onboarding message
       const signature = await OnboardingSigner.createOnboardSignature(
         this.network.onboardingUrl,
-        this.wallet?.privateKey,
-        this.signer
+        this.wallet ? this.wallet.privateKey : undefined,
+        this.web3Provider
       );
 
       // authorize signature created by dAPI
