@@ -65,6 +65,8 @@ import { APIService } from "./exchange/apiService";
 import { SERVICE_URLS } from "./exchange/apiUrls";
 import { Sockets } from "./exchange/sockets";
 import { Networks } from "./constants";
+import { adjustMarginContractCall } from "./exchange/contractService";
+import { ResponseSchema } from "./exchange/contractErrorHandling.service";
 
 export class FireflyClient {
   protected readonly network: Network;
@@ -563,11 +565,11 @@ export class FireflyClient {
    * @returns boolean indicating if leverage updated successfully
    */
 
-  adjustLeverage = async (
+  async adjustLeverage(
     symbol: MarketSymbol,
     leverage: number,
     perpetualAddress?: address
-  ): Promise<boolean> => {
+  ) {
     const userPosition = await this.getUserPosition({ symbol });
     if (!userPosition.data) {
       throw Error(`User positions data doesn't exist`);
@@ -583,30 +585,31 @@ export class FireflyClient {
         perpetualAddress,
         symbol
       );
-      await (
-        await (perpContract as contracts_exchange.Perpetual)
-          .connect(this.getWallet())
-          .adjustLeverage(this.getPublicAddress(), toBigNumberStr(leverage), {
-            gasLimit: this.maxBlockGasLimit,
-          })
-      ).wait();
-      return true;
+      const resp = await adjustMarginContractCall(
+        perpContract,
+        this.getWallet(),
+        leverage,
+        this.maxBlockGasLimit
+      );
+      // console.log("response", resp);
+      return resp;
     }
+
     // make api call
 
     // make update leverage api call on dapi
-    const updateLeverageResponse = await this.updateLeverage({
+    const {
+      ok,
+      data,
+      response: { errorCode, message },
+    } = await this.updateLeverage({
       symbol,
       leverage,
     });
-
-    if (!updateLeverageResponse.ok || !updateLeverageResponse.data) {
-      throw Error(
-        `Adjust leverage error: ${updateLeverageResponse.response.message}`
-      );
-    }
-    return updateLeverageResponse.ok;
-  };
+    const response: ResponseSchema = { ok, data, errorCode, message };
+    // console.log("response", response);
+    return { response };
+  }
 
   /**
    * Gets Users default leverage.
