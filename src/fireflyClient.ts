@@ -19,16 +19,14 @@ import {
   OrderSigner,
   contracts_exchange,
   bnStrToBaseNumber,
-  OnboardingSigner,
-  OnboardingMessageString,
   MARGIN_TYPE,
   bnToString,
   Web3,
   ADDRESSES,
   ADJUST_MARGIN,
+  OnboardingSigner,
 } from "@firefly-exchange/library";
 
-import { OnboardingMessage } from "@firefly-exchange/library/dist/src/interfaces/OnboardingMessage";
 import {
   GetOrderResponse,
   GetOrderRequest,
@@ -77,8 +75,6 @@ export class FireflyClient {
 
   private orderSigners: Map<MarketSymbol, OrderSigner> = new Map();
 
-  private onboardSigner: OnboardingSigner;
-
   private apiService: APIService;
 
   public sockets: Sockets;
@@ -87,7 +83,9 @@ export class FireflyClient {
 
   private walletAddress = ""; // to save user's public address when connecting from UI
 
-  private signer: Signer | undefined; // to save provider when connecting from UI
+  private signer: Signer | undefined; // to save signer when connecting from UI
+
+  private web3Provider: any | undefined; // to save raw web3 provider when connecting from UI
 
   private signingMethod: SigningMethod = SigningMethod.MetaMaskLatest; // to save signing method when integrating on UI
 
@@ -129,8 +127,6 @@ export class FireflyClient {
 
     this.sockets = new Sockets(this.network.socketURL);
 
-    this.onboardSigner = new OnboardingSigner(this.web3, this.network.chainId);
-
     this.isTermAccepted = _isTermAccepted;
 
     if (_acctPvtKey) {
@@ -147,11 +143,11 @@ export class FireflyClient {
     _web3Provider: any,
     _signingMethod?: SigningMethod
   ) => {
+    this.web3Provider = _web3Provider;
     this.web3 = new Web3(_web3Provider);
     const provider = new ethers.providers.Web3Provider(_web3Provider);
 
     this.signer = provider.getSigner();
-    this.onboardSigner = new OnboardingSigner(this.web3, this.network.chainId);
     this.walletAddress = await this.signer.getAddress();
 
     if (_signingMethod) {
@@ -904,16 +900,11 @@ export class FireflyClient {
   userOnBoarding = async (token?: string) => {
     let userAuthToken = token;
     if (!userAuthToken) {
-      const message: OnboardingMessage = {
-        action: OnboardingMessageString.ONBOARDING,
-        onlySignOn: this.network.onboardingUrl,
-      };
-
       // sign onboarding message
-      const signature = await this.onboardSigner.sign(
-        this.getPublicAddress().toLowerCase(),
-        this.getOnboardSigningMethod(),
-        message
+      const signature = await OnboardingSigner.createOnboardSignature(
+        this.network.onboardingUrl,
+        this.wallet ? this.wallet.privateKey : undefined,
+        this.web3Provider
       );
 
       // authorize signature created by dAPI
