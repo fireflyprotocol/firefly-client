@@ -1,35 +1,43 @@
-import { getValue, isEmpty } from "@firefly-exchange/library";
+import { getValue } from "@firefly-exchange/library";
 import { serializeError } from "eth-rpc-errors";
-
 export type ResponseSchema = {
   ok: boolean;
   data: any;
   message: string;
-  errorCode: number | null;
+  code?: number | string;
+  stack?: string;
 };
-interface ProviderRpcError extends Error {
+interface ProviderRpcError {
+  code: number | string;
   message: string;
-  code: number;
   data?: unknown;
+  stack?: string;
 }
 export const handleResponse = (
   response: ProviderRpcError,
   ok: boolean
 ): ResponseSchema => {
-  const mutatedResponse = {
+  const mutatedResponse: ResponseSchema = {
     // TODO:needs to be implemented properly (BE have to change response model first )
     ok,
-    data: getValue(response.data as object, "data", response.data),
-    message: getValue(response.data as object, "message", response.message),
-    errorCode: getValue(response.data as object, "code", response.code),
+    data: getValue(
+      response.data as object,
+      "originalError.transaction",
+      response.data
+    ),
+    message: getValue(
+      response.data as object,
+      "originalError.reason",
+      response.message
+    ),
+    code: getValue(
+      response.data as object,
+      "originalError.code",
+      response.code
+    ),
+    stack: response.message,
   };
-
-  const data = getValue(response, "data", undefined);
-
-  return {
-    ...mutatedResponse,
-    data: !isEmpty(data) ? data : undefined,
-  };
+  return mutatedResponse;
 };
 
 export const TransformToResponseSchema = async (
@@ -43,12 +51,10 @@ export const TransformToResponseSchema = async (
         data: result,
         message: successMessage,
         code: 200,
-        name: "",
       },
       true
     );
   } catch (error: any) {
-    console.log("error", serializeError(error));
-    return handleResponse(error, false);
+    return handleResponse({ ...serializeError(error) }, false);
   }
 };
