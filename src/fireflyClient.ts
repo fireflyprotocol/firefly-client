@@ -63,6 +63,13 @@ import { APIService } from "./exchange/apiService";
 import { SERVICE_URLS } from "./exchange/apiUrls";
 import { Sockets } from "./exchange/sockets";
 import { Networks } from "./constants";
+import {
+  adjustLeverageContractCall,
+  adjustMarginContractCall,
+  depositToMarginBankContractCall,
+  withdrawFromMarginBankContractCall,
+} from "./exchange/contractService";
+import { ResponseSchema } from "./exchange/contractErrorHandling.service";
 
 export class FireflyClient {
   protected readonly network: Network;
@@ -141,7 +148,7 @@ export class FireflyClient {
     _web3Provider: any,
     _signingMethod?: SigningMethod
   ) => {
-    this.web3Provider = _web3Provider
+    this.web3Provider = _web3Provider;
     this.web3 = new Web3(_web3Provider);
     const provider = new ethers.providers.Web3Provider(_web3Provider);
 
@@ -309,32 +316,21 @@ export class FireflyClient {
     amount: number,
     usdcContract?: address,
     mbContract?: address
-  ): Promise<boolean> => {
+  ): Promise<ResponseSchema> => {
     const tokenContract = this.getContract(this._usdcToken, usdcContract);
     const marginBankContract = this.getContract(this._marginBank, mbContract);
     const amountString = toBigNumberStr(amount, this.MarginTokenPrecision);
 
     // approve usdc contract to allow margin bank to take funds out for user's behalf
-    await (
-      await (tokenContract as Contract)
-        .connect(this.getWallet())
-        .approve(
-          (marginBankContract as contracts_exchange.MarginBank).address,
-          amountString,
-          { gasLimit: this.maxBlockGasLimit }
-        )
-    ).wait();
+    const resp = depositToMarginBankContractCall(
+      tokenContract,
+      marginBankContract,
+      amountString,
+      this.getWallet(),
+      this.maxBlockGasLimit
+    );
 
-    // deposit `amount` usdc to margin bank
-    await (
-      await (marginBankContract as contracts_exchange.MarginBank)
-        .connect(this.getWallet())
-        .depositToBank(this.getPublicAddress(), amountString, {
-          gasLimit: this.maxBlockGasLimit,
-        })
-    ).wait();
-
-    return true;
+    return resp;
   };
 
   /**
@@ -347,30 +343,18 @@ export class FireflyClient {
   withdrawFromMarginBank = async (
     amount?: number,
     mbContract?: address
-  ): Promise<boolean> => {
+  ): Promise<ResponseSchema> => {
     const marginBankContract = this.getContract(this._marginBank, mbContract);
 
-    let amountNumber = amount;
-    if (!amount) {
-      // get all margin bank balance when amount not provided by user
-      amountNumber = await this.getMarginBankBalance(
-        (marginBankContract as contracts_exchange.MarginBank).address
-      );
-    }
-    const amountString = toBigNumberStr(
-      amountNumber!,
-      this.MarginTokenPrecision
+    const resp = await withdrawFromMarginBankContractCall(
+      marginBankContract,
+      this.MarginTokenPrecision,
+      this.getWallet(),
+      this.maxBlockGasLimit,
+      this.getMarginBankBalance,
+      amount
     );
-
-    await (
-      await (marginBankContract as contracts_exchange.MarginBank)
-        .connect(this.getWallet())
-        .withdrawFromBank(this.getPublicAddress(), amountString, {
-          gasLimit: this.maxBlockGasLimit,
-        })
-    ).wait();
-
-    return true;
+    return resp;
   };
 
   /**
@@ -559,11 +543,11 @@ export class FireflyClient {
    * @returns boolean indicating if leverage updated successfully
    */
 
-  adjustLeverage = async (
+  async adjustLeverage(
     symbol: MarketSymbol,
     leverage: number,
     perpetualAddress?: address
-  ): Promise<boolean> => {
+  ): Promise<ResponseSchema> {
     const userPosition = await this.getUserPosition({ symbol });
     if (!userPosition.data) {
       throw Error(`User positions data doesn't exist`);
@@ -579,30 +563,25 @@ export class FireflyClient {
         perpetualAddress,
         symbol
       );
-      await (
-        await (perpContract as contracts_exchange.Perpetual)
-          .connect(this.getWallet())
-          .adjustLeverage(this.getPublicAddress(), toBigNumberStr(leverage), {
-            gasLimit: this.maxBlockGasLimit,
-          })
-      ).wait();
-      return true;
+      const resp = await adjustLeverageContractCall(
+        perpContract,
+        this.getWallet(),
+        leverage,
+        this.maxBlockGasLimit
+      );
+      return resp;
     }
-    // make api call
-
-    // make update leverage api call on dapi
-    const updateLeverageResponse = await this.updateLeverage({
+    const {
+      ok,
+      data,
+      response: { errorCode, message },
+    } = await this.updateLeverage({
       symbol,
       leverage,
     });
-
-    if (!updateLeverageResponse.ok || !updateLeverageResponse.data) {
-      throw Error(
-        `Adjust leverage error: ${updateLeverageResponse.response.message}`
-      );
-    }
-    return updateLeverageResponse.ok;
-  };
+    const response: ResponseSchema = { ok, data, code: errorCode, message };
+    return response;
+  }
 
   /**
    * Gets Users default leverage.
@@ -643,33 +622,22 @@ export class FireflyClient {
     operationType: ADJUST_MARGIN,
     amount: number,
     perpetualAddress?: string
-  ): Promise<boolean> => {
+  ): Promise<ResponseSchema> => {
     const perpContract = this.getContract(
       this._perpetual,
       perpetualAddress,
       symbol
     );
+    const resp = await adjustMarginContractCall(
+      operationType,
+      perpContract,
+      this.getWallet(),
+      amount,
+      this.maxBlockGasLimit
+    );
     // ADD margin
-    if (operationType === ADJUST_MARGIN.Add) {
-      await (
-        await (perpContract as contracts_exchange.Perpetual)
-          .connect(this.getWallet())
-          .addMargin(this.getPublicAddress(), toBigNumberStr(amount), {
-            gasLimit: this.maxBlockGasLimit,
-          })
-      ).wait();
-    }
-    // REMOVE margin
-    else {
-      await (
-        await (perpContract as contracts_exchange.Perpetual)
-          .connect(this.getWallet())
-          .removeMargin(this.getPublicAddress(), toBigNumberStr(amount), {
-            gasLimit: this.maxBlockGasLimit,
-          })
-      ).wait();
-    }
-    return true;
+
+    return resp;
   };
 
   /**

@@ -35,35 +35,38 @@ let client: FireflyClient;
 describe("FireflyClient", () => {
   // set environment from here
   const network = Networks.DEV;
-  let symbol = "BTC-PERP"
-  let defaultLeverage = 4
-  let buyPrice = 18000
-  let sellPrice = 20000
+  let symbol = "BTC-PERP";
+  let defaultLeverage = 4;
+  let buyPrice = 18000;
+  let sellPrice = 20000;
 
   before(async () => {
     client = new FireflyClient(true, network, testAcctKey);
     await client.init();
-    const allSymbols = await client.getMarketSymbols()
+    const allSymbols = await client.getMarketSymbols();
 
     //get first symbol
     if (allSymbols.data) {
-      symbol = allSymbols.data[0]
-      console.log(`--- Trading symbol: ${symbol} ---`)
+      symbol = allSymbols.data[0];
+      console.log(`--- Trading symbol: ${symbol} ---`);
     }
     //get default leverage
-    defaultLeverage = await client.getUserDefaultLeverage(symbol)
-    console.log(`- on leverage: ${defaultLeverage}`)
+    defaultLeverage = await client.getUserDefaultLeverage(symbol);
+    console.log(`- on leverage: ${defaultLeverage}`);
 
     //market data
-    const marketData = await client.getMarketData(symbol)
-    if (marketData.data && bnStrToBaseNumber(marketData.data.midMarketPrice) > 0) {
-      const midPrice = bnStrToBaseNumber(marketData.data.midMarketPrice)
-      const percentChange = 3/100 //3%
-      buyPrice = midPrice - midPrice*percentChange
-      sellPrice = midPrice + midPrice*percentChange
-      console.log(`- mid market price: ${midPrice}`)
+    const marketData = await client.getMarketData(symbol);
+    if (
+      marketData.data &&
+      bnStrToBaseNumber(marketData.data.midMarketPrice) > 0
+    ) {
+      const midPrice = bnStrToBaseNumber(marketData.data.midMarketPrice);
+      const percentChange = 3 / 100; //3%
+      buyPrice = midPrice - midPrice * percentChange;
+      sellPrice = midPrice + midPrice * percentChange;
+      console.log(`- mid market price: ${midPrice}`);
     }
-  })
+  });
 
   beforeEach(async () => {
     client = new FireflyClient(true, network, testAcctKey);
@@ -89,10 +92,7 @@ describe("FireflyClient", () => {
 
     it("should add DOT-PERP market with custom orders contract address", async () => {
       expect(
-        client.addMarket(
-          symbol,
-          "0x36AAc8c385E5FA42F6A7F62Ee91b5C2D813C451C"
-        )
+        client.addMarket(symbol, "0x36AAc8c385E5FA42F6A7F62Ee91b5C2D813C451C")
       ).to.be.equal(true);
     });
 
@@ -195,10 +195,7 @@ describe("FireflyClient", () => {
       await clientTemp.init();
       // When
       const newLeverage = 4;
-      const res = await clientTemp.adjustLeverage(
-        symbol,
-        newLeverage
-      ); // set leverage will do contract call as the account using is new
+      const res = await clientTemp.adjustLeverage(symbol, newLeverage); // set leverage will do contract call as the account using is new
       const lev = await clientTemp.getUserDefaultLeverage(symbol); // get leverage
       // Then
       expect(res).to.eq(true);
@@ -347,7 +344,7 @@ describe("FireflyClient", () => {
     it("should post a cancel order on exchange", async () => {
       const response = await client.postOrder({
         symbol: symbol,
-        price: sellPrice+2,
+        price: sellPrice + 2,
         quantity: 0.1,
         side: ORDER_SIDE.SELL,
         leverage: defaultLeverage,
@@ -568,9 +565,7 @@ describe("FireflyClient", () => {
       client.sockets.open();
       client.addMarket(symbol);
       client.sockets.subscribeGlobalUpdatesBySymbol(symbol);
-      client.sockets.subscribeUserUpdateByAddress(
-        client.getPublicAddress()
-      );
+      client.sockets.subscribeUserUpdateByAddress(client.getPublicAddress());
     });
 
     it("should receive an event from candle stick", (done) => {
@@ -593,7 +588,7 @@ describe("FireflyClient", () => {
       setTimeout(1000).then(() => {
         client.postOrder({
           symbol: symbol,
-          price: sellPrice+3,
+          price: sellPrice + 3,
           quantity: 0.1,
           side: ORDER_SIDE.SELL,
           leverage: defaultLeverage,
@@ -639,7 +634,7 @@ describe("FireflyClient", () => {
       setTimeout(1000).then(() => {
         client.postOrder({
           symbol: symbol,
-          price: sellPrice+1,
+          price: sellPrice + 1,
           quantity: 0.1,
           side: ORDER_SIDE.SELL,
           leverage: defaultLeverage,
