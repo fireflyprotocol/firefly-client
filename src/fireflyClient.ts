@@ -635,8 +635,6 @@ export class FireflyClient {
       amount,
       this.maxBlockGasLimit
     );
-    // ADD margin
-
     return resp;
   };
 
@@ -842,8 +840,8 @@ export class FireflyClient {
     return address;
   };
 
-  getWallet = () => {
-    const walletOrSigner = this.wallet ? this.wallet : this.signer;
+  getWallet = () : Wallet | Signer => {
+    const walletOrSigner: Signer | Wallet = this.wallet ? this.wallet as Wallet : this.signer as Signer;
     if (!walletOrSigner) {
       throw Error(`Invalid Signer`);
     }
