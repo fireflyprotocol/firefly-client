@@ -327,7 +327,8 @@ export class FireflyClient {
       marginBankContract,
       amountString,
       this.getWallet(),
-      this.maxBlockGasLimit
+      this.maxBlockGasLimit,
+      this.getPublicAddress
     );
 
     return resp;
@@ -352,6 +353,7 @@ export class FireflyClient {
       this.getWallet(),
       this.maxBlockGasLimit,
       this.getMarginBankBalance,
+      this.getPublicAddress,
       amount
     );
     return resp;
@@ -567,7 +569,8 @@ export class FireflyClient {
         perpContract,
         this.getWallet(),
         leverage,
-        this.maxBlockGasLimit
+        this.maxBlockGasLimit,
+        this.getPublicAddress
       );
       return resp;
     }
@@ -633,10 +636,9 @@ export class FireflyClient {
       perpContract,
       this.getWallet(),
       amount,
-      this.maxBlockGasLimit
+      this.maxBlockGasLimit,
+      this.getPublicAddress
     );
-    // ADD margin
-
     return resp;
   };
 
@@ -842,8 +844,8 @@ export class FireflyClient {
     return address;
   };
 
-  getWallet = () => {
-    const walletOrSigner = this.wallet ? this.wallet : this.signer;
+  getWallet = () : Wallet | Signer => {
+    const walletOrSigner: Signer | Wallet = this.wallet ? this.wallet as Wallet : this.signer as Signer;
     if (!walletOrSigner) {
       throw Error(`Invalid Signer`);
     }
