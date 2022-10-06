@@ -445,7 +445,7 @@
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
 
-"@firefly-exchange/library@^1.0.56":
+"@firefly-exchange/library@1.0.56":
   version "1.0.56"
   resolved "https://registry.yarnpkg.com/@firefly-exchange/library/-/library-1.0.56.tgz#37183ebc504e8b3854a40ac9d3339d974dd19b07"
   integrity sha512-Ogjbir2yRkaz7ntpNkZ0CWspVK20qG15G//MMqUZiNNA1xs97hkD6uWX+Msi+TedtL/wYSfEDQ1bDlTJIgVnbw==

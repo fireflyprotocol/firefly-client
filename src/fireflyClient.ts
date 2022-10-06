@@ -327,7 +327,8 @@ export class FireflyClient {
       marginBankContract,
       amountString,
       this.getWallet(),
-      this.maxBlockGasLimit
+      this.maxBlockGasLimit,
+      this.getPublicAddress
     );
 
     return resp;
@@ -352,6 +353,7 @@ export class FireflyClient {
       this.getWallet(),
       this.maxBlockGasLimit,
       this.getMarginBankBalance,
+      this.getPublicAddress,
       amount
     );
     return resp;
@@ -567,7 +569,8 @@ export class FireflyClient {
         perpContract,
         this.getWallet(),
         leverage,
-        this.maxBlockGasLimit
+        this.maxBlockGasLimit,
+        this.getPublicAddress
       );
       return resp;
     }
@@ -633,7 +636,8 @@ export class FireflyClient {
       perpContract,
       this.getWallet(),
       amount,
-      this.maxBlockGasLimit
+      this.maxBlockGasLimit,
+      this.getPublicAddress
     );
     return resp;
   };

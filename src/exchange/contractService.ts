@@ -1,4 +1,5 @@
 import {
+  address,
   ADJUST_MARGIN,
   contracts_exchange,
   toBigNumberStr,
@@ -8,89 +9,64 @@ import { Contract, Signer, Wallet } from "ethers";
 import { TransformToResponseSchema } from "./contractErrorHandling.service";
 
 export const adjustLeverageContractCall = async (
-  perpContract: Contract,
+  perpContract: any,
   wallet: Signer | Wallet,
   leverage: number,
-  gasLimit: number
+  gasLimit: number,
+  getPublicAddress: () => address
 ) => {
   return TransformToResponseSchema(async () => {
-    if (wallet.constructor.name === Wallet.name) {
       await (
         await (perpContract as contracts_exchange.Perpetual)
           .connect(wallet)
-          .adjustLeverage(await wallet.getAddress(), toBigNumberStr(leverage), {
+          .adjustLeverage(getPublicAddress(), toBigNumberStr(leverage), {
             gasLimit,
           })
       ).wait();
-    }
-    //called from UI
-    else {
-      await (perpContract as contracts_exchange.Perpetual)
-          .connect(wallet)
-          .adjustLeverage(await wallet.getAddress(), toBigNumberStr(leverage), {
-            gasLimit,
-          })
-    }
   }, "Success");
 };
 
 export const adjustMarginContractCall = async (
   operationType: ADJUST_MARGIN,
-  perpContract: Contract,
+  perpContract: any,
   wallet: Signer | Wallet,
   amount: number,
   gasLimit: number,
+  getPublicAddress: () => address
 ) => {
   return TransformToResponseSchema(async () => {
     // ADD margin
     if (operationType === ADJUST_MARGIN.Add) {
+      const tx = await (perpContract as contracts_exchange.Perpetual)
+      .connect(wallet)
+      .addMargin(getPublicAddress(), toBigNumberStr(amount), {
+        gasLimit: gasLimit,
+      })
       if (wallet.constructor.name === Wallet.name) {
-        await (
-          await (perpContract as contracts_exchange.Perpetual)
-            .connect(wallet)
-            .addMargin(await wallet.getAddress(), toBigNumberStr(amount), {
-              gasLimit: gasLimit,
-            })
-        ).wait();
-      }
-      //called from UI
-      else {
-        await (perpContract as contracts_exchange.Perpetual)
-            .connect(wallet)
-            .addMargin(await wallet.getAddress(), toBigNumberStr(amount), {
-              gasLimit: gasLimit,
-            })
+        await (tx).wait();
       }
     }
     // REMOVE margin
     else {
+      const tx = await (perpContract as contracts_exchange.Perpetual)
+      .connect(wallet)
+      .removeMargin(getPublicAddress(), toBigNumberStr(amount), {
+        gasLimit: gasLimit,
+      })
       if (wallet.constructor.name === Wallet.name) {
-        await (
-          await (perpContract as contracts_exchange.Perpetual)
-            .connect(wallet)
-            .removeMargin(wallet.getAddress(), toBigNumberStr(amount), {
-              gasLimit: gasLimit,
-            })
-        ).wait();
-      }
-      //called from UI
-      else {
-        await (perpContract as contracts_exchange.Perpetual)
-            .connect(wallet)
-            .removeMargin(wallet.getAddress(), toBigNumberStr(amount), {
-              gasLimit: gasLimit,
-            })
+        await (tx).wait();
       }
     }
   }, "Success");
 };
 export const withdrawFromMarginBankContractCall = async (
-  marginBankContract: contracts_exchange.MarginBank,
+  marginBankContract: any,
   MarginTokenPrecision: number,
   wallet: Signer | Wallet,
   gasLimit: number,
   //@no-check
   getMarginBankBalance: (address: string) => Promise<number>,
+  getPublicAddress: () => address,
   amount?: number
 ) => {
   return TransformToResponseSchema(async () => {
@@ -106,7 +82,7 @@ export const withdrawFromMarginBankContractCall = async (
     await (
       await (marginBankContract as contracts_exchange.MarginBank)
         .connect(wallet)
-        .withdrawFromBank(await wallet.getAddress(), amountString, {
+        .withdrawFromBank(getPublicAddress(), amountString, {
           gasLimit: gasLimit,
         })
     ).wait();
@@ -114,11 +90,12 @@ export const withdrawFromMarginBankContractCall = async (
 };
 
 export const depositToMarginBankContractCall = async (
-  tokenContract: Contract,
-  marginBankContract: Contract,
+  tokenContract: any,
+  marginBankContract: any,
   amountString: string,
   wallet: Signer | Wallet,
-  gasLimit: number
+  gasLimit: number,
+  getPublicAddress: () => address
 ) => {
   return TransformToResponseSchema(async () => {
     await (
@@ -135,7 +112,7 @@ export const depositToMarginBankContractCall = async (
     await (
       await (marginBankContract as contracts_exchange.MarginBank)
         .connect(wallet)
-        .depositToBank(await wallet.getAddress(), amountString, {
+        .depositToBank(getPublicAddress(), amountString, {
           gasLimit: gasLimit,
         })
     ).wait();
