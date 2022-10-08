@@ -16,7 +16,7 @@ export const adjustLeverageContractCall = async (
   getPublicAddress: () => address
 ) => {
   return TransformToResponseSchema(async () => {
-      await (
+      return await (
         await (perpContract as contracts_exchange.Perpetual)
           .connect(wallet)
           .adjustLeverage(getPublicAddress(), toBigNumberStr(leverage), {
@@ -79,7 +79,7 @@ export const withdrawFromMarginBankContractCall = async (
     }
     const amountString = toBigNumberStr(amountNumber!, MarginTokenPrecision);
 
-    await (
+   return await (
       await (marginBankContract as contracts_exchange.MarginBank)
         .connect(wallet)
         .withdrawFromBank(getPublicAddress(), amountString, {
@@ -97,8 +97,7 @@ export const depositToMarginBankContractCall = async (
   gasLimit: number,
   getPublicAddress: () => address
 ) => {
-  return TransformToResponseSchema(async () => {
-    await (
+  return TransformToResponseSchema(async () => { await (
       await (tokenContract as Contract)
         .connect(wallet)
         .approve(
@@ -109,7 +108,7 @@ export const depositToMarginBankContractCall = async (
     ).wait();
 
     // deposit `amount` usdc to margin bank
-    await (
+   return await (
       await (marginBankContract as contracts_exchange.MarginBank)
         .connect(wallet)
         .depositToBank(getPublicAddress(), amountString, {

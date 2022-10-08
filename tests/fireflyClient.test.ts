@@ -27,14 +27,14 @@ import {
 chai.use(chaiAsPromised);
 
 const testAcctKey =
-  "4d6c9531e0042cc8f7cf13d8c3cf77bfe239a8fed95e198d498ee1ec0b1a7e83";
-const testAcctPubAddr = "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF";
+  "2e792a159afff0d33b9efb66c90f3b3905fcf18e649fdfa41696faba11eea154";
+const testAcctPubAddr = "0x87fA278A55f3926c8f73C7aD0D0477b4b716E62a";
 
 let client: FireflyClient;
 
 describe("FireflyClient", () => {
   // set environment from here
-  const network = Networks.DEV;
+  const network = Networks.PRODUCTION;
   let symbol = "BTC-PERP";
   let defaultLeverage = 4;
   let buyPrice = 18000;
@@ -69,12 +69,12 @@ describe("FireflyClient", () => {
   });
 
   beforeEach(async () => {
-    client = new FireflyClient(true, network, testAcctKey);
-    await client.init();
+    // client = new FireflyClient(true, network, testAcctKey);
+    // await client.init();
   });
 
   afterEach(() => {
-    client.sockets.close();
+    // client.sockets.close();
   });
 
   it("should initialize the client", async () => {
@@ -163,7 +163,7 @@ describe("FireflyClient", () => {
       expect(await client.getUSDCBalance()).to.be.gte(usdcBalance + 10000);
     });
 
-    it("should move 1 USDC token to Margin Bank", async () => {
+    it.only("should move 1 USDC token to Margin Bank", async () => {
       const usdcBalance = await client.getUSDCBalance();
       expect(await client.depositToMarginBank(1)).to.be.equal(true);
       expect(await client.getMarginBankBalance()).to.be.gte(1);
@@ -194,7 +194,7 @@ describe("FireflyClient", () => {
       const clientTemp = new FireflyClient(true, network, wallet.privateKey);
       await clientTemp.init();
       // When
-      const newLeverage = 4;
+      const newLeverage = 2;
       const res = await clientTemp.adjustLeverage(symbol, newLeverage); // set leverage will do contract call as the account using is new
       const lev = await clientTemp.getUserDefaultLeverage(symbol); // get leverage
       // Then

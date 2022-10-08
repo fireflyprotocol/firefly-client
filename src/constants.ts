@@ -21,10 +21,10 @@ export const Networks = {
     onboardingUrl: "https://dev-sandbox.firefly.exchange",
   },
   PRODUCTION: {
-    url: "",
-    chainId: 0,
-    apiGateway: "",
-    socketURL: "",
-    onboardingUrl: "",
+    url: "https://bobabeam.boba.network/",
+    chainId: 1294,
+    apiGateway: "https://dapi.firefly.exchange",
+    socketURL: "wss://dapi.firefly.exchange",
+    onboardingUrl: "https://trade.firefly.exchange",
   },
 };

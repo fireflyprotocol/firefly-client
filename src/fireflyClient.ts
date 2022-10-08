@@ -70,7 +70,10 @@ import {
   withdrawFromMarginBankContractCall,
 } from "./exchange/contractService";
 import { ResponseSchema } from "./exchange/contractErrorHandling.service";
-
+//@ts-ignore
+import { Biconomy } from "@biconomy/mexa"
+import HDWalletProvider from "@truffle/hdwallet-provider";
+import { adjustLeverageBiconomyCall, adjustMarginBiconomyCall, depositToMarginBankBiconomyCall, withdrawFromMarginBankBiconomyCall } from "./exchange/biconomyService";
 export class FireflyClient {
   protected readonly network: Network;
 
@@ -93,6 +96,8 @@ export class FireflyClient {
   private web3Provider: any | undefined; // to save raw web3 provider when connecting from UI
 
   private signingMethod: SigningMethod = SigningMethod.MetaMaskLatest; // to save signing method when integrating on UI
+
+  private biconomy: Biconomy | undefined
 
   private contractAddresses: any;
 
@@ -181,7 +186,6 @@ export class FireflyClient {
     if (!addresses.ok) {
       throw Error("Failed to fetch contract addresses");
     }
-    this.contractAddresses = addresses.data;
 
     // onboard user if not onboarded
     if (userOnboarding) {
@@ -189,7 +193,61 @@ export class FireflyClient {
     }
 
     this.maxBlockGasLimit = (await this.web3.eth.getBlock("latest")).gasLimit;
+
+    var provider: any;
+    if(this.web3Provider){
+      provider = this.web3Provider
+    }else{
+      provider = new HDWalletProvider({
+        privateKeys: [(this.getWallet() as Wallet).privateKey],
+        providerOrUrl: this.network.url
+      });
+    }
+    if (this.network === Networks.PRODUCTION){
+      this.marketSymbols = (await this.getMarketSymbols()).response.data
+      this.contractAddresses = addresses.data;
+
+      const biconomyAddresses = this.marketSymbols.map((symbol) =>{
+        return this.getContractAddressByName(
+          this._perpetual,
+          undefined,
+          symbol
+        )
+      })
+
+      biconomyAddresses.push(this.getContractAddressByName(this._marginBank))
+
+      console.log(biconomyAddresses)
+
+      this.biconomy = 
+      await this.initBiconomy(
+        provider,
+        "4DVAjlPjH.bdfe6110-9735-4975-a69d-4e52eb40eace",
+        biconomyAddresses
+        )
+
+    }
   };
+
+  initBiconomy = async (
+    provider: any,
+    apiKey: string,
+    contracts: string[]
+) => {
+    const biconomy = new Biconomy(provider, {
+        walletProvider: provider,
+        apiKey: apiKey,
+        debug: false,
+        contractAddresses: ["0x311221C50414c7402eb4a37032eE95ACeE54873E","0xdBB9069356740f574F00Ca02011aC7a63f7B8ebf","0x4748a829B72BBF81509C494D5a311626129e88ef"]
+    });
+    console.log("biconomy.Initialize",contracts)
+    return new Promise((resolve) => {
+        biconomy.onEvent(biconomy.READY, async () => {
+            resolve(biconomy);
+        });
+    });
+    
+}
 
   /**
    * Allows caller to add a market, internally creates order signer for the provided market
@@ -322,15 +380,27 @@ export class FireflyClient {
     const amountString = toBigNumberStr(amount, this.MarginTokenPrecision);
 
     // approve usdc contract to allow margin bank to take funds out for user's behalf
-    const resp = depositToMarginBankContractCall(
-      tokenContract,
-      marginBankContract,
-      amountString,
-      this.getWallet(),
-      this.maxBlockGasLimit,
-      this.getPublicAddress
-    );
-
+    let resp;
+    if(this.network === Networks.PRODUCTION){
+      resp = depositToMarginBankBiconomyCall(
+        tokenContract,
+        marginBankContract,
+        amountString,
+        this.biconomy,
+        this.getPublicAddress,
+      );
+    }else{
+      resp = depositToMarginBankContractCall(
+        tokenContract,
+        marginBankContract,
+        amountString,
+        this.getWallet(),
+        this.maxBlockGasLimit,
+        this.getPublicAddress
+      );
+    }
+    
+    console.log(resp)
     return resp;
   };
 
@@ -346,16 +416,28 @@ export class FireflyClient {
     mbContract?: address
   ): Promise<ResponseSchema> => {
     const marginBankContract = this.getContract(this._marginBank, mbContract);
-
-    const resp = await withdrawFromMarginBankContractCall(
-      marginBankContract,
-      this.MarginTokenPrecision,
-      this.getWallet(),
-      this.maxBlockGasLimit,
-      this.getMarginBankBalance,
-      this.getPublicAddress,
-      amount
-    );
+    let resp;
+    if(this.network === Networks.PRODUCTION){
+      resp = await withdrawFromMarginBankBiconomyCall(
+        marginBankContract,
+        this.MarginTokenPrecision,
+        this.biconomy,
+        this.getMarginBankBalance,
+        this.getPublicAddress,
+        amount
+      );
+    }else{
+      resp = await withdrawFromMarginBankContractCall(
+        marginBankContract,
+        this.MarginTokenPrecision,
+        this.getWallet(),
+        this.maxBlockGasLimit,
+        this.getMarginBankBalance,
+        this.getPublicAddress,
+        amount
+      );
+    }
+    
     return resp;
   };
 
@@ -565,13 +647,25 @@ export class FireflyClient {
         perpetualAddress,
         symbol
       );
-      const resp = await adjustLeverageContractCall(
-        perpContract,
-        this.getWallet(),
-        leverage,
-        this.maxBlockGasLimit,
-        this.getPublicAddress
-      );
+
+      let resp;
+      if(this.network === Networks.PRODUCTION){
+        resp = await adjustLeverageBiconomyCall(
+          perpContract,
+          leverage,
+          this.biconomy,
+          this.getPublicAddress,
+        )
+      }else{
+        resp = await adjustLeverageContractCall(
+          perpContract,
+          this.getWallet(),
+          leverage,
+          this.maxBlockGasLimit,
+          this.getPublicAddress
+        );
+      }
+      
       return resp;
     }
     const {
@@ -631,14 +725,25 @@ export class FireflyClient {
       perpetualAddress,
       symbol
     );
-    const resp = await adjustMarginContractCall(
-      operationType,
-      perpContract,
-      this.getWallet(),
-      amount,
-      this.maxBlockGasLimit,
-      this.getPublicAddress
-    );
+    let resp;
+    if(this.network === Networks.PRODUCTION){
+      resp = await adjustMarginBiconomyCall(
+        operationType,
+        perpContract,
+        amount,
+        this.biconomy,
+        this.getPublicAddress,
+      )
+    }else{
+      resp = await adjustMarginContractCall(
+        operationType,
+        perpContract,
+        this.getWallet(),
+        amount,
+        this.maxBlockGasLimit,
+        this.getPublicAddress
+      );
+    }
     return resp;
   };
 
@@ -898,12 +1003,52 @@ export class FireflyClient {
    * @param contract address of contract
    * @returns Contract | MarginBank or throws error
    */
-  private getContract = (
+  public getContract = (
     contractName: string,
     contract?: address,
     market?: MarketSymbol
   ): Contract | contracts_exchange.MarginBank | contracts_exchange.Orders => {
     // if a market name is provided and contract address is not provided
+    
+    contract = this.getContractAddressByName(contractName,contract,market)
+
+    switch (contractName) {
+      case this._perpetual:
+        const perpFactory = new contracts_exchange.Perpetual__factory();
+        const perp = perpFactory.attach(contract);
+        return perp as any as contracts_exchange.Perpetual;
+      case this._usdcToken:
+        const dummyFactory = new contracts_exchange.DummyUSDC__factory();
+        const dummyUSDC = dummyFactory.attach(contract);
+        return dummyUSDC as any as contracts_exchange.DummyUSDC;
+      case this._marginBank:
+        const marginBankFactory = new contracts_exchange.MarginBank__factory();
+        const marginBank = marginBankFactory.attach(contract);
+        return marginBank as any as contracts_exchange.MarginBank;
+      case this._orders:
+        const ordersFactory = new contracts_exchange.Orders__factory();
+        const orders = ordersFactory.attach(contract);
+        return orders as any as contracts_exchange.Orders;
+      default:
+        throw Error(`Unknown contract name received: ${contractName}`);
+    }
+  };
+
+  public getContractAddressByName
+  = (
+    contractName: string,
+    contract?: address,
+    market?: MarketSymbol
+  ): string =>{
+    if(contractName === this._usdcToken){
+      return "0x4748a829B72BBF81509C494D5a311626129e88ef"
+    }
+    if(contractName === this._perpetual)
+      return "0x311221C50414c7402eb4a37032eE95ACeE54873E"
+
+    if(contractName === this._marginBank)
+     return "0xdBB9069356740f574F00Ca02011aC7a63f7B8ebf" 
+
     if (market && !contract) {
       try {
         contract = this.contractAddresses[market][contractName];
@@ -928,27 +1073,9 @@ export class FireflyClient {
       );
     }
 
-    switch (contractName) {
-      case this._perpetual:
-        const perpFactory = new contracts_exchange.Perpetual__factory();
-        const perp = perpFactory.attach(contract);
-        return perp as any as contracts_exchange.Perpetual;
-      case this._usdcToken:
-        const dummyFactory = new contracts_exchange.DummyUSDC__factory();
-        const dummyUSDC = dummyFactory.attach(contract);
-        return dummyUSDC as any as contracts_exchange.DummyUSDC;
-      case this._marginBank:
-        const marginBankFactory = new contracts_exchange.MarginBank__factory();
-        const marginBank = marginBankFactory.attach(contract);
-        return marginBank as any as contracts_exchange.MarginBank;
-      case this._orders:
-        const ordersFactory = new contracts_exchange.Orders__factory();
-        const orders = ordersFactory.attach(contract);
-        return orders as any as contracts_exchange.Orders;
-      default:
-        throw Error(`Unknown contract name received: ${contractName}`);
-    }
-  };
+    return contract;
+
+  }
 
   /**
    * Private function to create order payload that is to be signed on-chain
