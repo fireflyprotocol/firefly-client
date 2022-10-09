@@ -110,7 +110,7 @@ export class FireflyClient {
 
   private _marginBank = "MarginBank";
 
-  private _orders = "Orders";
+  private _isolatedTrader = "IsolatedTrader";
   // ◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢◣◢
 
   /**
@@ -203,7 +203,7 @@ export class FireflyClient {
       return false;
     }
 
-    const contract = this.getContract(this._orders, ordersContract, symbol);
+    const contract = this.getContract(this._isolatedTrader, ordersContract, symbol);
 
     this.orderSigners.set(
       symbol,
@@ -902,7 +902,7 @@ export class FireflyClient {
     contractName: string,
     contract?: address,
     market?: MarketSymbol
-  ): Contract | contracts_exchange.MarginBank | contracts_exchange.Orders => {
+  ): Contract | contracts_exchange.MarginBank | contracts_exchange.IsolatedTrader => {
     // if a market name is provided and contract address is not provided
     if (market && !contract) {
       try {
@@ -941,10 +941,10 @@ export class FireflyClient {
         const marginBankFactory = new contracts_exchange.MarginBank__factory();
         const marginBank = marginBankFactory.attach(contract);
         return marginBank as any as contracts_exchange.MarginBank;
-      case this._orders:
-        const ordersFactory = new contracts_exchange.Orders__factory();
-        const orders = ordersFactory.attach(contract);
-        return orders as any as contracts_exchange.Orders;
+      case this._isolatedTrader:
+        const isolatedTraderFactory = new contracts_exchange.IsolatedTrader__factory();
+        const isolatedTrader = isolatedTraderFactory.attach(contract);
+        return isolatedTrader as any as contracts_exchange.IsolatedTrader;
       default:
         throw Error(`Unknown contract name received: ${contractName}`);
     }
@@ -966,6 +966,8 @@ export class FireflyClient {
       expiration.setMonth(expiration.getMonth() + 1);
     }
 
+    const salt =  params.salt && bigNumber(params.salt).lt(bigNumber(2^60)) ? bigNumber(params.salt) : bigNumber(this.randomNumber(1_000_000_000))
+
     return {
       isBuy: params.side === ORDER_SIDE.BUY,
       price: toBigNumber(params.price),
@@ -974,11 +976,10 @@ export class FireflyClient {
       maker: this.getPublicAddress().toLocaleLowerCase(),
       reduceOnly: params.reduceOnly || false,
       triggerPrice: toBigNumber(0),
-      taker: ADDRESSES.ZERO,
       expiration: bigNumber(
         params.expiration || Math.floor(expiration.getTime() / 1000) // /1000 to convert time in seconds
       ),
-      salt: bigNumber(params.salt || this.randomNumber(1_000_000_000)),
+      salt: salt
     } as Order;
   };
 
