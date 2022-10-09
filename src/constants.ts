@@ -28,3 +28,6 @@ export const Networks = {
     onboardingUrl: "https://trade.firefly.exchange",
   },
 };
+
+export const BICONOMY_API_KEY =
+  "4DVAjlPjH.bdfe6110-9735-4975-a69d-4e52eb40eace";
