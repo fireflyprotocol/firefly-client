@@ -86,11 +86,11 @@ describe("FireflyClient", () => {
   });
 
   describe("Market", () => {
-    it("should add DOT-PERP market", async () => {
+    it("should add BTC-PERP market", async () => {
       expect(client.addMarket(symbol)).to.be.equal(true);
     });
 
-    it("should add DOT-PERP market with custom orders contract address", async () => {
+    it("should add BTC-PERP market with custom orders contract address", async () => {
       expect(
         client.addMarket(symbol, "0x36AAc8c385E5FA42F6A7F62Ee91b5C2D813C451C")
       ).to.be.equal(true);
@@ -115,12 +115,12 @@ describe("FireflyClient", () => {
       ).to.be.equal(true);
     });
 
-    it("should return False as DOT-PERP market is already added", async () => {
+    it("should return False as BTC-PERP market is already added", async () => {
       expect(client.addMarket(symbol)).to.be.equal(true);
       expect(client.addMarket(symbol)).to.be.equal(false);
     });
 
-    it("should remove the DOT market", async () => {
+    it("should remove the BTC market", async () => {
       expect(client.addMarket(symbol)).to.be.equal(true);
       expect(client.removeMarket(symbol)).to.be.equal(true);
     });
@@ -165,14 +165,14 @@ describe("FireflyClient", () => {
 
     it("should move 1 USDC token to Margin Bank", async () => {
       const usdcBalance = await client.getUSDCBalance();
-      expect(await client.depositToMarginBank(1)).to.be.equal(true);
+      expect((await client.depositToMarginBank(1))?.ok).to.be.equal(true);
       expect(await client.getMarginBankBalance()).to.be.gte(1);
       expect(await client.getUSDCBalance()).to.be.gte(usdcBalance - 1);
     });
 
     it("should withdraw 1 USDC token from Margin Bank", async () => {
       const usdcBalance = await client.getUSDCBalance();
-      expect(await client.withdrawFromMarginBank(1)).to.be.equal(true);
+      expect((await client.withdrawFromMarginBank(1))?.ok).to.be.equal(true);
       expect(await client.getUSDCBalance()).to.be.gte(usdcBalance + 1);
     });
 
@@ -426,7 +426,7 @@ describe("FireflyClient", () => {
       clientTemp.sockets.close();
     });
 
-    it("should get user's DOT-PERP Position", async () => {
+    it("should get user's BTC-PERP Position", async () => {
       const response = await client.getUserPosition({
         symbol: symbol,
       });
@@ -465,7 +465,7 @@ describe("FireflyClient", () => {
       clientTemp.sockets.close();
     });
 
-    it("should get user's DOT-PERP Trades", async () => {
+    it("should get user's BTC-PERP Trades", async () => {
       const response = await client.getUserTrades({
         symbol: symbol,
       });
@@ -474,7 +474,7 @@ describe("FireflyClient", () => {
   });
 
   describe("Get Market Orderbook", () => {
-    it("should get DOT orderbook with best ask and bid", async () => {
+    it("should get BTC orderbook with best ask and bid", async () => {
       const response = await client.getOrderbook({
         symbol: symbol,
         limit: 1,
@@ -512,7 +512,7 @@ describe("FireflyClient", () => {
     expect(response.ok).to.be.equal(true);
   });
 
-  it("should get recent market trades of DOT-PERP Market", async () => {
+  it("should get recent market trades of BTC-PERP Market", async () => {
     const response = await client.getMarketRecentTrades({
       symbol: symbol,
     });
@@ -527,7 +527,7 @@ describe("FireflyClient", () => {
     expect(response.ok).to.be.equal(true);
   });
 
-  it("should get exchange info for DOT Market", async () => {
+  it("should get exchange info for BTC Market", async () => {
     const response = await client.getExchangeInfo(symbol);
     expect(response.ok).to.be.equal(true);
     expect(response.data?.symbol).to.be.equal(symbol);
@@ -539,12 +539,12 @@ describe("FireflyClient", () => {
     expect(response.response.data.length).to.be.gte(1);
   });
 
-  it("should get market data for DOT Market", async () => {
+  it("should get market data for BTC Market", async () => {
     const response = await client.getMarketData(symbol);
     expect(response.ok).to.be.equal(true);
   });
 
-  it("should get market meta info for DOT Market", async () => {
+  it("should get market meta info for BTC Market", async () => {
     const response = await client.getMarketMetaInfo(symbol);
     expect(response.ok).to.be.equal(true);
   });
