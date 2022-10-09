@@ -22,7 +22,6 @@ import {
   MARGIN_TYPE,
   bnToString,
   Web3,
-  ADDRESSES,
   ADJUST_MARGIN,
   OnboardingSigner,
 } from "@firefly-exchange/library";
@@ -183,6 +182,18 @@ export class FireflyClient {
     }
     this.contractAddresses = addresses.data;
 
+    // TODO! just for testing - REMOVE BELOW CODE WHEN CORRECT ADDRESSES start coming from dapi
+    const testingSymbol = "BTC-PERP";
+    this.contractAddresses[testingSymbol][this._isolatedTrader] =
+      "0x4c7422118835bf8Fe96d7986d99F727E7B2023C7";
+    this.contractAddresses[testingSymbol][this._usdcToken] =
+      "0x315a543ace0B3958d53049a6019E89061454000f";
+    this.contractAddresses[testingSymbol][this._perpetual] =
+      "0xff43799177dE3C06dbafE8b8a7F667F640eaF030";
+    this.contractAddresses.auxiliaryContractsAddresses[this._marginBank] =
+      "0x373c32B7dD20c3Fb2913967fB9742fd99459a58a";
+    // TODO! just for testing - REMOVE ABOVE CODE WHEN CORRECT ADDRESSES start coming from dapi
+
     // onboard user if not onboarded
     if (userOnboarding) {
       await this.userOnBoarding();
@@ -203,7 +214,11 @@ export class FireflyClient {
       return false;
     }
 
-    const contract = this.getContract(this._isolatedTrader, ordersContract, symbol);
+    const contract = this.getContract(
+      this._isolatedTrader,
+      ordersContract,
+      symbol
+    );
 
     this.orderSigners.set(
       symbol,
@@ -463,6 +478,35 @@ export class FireflyClient {
     });
 
     return response;
+  };
+
+  /**
+   * Verifies if the order
+   * @param params
+   * @returns boolean indicating if order signature is valid
+   */
+  verifyOrderSignature = (params: OrderSignatureResponse): boolean => {
+    const signedOrder: SignedOrder = {
+      isBuy: params.side === ORDER_SIDE.BUY,
+      reduceOnly: params.reduceOnly,
+      quantity: toBigNumber(params.quantity),
+      price: toBigNumber(params.price),
+      triggerPrice: toBigNumber(0),
+      leverage: toBigNumber(params.leverage),
+      maker: this.getPublicAddress().toLocaleLowerCase(),
+      expiration: bigNumber(params.expiration),
+      salt: bigNumber(params.salt),
+      typedSignature: params.orderSignature,
+    };
+
+    const signer = this.orderSigners.get(params.symbol);
+    if (!signer) {
+      throw Error(
+        `Provided Market Symbol(${params.symbol}) is not added to client library`
+      );
+    }
+
+    return signer.orderHasValidSignature(signedOrder);
   };
 
   /**
@@ -844,8 +888,10 @@ export class FireflyClient {
     return address;
   };
 
-  getWallet = () : Wallet | Signer => {
-    const walletOrSigner: Signer | Wallet = this.wallet ? this.wallet as Wallet : this.signer as Signer;
+  getWallet = (): Wallet | Signer => {
+    const walletOrSigner: Signer | Wallet = this.wallet
+      ? (this.wallet as Wallet)
+      : (this.signer as Signer);
     if (!walletOrSigner) {
       throw Error(`Invalid Signer`);
     }
@@ -902,7 +948,10 @@ export class FireflyClient {
     contractName: string,
     contract?: address,
     market?: MarketSymbol
-  ): Contract | contracts_exchange.MarginBank | contracts_exchange.IsolatedTrader => {
+  ):
+    | Contract
+    | contracts_exchange.MarginBank
+    | contracts_exchange.IsolatedTrader => {
     // if a market name is provided and contract address is not provided
     if (market && !contract) {
       try {
@@ -942,7 +991,8 @@ export class FireflyClient {
         const marginBank = marginBankFactory.attach(contract);
         return marginBank as any as contracts_exchange.MarginBank;
       case this._isolatedTrader:
-        const isolatedTraderFactory = new contracts_exchange.IsolatedTrader__factory();
+        const isolatedTraderFactory =
+          new contracts_exchange.IsolatedTrader__factory();
         const isolatedTrader = isolatedTraderFactory.attach(contract);
         return isolatedTrader as any as contracts_exchange.IsolatedTrader;
       default:
@@ -966,7 +1016,10 @@ export class FireflyClient {
       expiration.setMonth(expiration.getMonth() + 1);
     }
 
-    const salt =  params.salt && bigNumber(params.salt).lt(bigNumber(2^60)) ? bigNumber(params.salt) : bigNumber(this.randomNumber(1_000_000_000))
+    const salt =
+      params.salt && bigNumber(params.salt).lt(bigNumber(2 ** 60))
+        ? bigNumber(params.salt)
+        : bigNumber(this.randomNumber(1_000));
 
     return {
       isBuy: params.side === ORDER_SIDE.BUY,
@@ -979,7 +1032,7 @@ export class FireflyClient {
       expiration: bigNumber(
         params.expiration || Math.floor(expiration.getTime() / 1000) // /1000 to convert time in seconds
       ),
-      salt: salt
+      salt,
     } as Order;
   };
 
