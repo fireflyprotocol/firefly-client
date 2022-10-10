@@ -561,12 +561,10 @@ export class FireflyClient {
   cancelAllOpenOrders = async (symbol: MarketSymbol) => {
     const openOrders = await this.getUserOrders({
       symbol,
-      status: ORDER_STATUS.OPEN,
+      statuses: [ORDER_STATUS.OPEN],
     });
 
-    const hashes = (await openOrders.data?.map(
-      (order) => order.hash
-    )) as string[];
+    const hashes = openOrders.data?.map((order) => order.hash) as string[];
 
     const response = await this.postCancelOrder({ hashes, symbol });
 
