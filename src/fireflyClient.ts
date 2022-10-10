@@ -26,7 +26,7 @@ import {
   ADJUST_MARGIN,
   OnboardingSigner,
 } from "@firefly-exchange/library";
-
+//@ts-ignore
 import { Biconomy } from "@biconomy/mexa";
 import HDWalletProvider from "@truffle/hdwallet-provider";
 import {
@@ -1045,14 +1045,6 @@ export class FireflyClient {
     contract?: address,
     market?: MarketSymbol
   ): string => {
-    if (contractName === this._usdcToken) {
-      return "0x4748a829B72BBF81509C494D5a311626129e88ef";
-    }
-    if (contractName === this._perpetual)
-      return "0x311221C50414c7402eb4a37032eE95ACeE54873E";
-
-    if (contractName === this._marginBank)
-      return "0xdBB9069356740f574F00Ca02011aC7a63f7B8ebf";
 
     if (market && !contract) {
       try {

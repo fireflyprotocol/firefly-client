@@ -41,7 +41,7 @@ describe("FireflyClient", () => {
   let sellPrice = 20000;
 
   before(async () => {
-    client = new FireflyClient(true, network, testAcctKey);
+    client = new FireflyClient(true, network, testAcctKey,false);
     await client.init();
     const allSymbols = await client.getMarketSymbols();
 
@@ -163,14 +163,14 @@ describe("FireflyClient", () => {
       expect(await client.getUSDCBalance()).to.be.gte(usdcBalance + 10000);
     });
 
-    it.only("should move 1 USDC token to Margin Bank", async () => {
+    it("should move 1 USDC token to Margin Bank", async () => {
       const usdcBalance = await client.getUSDCBalance();
       expect(await client.depositToMarginBank(1)).to.be.equal(true);
       expect(await client.getMarginBankBalance()).to.be.gte(1);
       expect(await client.getUSDCBalance()).to.be.gte(usdcBalance - 1);
     });
 
-    it("should withdraw 1 USDC token from Margin Bank", async () => {
+    it.only("should withdraw 1 USDC token from Margin Bank", async () => {
       const usdcBalance = await client.getUSDCBalance();
       expect(await client.withdrawFromMarginBank(1)).to.be.equal(true);
       expect(await client.getUSDCBalance()).to.be.gte(usdcBalance + 1);
