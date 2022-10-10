@@ -5,15 +5,21 @@
  */
 
 /* eslint-disable no-console */
-import { Networks, FireflyClient, MARKET_SYMBOLS, ORDER_SIDE, ORDER_TYPE } from "../index";
+import {
+  Networks,
+  FireflyClient,
+  MARKET_SYMBOLS,
+  ORDER_SIDE,
+  ORDER_TYPE,
+} from "../index";
 
 async function main() {
   // no gas fee is required to create order signature.
   const dummyAccountKey =
     "a182091b4d5a090b65d604e36f68629a692e3bf2aa864bd3f037854034cdd676";
 
-  const client = new FireflyClient(true, Networks.TESTNET, dummyAccountKey);  //passing isTermAccepted = true for compliance and authorizarion
-  await client.init()
+  const client = new FireflyClient(true, Networks.TESTNET, dummyAccountKey); // passing isTermAccepted = true for compliance and authorization
+  await client.init();
 
   client.addMarket(MARKET_SYMBOLS.DOT);
 
@@ -24,7 +30,7 @@ async function main() {
       price: 0,
       quantity: 0.1,
       side: ORDER_SIDE.SELL,
-      orderType: ORDER_TYPE.MARKET
+      orderType: ORDER_TYPE.MARKET,
     });
   } catch (e) {
     console.log("Error:", e);
@@ -36,7 +42,7 @@ async function main() {
     price: 0, // 0 implies market order
     quantity: 0.1, // the amount of asset to trade
     side: ORDER_SIDE.SELL, // buy or sell
-    orderType: ORDER_TYPE.MARKET
+    orderType: ORDER_TYPE.MARKET,
   });
 
   console.log("Signed Order Created:", signedOrder);

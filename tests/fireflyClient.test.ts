@@ -35,33 +35,36 @@ let client: FireflyClient;
 describe("FireflyClient", () => {
   // set environment from here
   const network = Networks.PRODUCTION;
-  let symbol = "BTC-PERP";
+  const symbol = "BTC-PERP";
   let defaultLeverage = 4;
   let buyPrice = 18000;
   let sellPrice = 20000;
 
   before(async () => {
-    client = new FireflyClient(true, network, testAcctKey,false);
+    client = new FireflyClient(true, network, testAcctKey, false);
     await client.init();
-    const allSymbols = await client.getMarketSymbols();
+    // TODO! uncomment below code when done testing specifically on BTC-PERP
+    // const allSymbols = await client.getMarketSymbols();
+    // get first symbol to run tests on
+    // if (allSymbols.data) {
+    //   symbol = allSymbols.data[0];
+    // }
+    // TODO! uncomment above code when done testing specifically on BTC-PERP
 
-    //get first symbol
-    if (allSymbols.data) {
-      symbol = allSymbols.data[0];
-      console.log(`--- Trading symbol: ${symbol} ---`);
-    }
-    //get default leverage
+    console.log(`--- Trading symbol: ${symbol} ---`);
+
+    // get default leverage
     defaultLeverage = await client.getUserDefaultLeverage(symbol);
     console.log(`- on leverage: ${defaultLeverage}`);
 
-    //market data
+    // market data
     const marketData = await client.getMarketData(symbol);
     if (
       marketData.data &&
       bnStrToBaseNumber(marketData.data.midMarketPrice) > 0
     ) {
       const midPrice = bnStrToBaseNumber(marketData.data.midMarketPrice);
-      const percentChange = 3 / 100; //3%
+      const percentChange = 3 / 100; // 3%
       buyPrice = midPrice - midPrice * percentChange;
       sellPrice = midPrice + midPrice * percentChange;
       console.log(`- mid market price: ${midPrice}`);
@@ -86,11 +89,11 @@ describe("FireflyClient", () => {
   });
 
   describe("Market", () => {
-    it("should add DOT-PERP market", async () => {
+    it(`should add ${symbol} market`, async () => {
       expect(client.addMarket(symbol)).to.be.equal(true);
     });
 
-    it("should add DOT-PERP market with custom orders contract address", async () => {
+    it(`should add ${symbol} market with custom orders contract address`, async () => {
       expect(
         client.addMarket(symbol, "0x36AAc8c385E5FA42F6A7F62Ee91b5C2D813C451C")
       ).to.be.equal(true);
@@ -102,7 +105,7 @@ describe("FireflyClient", () => {
           client.addMarket("TEST-PERP");
         },
         Error,
-        `Contract "Orders" not found in contract addresses for network id ${network.chainId}`
+        `Contract "IsolatedTrader" not found in contract addresses for network id ${network.chainId}`
       );
     });
 
@@ -115,12 +118,12 @@ describe("FireflyClient", () => {
       ).to.be.equal(true);
     });
 
-    it("should return False as DOT-PERP market is already added", async () => {
+    it("should return False as BTC-PERP market is already added", async () => {
       expect(client.addMarket(symbol)).to.be.equal(true);
       expect(client.addMarket(symbol)).to.be.equal(false);
     });
 
-    it("should remove the DOT market", async () => {
+    it("should remove the BTC market", async () => {
       expect(client.addMarket(symbol)).to.be.equal(true);
       expect(client.removeMarket(symbol)).to.be.equal(true);
     });
@@ -165,19 +168,19 @@ describe("FireflyClient", () => {
 
     it("should move 1 USDC token to Margin Bank", async () => {
       const usdcBalance = await client.getUSDCBalance();
-      expect(await client.depositToMarginBank(1)).to.be.equal(true);
+      expect((await client.depositToMarginBank(1))?.ok).to.be.equal(true);
       expect(await client.getMarginBankBalance()).to.be.gte(1);
       expect(await client.getUSDCBalance()).to.be.gte(usdcBalance - 1);
     });
 
     it.only("should withdraw 1 USDC token from Margin Bank", async () => {
       const usdcBalance = await client.getUSDCBalance();
-      expect(await client.withdrawFromMarginBank(1)).to.be.equal(true);
+      expect((await client.withdrawFromMarginBank(1))?.ok).to.be.equal(true);
       expect(await client.getUSDCBalance()).to.be.gte(usdcBalance + 1);
     });
 
     it("should move all USDC token from Margin Bank", async () => {
-      expect(await client.withdrawFromMarginBank()).to.be.equal(true);
+      expect((await client.withdrawFromMarginBank())?.ok).to.be.equal(true);
       expect(await client.getMarginBankBalance()).to.be.eql(0);
     });
   });
@@ -198,7 +201,7 @@ describe("FireflyClient", () => {
       const res = await clientTemp.adjustLeverage(symbol, newLeverage); // set leverage will do contract call as the account using is new
       const lev = await clientTemp.getUserDefaultLeverage(symbol); // get leverage
       // Then
-      expect(res).to.eq(true);
+      expect(res.ok).to.eq(true);
       expect(lev).to.equal(4);
     });
   });
@@ -212,7 +215,7 @@ describe("FireflyClient", () => {
       const minted = await client.mintTestUSDC();
       const deposited = await client.depositToMarginBank(10000);
       expect(minted).to.eq(true);
-      expect(deposited).to.eq(true);
+      expect(deposited.ok).to.eq(true);
     });
 
     it("should throw error as DOT market is not added to client", async () => {
@@ -231,7 +234,7 @@ describe("FireflyClient", () => {
 
     it("should create signed order", async () => {
       const signedOrder = await client.createSignedOrder({
-        symbol: symbol,
+        symbol,
         price: 0,
         quantity: 0.1,
         side: ORDER_SIDE.SELL,
@@ -243,9 +246,23 @@ describe("FireflyClient", () => {
       expect(signedOrder.quantity).to.be.equal(0.1);
     });
 
+    it("should create signed order and verify the signature", async () => {
+      const params = {
+        symbol,
+        price: 0,
+        quantity: 0.1,
+        side: ORDER_SIDE.SELL,
+        orderType: ORDER_TYPE.MARKET,
+      };
+      const signedOrder = await client.createSignedOrder(params);
+      const isValid = client.verifyOrderSignature(signedOrder);
+
+      expect(isValid).to.be.equal(true);
+    });
+
     it("should place a LIMIT SELL order on exchange", async () => {
       const signedOrder = await client.createSignedOrder({
-        symbol: symbol,
+        symbol,
         price: sellPrice,
         quantity: 0.1,
         side: ORDER_SIDE.SELL,
@@ -259,7 +276,7 @@ describe("FireflyClient", () => {
 
     it("should place a MARKET BUY order on exchange", async () => {
       const signedOrder = await client.createSignedOrder({
-        symbol: symbol,
+        symbol,
         price: 0,
         quantity: 0.1,
         side: ORDER_SIDE.SELL,
@@ -272,7 +289,7 @@ describe("FireflyClient", () => {
 
     it("should post a LIMIT order on exchange", async () => {
       const response = await client.postOrder({
-        symbol: symbol,
+        symbol,
         price: buyPrice,
         quantity: 0.1,
         side: ORDER_SIDE.BUY,
@@ -292,7 +309,7 @@ describe("FireflyClient", () => {
 
     it("should cancel the open order", async () => {
       const signedOrder = await client.createSignedOrder({
-        symbol: symbol,
+        symbol,
         price: sellPrice,
         quantity: 0.1,
         side: ORDER_SIDE.SELL,
@@ -305,12 +322,12 @@ describe("FireflyClient", () => {
       });
 
       const cancelSignature = await client.createOrderCancellationSignature({
-        symbol: symbol,
+        symbol,
         hashes: [response.response.data.hash],
       });
 
       const cancellationResponse = await client.placeCancelOrder({
-        symbol: symbol,
+        symbol,
         hashes: [response.response.data.hash],
         signature: cancelSignature,
       });
@@ -320,7 +337,7 @@ describe("FireflyClient", () => {
 
     it("should get Invalid Order Signature error", async () => {
       const signedOrder = await client.createSignedOrder({
-        symbol: symbol,
+        symbol,
         price: sellPrice,
         quantity: 0.1,
         side: ORDER_SIDE.SELL,
@@ -330,7 +347,7 @@ describe("FireflyClient", () => {
       const response = await client.placeSignedOrder({ ...signedOrder });
 
       const cancellationResponse = await client.placeCancelOrder({
-        symbol: symbol,
+        symbol,
         hashes: [response.response.data.hash],
         signature: "0xSomeRandomStringWhichIsNotACorrectSignature",
       });
@@ -343,7 +360,7 @@ describe("FireflyClient", () => {
 
     it("should post a cancel order on exchange", async () => {
       const response = await client.postOrder({
-        symbol: symbol,
+        symbol,
         price: sellPrice + 2,
         quantity: 0.1,
         side: ORDER_SIDE.SELL,
@@ -353,7 +370,7 @@ describe("FireflyClient", () => {
       expect(response.ok).to.be.equal(true);
 
       const cancelResponse = await client.postCancelOrder({
-        symbol: symbol,
+        symbol,
         hashes: [response?.data?.hash as string],
       });
 
@@ -370,7 +387,7 @@ describe("FireflyClient", () => {
     it("should get all open orders", async () => {
       const data = await client.getUserOrders({
         status: ORDER_STATUS.OPEN,
-        symbol: symbol,
+        symbol,
       });
       expect(data.ok).to.be.equals(true);
       expect(data.response.data.length).to.be.gte(0);
@@ -379,7 +396,7 @@ describe("FireflyClient", () => {
     it("should get all cancelled orders", async () => {
       const data = await client.getUserOrders({
         status: ORDER_STATUS.CANCELLED,
-        symbol: symbol,
+        symbol,
       });
       expect(data.ok).to.be.equal(true);
     });
@@ -387,7 +404,7 @@ describe("FireflyClient", () => {
     it("should get cancelled orders", async () => {
       const data = await client.getUserOrders({
         status: ORDER_STATUS.CANCELLED,
-        symbol: symbol,
+        symbol,
         pageSize: 1,
       });
       expect(data.ok).to.be.equals(true);
@@ -396,7 +413,7 @@ describe("FireflyClient", () => {
     it("should get 0 expired orders as page 10 does not exist for expired orders", async () => {
       const data = await client.getUserOrders({
         status: ORDER_STATUS.EXPIRED,
-        symbol: symbol,
+        symbol,
         pageNumber: 10,
       });
       expect(data.response.data.length).to.be.equals(0);
@@ -426,9 +443,9 @@ describe("FireflyClient", () => {
       clientTemp.sockets.close();
     });
 
-    it("should get user's DOT-PERP Position", async () => {
+    it("should get user's BTC-PERP Position", async () => {
       const response = await client.getUserPosition({
-        symbol: symbol,
+        symbol,
       });
 
       const position = response.data as any as GetPositionResponse;
@@ -465,18 +482,18 @@ describe("FireflyClient", () => {
       clientTemp.sockets.close();
     });
 
-    it("should get user's DOT-PERP Trades", async () => {
+    it("should get user's BTC-PERP Trades", async () => {
       const response = await client.getUserTrades({
-        symbol: symbol,
+        symbol,
       });
       expect(response.ok).to.be.equal(true);
     });
   });
 
   describe("Get Market Orderbook", () => {
-    it("should get DOT orderbook with best ask and bid", async () => {
+    it("should get BTC orderbook with best ask and bid", async () => {
       const response = await client.getOrderbook({
-        symbol: symbol,
+        symbol,
         limit: 1,
       });
       expect(response.ok).to.be.equal(true);
@@ -505,29 +522,29 @@ describe("FireflyClient", () => {
 
   it("should get Transaction History records for user", async () => {
     const response = await client.getUserTransactionHistory({
-      symbol: symbol,
+      symbol,
       pageSize: 2,
       pageNumber: 1,
     });
     expect(response.ok).to.be.equal(true);
   });
 
-  it("should get recent market trades of DOT-PERP Market", async () => {
+  it("should get recent market trades of BTC-PERP Market", async () => {
     const response = await client.getMarketRecentTrades({
-      symbol: symbol,
+      symbol,
     });
     expect(response.ok).to.be.equal(true);
   });
 
   it("should get candle stick data", async () => {
     const response = await client.getMarketCandleStickData({
-      symbol: symbol,
+      symbol,
       interval: "1m",
     });
     expect(response.ok).to.be.equal(true);
   });
 
-  it("should get exchange info for DOT Market", async () => {
+  it("should get exchange info for BTC Market", async () => {
     const response = await client.getExchangeInfo(symbol);
     expect(response.ok).to.be.equal(true);
     expect(response.data?.symbol).to.be.equal(symbol);
@@ -539,12 +556,12 @@ describe("FireflyClient", () => {
     expect(response.response.data.length).to.be.gte(1);
   });
 
-  it("should get market data for DOT Market", async () => {
+  it("should get market data for BTC Market", async () => {
     const response = await client.getMarketData(symbol);
     expect(response.ok).to.be.equal(true);
   });
 
-  it("should get market meta info for DOT Market", async () => {
+  it("should get market meta info for BTC Market", async () => {
     const response = await client.getMarketMetaInfo(symbol);
     expect(response.ok).to.be.equal(true);
   });
@@ -587,7 +604,7 @@ describe("FireflyClient", () => {
       // wait for 1 sec as room might not had been subscribed
       setTimeout(1000).then(() => {
         client.postOrder({
-          symbol: symbol,
+          symbol,
           price: sellPrice + 3,
           quantity: 0.1,
           side: ORDER_SIDE.SELL,
@@ -612,7 +629,7 @@ describe("FireflyClient", () => {
       // wait for 1 sec as room might not had been subscribed
       setTimeout(1000).then(() => {
         client.postOrder({
-          symbol: symbol,
+          symbol,
           price: 0,
           quantity: 0.1,
           side: ORDER_SIDE.SELL,
@@ -633,7 +650,7 @@ describe("FireflyClient", () => {
       // wait for 1 sec as room might not had been subscribed
       setTimeout(1000).then(() => {
         client.postOrder({
-          symbol: symbol,
+          symbol,
           price: sellPrice + 1,
           quantity: 0.1,
           side: ORDER_SIDE.SELL,
@@ -656,7 +673,7 @@ describe("FireflyClient", () => {
       // wait for 1 sec as room might not had been subscribed
       setTimeout(1000).then(() => {
         client.postOrder({
-          symbol: symbol,
+          symbol,
           price: 0,
           quantity: 0.1,
           side: ORDER_SIDE.BUY,
@@ -678,7 +695,7 @@ describe("FireflyClient", () => {
       // wait for 1 sec as room might not had been subscribed
       setTimeout(1000).then(() => {
         client.postOrder({
-          symbol: symbol,
+          symbol,
           price: 0,
           quantity: 0.1,
           side: ORDER_SIDE.BUY,
@@ -705,7 +722,7 @@ describe("FireflyClient", () => {
       // wait for 1 sec as room might not had been subscribed
       setTimeout(1000).then(() => {
         client.postOrder({
-          symbol: symbol,
+          symbol,
           price: 0,
           quantity: 0.1,
           side: ORDER_SIDE.BUY,
