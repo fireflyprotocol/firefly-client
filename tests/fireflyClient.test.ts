@@ -201,7 +201,7 @@ describe("FireflyClient", () => {
       const res = await clientTemp.adjustLeverage(symbol, newLeverage); // set leverage will do contract call as the account using is new
       const lev = await clientTemp.getUserDefaultLeverage(symbol); // get leverage
       // Then
-      expect(res).to.eq(true);
+      expect(res.ok).to.eq(true);
       expect(lev).to.equal(4);
     });
   });

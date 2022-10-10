@@ -182,18 +182,6 @@ export class FireflyClient {
     }
     this.contractAddresses = addresses.data;
 
-    // TODO! just for testing - REMOVE BELOW CODE WHEN CORRECT ADDRESSES start coming from dapi
-    const testingSymbol = "BTC-PERP";
-    this.contractAddresses[testingSymbol][this._isolatedTrader] =
-      "0x4c7422118835bf8Fe96d7986d99F727E7B2023C7";
-    this.contractAddresses[testingSymbol][this._usdcToken] =
-      "0x315a543ace0B3958d53049a6019E89061454000f";
-    this.contractAddresses[testingSymbol][this._perpetual] =
-      "0xff43799177dE3C06dbafE8b8a7F667F640eaF030";
-    this.contractAddresses.auxiliaryContractsAddresses[this._marginBank] =
-      "0x373c32B7dD20c3Fb2913967fB9742fd99459a58a";
-    // TODO! just for testing - REMOVE ABOVE CODE WHEN CORRECT ADDRESSES start coming from dapi
-
     // onboard user if not onboarded
     if (userOnboarding) {
       await this.userOnBoarding();
@@ -205,10 +193,13 @@ export class FireflyClient {
   /**
    * Allows caller to add a market, internally creates order signer for the provided market
    * @param symbol Symbol of MARKET in form of DOT-PERP, BTC-PERP etc.
-   * @param ordersContract (Optional) address of orders contract address for market
+   * @param isolatedTraderContract (Optional) address of isolatedTrader contract address for market
    * @returns boolean true if market is added else false
    */
-  addMarket = (symbol: MarketSymbol, ordersContract?: address): boolean => {
+  addMarket = (
+    symbol: MarketSymbol,
+    isolatedTraderContract?: address
+  ): boolean => {
     // if signer for market already exists return false
     if (this.orderSigners.get(symbol)) {
       return false;
@@ -216,7 +207,7 @@ export class FireflyClient {
 
     const contract = this.getContract(
       this._isolatedTrader,
-      ordersContract,
+      isolatedTraderContract,
       symbol
     );
 
@@ -1073,7 +1064,9 @@ export class FireflyClient {
     return response;
   };
 
-  private randomNumber = (max: number) => {
-    return Math.floor((Date.now() + Math.random() + Math.random()) * max);
+  private randomNumber = (multiplier: number) => {
+    return Math.floor(
+      (Date.now() + Math.random() + Math.random()) * multiplier
+    );
   };
 }
