@@ -256,7 +256,8 @@ export class FireflyClient {
       .connect(this.getWallet())
       .getAccountBankBalance(this.getPublicAddress());
 
-    return bnStrToBaseNumber(bnToString(balance.toHexString()));
+    const balanceNumber = bnStrToBaseNumber(bnToString(balance.toHexString()));
+    return Math.floor(balanceNumber * 1000000) / 1000000; // making balance returned always in 6 precision
   };
 
   /**
