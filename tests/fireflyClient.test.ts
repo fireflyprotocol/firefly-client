@@ -173,7 +173,7 @@ describe("FireflyClient", () => {
       expect(await client.getUSDCBalance()).to.be.gte(usdcBalance - 1);
     });
 
-    it.only("should withdraw 1 USDC token from Margin Bank", async () => {
+    it("should withdraw 1 USDC token from Margin Bank", async () => {
       const usdcBalance = await client.getUSDCBalance();
       expect((await client.withdrawFromMarginBank(1))?.ok).to.be.equal(true);
       expect(await client.getUSDCBalance()).to.be.gte(usdcBalance + 1);

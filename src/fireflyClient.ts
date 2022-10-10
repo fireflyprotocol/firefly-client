@@ -130,6 +130,7 @@ export class FireflyClient {
    * @param _isTermAccepted boolean indicating if exchange terms and conditions are accepted
    * @param _network containing network rpc url and chain id
    * @param _acctPvtKey private key for the account to be used for placing orders
+   * @param _useBiconomy boolean if true biconomy(Gasless transactions) will be used for contract interaction 
    */
   constructor(
     _isTermAccepted: boolean,
@@ -197,6 +198,7 @@ export class FireflyClient {
       throw Error("Failed to fetch contract addresses");
     }
 
+    this.contractAddresses = addresses.data;
     // onboard user if not onboarded
     if (userOnboarding) {
       await this.userOnBoarding();
@@ -217,7 +219,6 @@ export class FireflyClient {
       }
 
       this.marketSymbols = (await this.getMarketSymbols()).response.data;
-      this.contractAddresses = addresses.data;
 
       const biconomyAddresses = this.marketSymbols.map((symbol) => {
         return this.getContractAddressByName(
@@ -242,13 +243,18 @@ export class FireflyClient {
     const biconomy = new Biconomy(provider, {
       walletProvider: provider,
       apiKey,
-      debug: false,
+      debug: true,
       contractAddresses: contracts,
     });
 
     return new Promise((resolve) => {
       biconomy.onEvent(biconomy.READY, async () => {
         resolve(biconomy);
+      });
+
+      biconomy.onEvent(biconomy.ERROR, async (data:any) => {
+        console.log(JSON.stringify(data))
+        throw Error(data?.message)
       });
     });
   };
@@ -393,7 +399,7 @@ export class FireflyClient {
     // approve usdc contract to allow margin bank to take funds out for user's behalf
     let resp;
     if (this.useBiconomy) {
-      resp = depositToMarginBankBiconomyCall(
+      resp = await depositToMarginBankBiconomyCall(
         tokenContract,
         marginBankContract,
         amountString,
@@ -401,7 +407,7 @@ export class FireflyClient {
         this.getPublicAddress
       );
     } else {
-      resp = depositToMarginBankContractCall(
+      resp = await depositToMarginBankContractCall(
         tokenContract,
         marginBankContract,
         amountString,

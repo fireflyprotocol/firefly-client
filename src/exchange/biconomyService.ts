@@ -120,7 +120,9 @@ import { TransformToResponseSchema } from "./contractErrorHandling.service";
   ) => {
     return TransformToResponseSchema(async () => { 
 
-        const { data:approvalData } = tokenContract.populateTransaction.approve(
+        const bicProvider = biconomy.getEthersProvider();
+
+        const { data:approvalData } = await tokenContract.populateTransaction.approve(
             (marginBankContract as contracts_exchange.MarginBank).address,
             amountString
         )
@@ -130,8 +132,6 @@ import { TransformToResponseSchema } from "./contractErrorHandling.service";
             from: getPublicAddress(),
             signatureType: "PERSONAL_SIGN"
         };
-
-        const bicProvider = biconomy.getEthersProvider();
         await bicProvider.send("eth_sendTransaction", [txParamsApprove]);
 
         const { data } = await marginBankContract.populateTransaction.depositToBank(
