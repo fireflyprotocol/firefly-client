@@ -33,7 +33,7 @@ const testAcctPubAddr = "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF";
 let client: FireflyClient;
 
 describe("FireflyClient", () => {
-  // set environment from here
+  //* set environment from here
   const network = Networks.DEV;
   const symbol = "BTC-PERP";
   let defaultLeverage = 4;
