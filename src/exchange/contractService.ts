@@ -22,8 +22,10 @@ export const adjustLeverageContractCall = async (
       gasLimit,
     })
     if (wallet.constructor.name === Wallet.name) {
-      await (tx).wait();
+      return await (tx).wait();
     }
+
+    return tx;
   }, "Success");
 };
 
@@ -44,8 +46,10 @@ export const adjustMarginContractCall = async (
         gasLimit: gasLimit,
       })
       if (wallet.constructor.name === Wallet.name) {
-        await (tx).wait();
+        return await (tx).wait();
       }
+
+      return tx;
     }
     // REMOVE margin
     else {
@@ -55,8 +59,10 @@ export const adjustMarginContractCall = async (
         gasLimit: gasLimit,
       })
       if (wallet.constructor.name === Wallet.name) {
-        await (tx).wait();
+        return await (tx).wait();
       }
+
+      return tx;
     }
   }, "Success");
 };
@@ -80,7 +86,7 @@ export const withdrawFromMarginBankContractCall = async (
     }
     const amountString = toBigNumberStr(amountNumber!, MarginTokenPrecision);
 
-    await (
+   return await (
       await (marginBankContract as contracts_exchange.MarginBank)
         .connect(wallet)
         .withdrawFromBank(getPublicAddress(), amountString, {
@@ -98,7 +104,7 @@ export const depositToMarginBankContractCall = async (
   gasLimit: number,
   getPublicAddress: () => address
 ) => {
-  return TransformToResponseSchema(async () => {
+  return TransformToResponseSchema(async () => { 
     await (
       await (tokenContract as Contract)
         .connect(wallet)
@@ -110,7 +116,7 @@ export const depositToMarginBankContractCall = async (
     ).wait();
 
     // deposit `amount` usdc to margin bank
-    await (
+   return await (
       await (marginBankContract as contracts_exchange.MarginBank)
         .connect(wallet)
         .depositToBank(getPublicAddress(), amountString, {

@@ -25,7 +25,9 @@ import {
   ADJUST_MARGIN,
   OnboardingSigner,
 } from "@firefly-exchange/library";
-
+// @ts-ignore
+import { Biconomy } from "@biconomy/mexa";
+import HDWalletProvider from "@truffle/hdwallet-provider";
 import {
   GetOrderResponse,
   GetOrderRequest,
@@ -61,7 +63,7 @@ import {
 import { APIService } from "./exchange/apiService";
 import { SERVICE_URLS } from "./exchange/apiUrls";
 import { Sockets } from "./exchange/sockets";
-import { Networks } from "./constants";
+import { BICONOMY_API_KEY, Networks } from "./constants";
 import {
   adjustLeverageContractCall,
   adjustMarginContractCall,
@@ -69,7 +71,13 @@ import {
   withdrawFromMarginBankContractCall,
 } from "./exchange/contractService";
 import { ResponseSchema } from "./exchange/contractErrorHandling.service";
-
+// @ts-ignore
+import {
+  adjustLeverageBiconomyCall,
+  adjustMarginBiconomyCall,
+  depositToMarginBankBiconomyCall,
+  withdrawFromMarginBankBiconomyCall,
+} from "./exchange/biconomyService";
 export class FireflyClient {
   protected readonly network: Network;
 
@@ -93,9 +101,13 @@ export class FireflyClient {
 
   private signingMethod: SigningMethod = SigningMethod.MetaMaskLatest; // to save signing method when integrating on UI
 
+  private biconomy: Biconomy | undefined;
+
   private contractAddresses: any;
 
   private isTermAccepted = false;
+
+  private useBiconomy = false;
 
   private maxBlockGasLimit = 0;
 
@@ -117,11 +129,13 @@ export class FireflyClient {
    * @param _isTermAccepted boolean indicating if exchange terms and conditions are accepted
    * @param _network containing network rpc url and chain id
    * @param _acctPvtKey private key for the account to be used for placing orders
+   * @param _useBiconomy boolean if true biconomy(Gasless transactions) will be used for contract interaction. Only use it in production.
    */
   constructor(
     _isTermAccepted: boolean,
     _network: Network,
-    _acctPvtKey?: string
+    _acctPvtKey?: string,
+    _useBiconomy: boolean = false
   ) {
     this.network = _network;
 
@@ -132,6 +146,8 @@ export class FireflyClient {
     this.sockets = new Sockets(this.network.socketURL);
 
     this.isTermAccepted = _isTermAccepted;
+
+    this.useBiconomy = _useBiconomy;
 
     if (_acctPvtKey) {
       this.initializeWithPrivateKey(_acctPvtKey);
@@ -180,6 +196,7 @@ export class FireflyClient {
     if (!addresses.ok) {
       throw Error("Failed to fetch contract addresses");
     }
+
     this.contractAddresses = addresses.data;
 
     // onboard user if not onboarded
@@ -188,6 +205,60 @@ export class FireflyClient {
     }
 
     this.maxBlockGasLimit = (await this.web3.eth.getBlock("latest")).gasLimit;
+
+    if (this.useBiconomy) {
+      let provider: any;
+
+      if (this.web3Provider) {
+        provider = this.web3Provider;
+      } else {
+        provider = new HDWalletProvider({
+          privateKeys: [(this.getWallet() as Wallet).privateKey],
+          providerOrUrl: this.network.url,
+        });
+      }
+
+      this.marketSymbols = (await this.getMarketSymbols()).response.data;
+
+      const biconomyAddresses = this.marketSymbols.map((symbol) => {
+        return this.getContractAddressByName(
+          this._perpetual,
+          undefined,
+          symbol
+        );
+      });
+
+      biconomyAddresses.push(this.getContractAddressByName(this._marginBank));
+      biconomyAddresses.push(this.getContractAddressByName(this._usdcToken));
+
+      this.biconomy = await this.initBiconomy(
+        provider,
+        BICONOMY_API_KEY,
+        biconomyAddresses
+      );
+    }
+  };
+
+  /**
+   * Initialize Biconomy
+   */
+  initBiconomy = async (provider: any, apiKey: string, contracts: string[]) => {
+    const biconomy = new Biconomy(provider, {
+      walletProvider: provider,
+      apiKey,
+      debug: false,
+      contractAddresses: contracts,
+    });
+
+    return new Promise((resolve) => {
+      biconomy.onEvent(biconomy.READY, async () => {
+        resolve(biconomy);
+      });
+
+      biconomy.onEvent(biconomy.ERROR, async (data: any) => {
+        throw Error(data?.message);
+      });
+    });
   };
 
   /**
@@ -329,14 +400,27 @@ export class FireflyClient {
     const amountString = toBigNumberStr(amount, this.MarginTokenPrecision);
 
     // approve usdc contract to allow margin bank to take funds out for user's behalf
-    const resp = depositToMarginBankContractCall(
-      tokenContract,
-      marginBankContract,
-      amountString,
-      this.getWallet(),
-      this.maxBlockGasLimit,
-      this.getPublicAddress
-    );
+    let resp;
+    if (this.useBiconomy) {
+      resp = await depositToMarginBankBiconomyCall(
+        tokenContract,
+        marginBankContract,
+        amountString,
+        this.getWallet(),
+        this.maxBlockGasLimit,
+        this.biconomy,
+        this.getPublicAddress
+      );
+    } else {
+      resp = await depositToMarginBankContractCall(
+        tokenContract,
+        marginBankContract,
+        amountString,
+        this.getWallet(),
+        this.maxBlockGasLimit,
+        this.getPublicAddress
+      );
+    }
 
     return resp;
   };
@@ -353,16 +437,28 @@ export class FireflyClient {
     mbContract?: address
   ): Promise<ResponseSchema> => {
     const marginBankContract = this.getContract(this._marginBank, mbContract);
+    let resp;
+    if (this.useBiconomy) {
+      resp = await withdrawFromMarginBankBiconomyCall(
+        marginBankContract,
+        this.MarginTokenPrecision,
+        this.biconomy,
+        this.getMarginBankBalance,
+        this.getPublicAddress,
+        amount
+      );
+    } else {
+      resp = await withdrawFromMarginBankContractCall(
+        marginBankContract,
+        this.MarginTokenPrecision,
+        this.getWallet(),
+        this.maxBlockGasLimit,
+        this.getMarginBankBalance,
+        this.getPublicAddress,
+        amount
+      );
+    }
 
-    const resp = await withdrawFromMarginBankContractCall(
-      marginBankContract,
-      this.MarginTokenPrecision,
-      this.getWallet(),
-      this.maxBlockGasLimit,
-      this.getMarginBankBalance,
-      this.getPublicAddress,
-      amount
-    );
     return resp;
   };
 
@@ -599,13 +695,25 @@ export class FireflyClient {
         perpetualAddress,
         symbol
       );
-      const resp = await adjustLeverageContractCall(
-        perpContract,
-        this.getWallet(),
-        leverage,
-        this.maxBlockGasLimit,
-        this.getPublicAddress
-      );
+
+      let resp;
+      if (this.useBiconomy) {
+        resp = await adjustLeverageBiconomyCall(
+          perpContract,
+          leverage,
+          this.biconomy,
+          this.getPublicAddress
+        );
+      } else {
+        resp = await adjustLeverageContractCall(
+          perpContract,
+          this.getWallet(),
+          leverage,
+          this.maxBlockGasLimit,
+          this.getPublicAddress
+        );
+      }
+
       return resp;
     }
     const {
@@ -665,14 +773,25 @@ export class FireflyClient {
       perpetualAddress,
       symbol
     );
-    const resp = await adjustMarginContractCall(
-      operationType,
-      perpContract,
-      this.getWallet(),
-      amount,
-      this.maxBlockGasLimit,
-      this.getPublicAddress
-    );
+    let resp;
+    if (this.useBiconomy) {
+      resp = await adjustMarginBiconomyCall(
+        operationType,
+        perpContract,
+        amount,
+        this.biconomy,
+        this.getPublicAddress
+      );
+    } else {
+      resp = await adjustMarginContractCall(
+        operationType,
+        perpContract,
+        this.getWallet(),
+        amount,
+        this.maxBlockGasLimit,
+        this.getPublicAddress
+      );
+    }
     return resp;
   };
 
@@ -934,7 +1053,7 @@ export class FireflyClient {
    * @param contract address of contract
    * @returns Contract | MarginBank or throws error
    */
-  private getContract = (
+  public getContract = (
     contractName: string,
     contract?: address,
     market?: MarketSymbol
@@ -943,6 +1062,36 @@ export class FireflyClient {
     | contracts_exchange.MarginBank
     | contracts_exchange.IsolatedTrader => {
     // if a market name is provided and contract address is not provided
+
+    contract = this.getContractAddressByName(contractName, contract, market);
+
+    switch (contractName) {
+      case this._perpetual:
+        const perpFactory = new contracts_exchange.Perpetual__factory();
+        const perp = perpFactory.attach(contract);
+        return perp as any as contracts_exchange.Perpetual;
+      case this._usdcToken:
+        const dummyFactory = new contracts_exchange.DummyUSDC__factory();
+        const dummyUSDC = dummyFactory.attach(contract);
+        return dummyUSDC as any as contracts_exchange.DummyUSDC;
+      case this._marginBank:
+        const marginBankFactory = new contracts_exchange.MarginBank__factory();
+        const marginBank = marginBankFactory.attach(contract);
+        return marginBank as any as contracts_exchange.MarginBank;
+      case this._isolatedTrader:
+        const ordersFactory = new contracts_exchange.IsolatedTrader__factory();
+        const orders = ordersFactory.attach(contract);
+        return orders as any as contracts_exchange.IsolatedTrader;
+      default:
+        throw Error(`Unknown contract name received: ${contractName}`);
+    }
+  };
+
+  public getContractAddressByName = (
+    contractName: string,
+    contract?: address,
+    market?: MarketSymbol
+  ): string => {
     if (market && !contract) {
       try {
         contract = this.contractAddresses[market][contractName];
@@ -967,27 +1116,7 @@ export class FireflyClient {
       );
     }
 
-    switch (contractName) {
-      case this._perpetual:
-        const perpFactory = new contracts_exchange.Perpetual__factory();
-        const perp = perpFactory.attach(contract);
-        return perp as any as contracts_exchange.Perpetual;
-      case this._usdcToken:
-        const dummyFactory = new contracts_exchange.DummyUSDC__factory();
-        const dummyUSDC = dummyFactory.attach(contract);
-        return dummyUSDC as any as contracts_exchange.DummyUSDC;
-      case this._marginBank:
-        const marginBankFactory = new contracts_exchange.MarginBank__factory();
-        const marginBank = marginBankFactory.attach(contract);
-        return marginBank as any as contracts_exchange.MarginBank;
-      case this._isolatedTrader:
-        const isolatedTraderFactory =
-          new contracts_exchange.IsolatedTrader__factory();
-        const isolatedTrader = isolatedTraderFactory.attach(contract);
-        return isolatedTrader as any as contracts_exchange.IsolatedTrader;
-      default:
-        throw Error(`Unknown contract name received: ${contractName}`);
-    }
+    return contract;
   };
 
   /**

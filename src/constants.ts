@@ -21,10 +21,22 @@ export const Networks = {
     onboardingUrl: "https://dev-sandbox.firefly.exchange",
   },
   PRODUCTION: {
-    url: "",
-    chainId: 0,
-    apiGateway: "",
-    socketURL: "",
-    onboardingUrl: "",
+    url: "https://bobabeam.boba.network/",
+    chainId: 1294,
+    apiGateway: "https://dapi.firefly.exchange",
+    socketURL: "wss://dapi.firefly.exchange",
+    onboardingUrl: "https://trade.firefly.exchange",
   },
 };
+
+export const BICONOMY_API_KEY =
+  "up_rW7i3I.b96415e2-3176-4cc9-9761-e245fa48b449";
+
+//TODO: move to library
+export enum SignatureType {
+  PERSONAL_SIGN = 'PERSONAL_SIGN'
+}
+
+export enum TransactionType {
+  eth_sendTransaction = 'eth_sendTransaction'
+}

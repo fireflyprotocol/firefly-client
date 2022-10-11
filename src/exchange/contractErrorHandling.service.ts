@@ -18,7 +18,6 @@ export const handleResponse = (
   ok: boolean
 ): ResponseSchema => {
   const mutatedResponse: ResponseSchema = {
-    // TODO:needs to be implemented properly (BE have to change response model first )
     ok,
     data: getValue(
       response.data as object,

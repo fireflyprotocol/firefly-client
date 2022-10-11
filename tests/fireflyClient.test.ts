@@ -41,7 +41,7 @@ describe("FireflyClient", () => {
   let sellPrice = 20000;
 
   before(async () => {
-    client = new FireflyClient(true, network, testAcctKey);
+    client = new FireflyClient(true, network, testAcctKey, false);
     await client.init();
     // TODO! uncomment below code when done testing specifically on BTC-PERP
     // const allSymbols = await client.getMarketSymbols();
@@ -197,7 +197,7 @@ describe("FireflyClient", () => {
       const clientTemp = new FireflyClient(true, network, wallet.privateKey);
       await clientTemp.init();
       // When
-      const newLeverage = 4;
+      const newLeverage = 2;
       const res = await clientTemp.adjustLeverage(symbol, newLeverage); // set leverage will do contract call as the account using is new
       const lev = await clientTemp.getUserDefaultLeverage(symbol); // get leverage
       // Then
