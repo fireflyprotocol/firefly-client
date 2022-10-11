@@ -129,7 +129,7 @@ export class FireflyClient {
    * @param _isTermAccepted boolean indicating if exchange terms and conditions are accepted
    * @param _network containing network rpc url and chain id
    * @param _acctPvtKey private key for the account to be used for placing orders
-   * @param _useBiconomy boolean if true biconomy(Gasless transactions) will be used for contract interaction
+   * @param _useBiconomy boolean if true biconomy(Gasless transactions) will be used for contract interaction. Only use it in production.
    */
   constructor(
     _isTermAccepted: boolean,
@@ -240,11 +240,14 @@ export class FireflyClient {
     }
   };
 
+  /**
+   * Initialize Biconomy
+   */
   initBiconomy = async (provider: any, apiKey: string, contracts: string[]) => {
     const biconomy = new Biconomy(provider, {
       walletProvider: provider,
       apiKey,
-      debug: true,
+      debug: false,
       contractAddresses: contracts,
     });
 
@@ -254,7 +257,6 @@ export class FireflyClient {
       });
 
       biconomy.onEvent(biconomy.ERROR, async (data: any) => {
-        console.log(JSON.stringify(data));
         throw Error(data?.message);
       });
     });

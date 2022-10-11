@@ -124,6 +124,7 @@ import { TransformToResponseSchema } from "./contractErrorHandling.service";
   ) => {
     return TransformToResponseSchema(async () => { 
 
+    //approve call right now going directly to contract.
     await (
         await (tokenContract as Contract)
           .connect(wallet)
