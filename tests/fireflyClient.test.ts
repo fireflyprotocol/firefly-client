@@ -33,8 +33,8 @@ const testAcctPubAddr = "0x87fA278A55f3926c8f73C7aD0D0477b4b716E62a";
 let client: FireflyClient;
 
 describe("FireflyClient", () => {
-  // set environment from here
-  const network = Networks.PRODUCTION;
+  //* set environment from here
+  const network = Networks.DEV;
   const symbol = "BTC-PERP";
   let defaultLeverage = 4;
   let buyPrice = 18000;
@@ -384,18 +384,19 @@ describe("FireflyClient", () => {
   });
 
   describe("Get User Orders", () => {
-    it("should get all open orders", async () => {
+    it.only("should get all open orders", async () => {
       const data = await client.getUserOrders({
-        status: ORDER_STATUS.OPEN,
+        statuses: [ORDER_STATUS.OPEN],
         symbol,
       });
+      console.log("open orders: ", data);
       expect(data.ok).to.be.equals(true);
       expect(data.response.data.length).to.be.gte(0);
     });
 
     it("should get all cancelled orders", async () => {
       const data = await client.getUserOrders({
-        status: ORDER_STATUS.CANCELLED,
+        statuses: [ORDER_STATUS.CANCELLED],
         symbol,
       });
       expect(data.ok).to.be.equal(true);
@@ -403,7 +404,7 @@ describe("FireflyClient", () => {
 
     it("should get cancelled orders", async () => {
       const data = await client.getUserOrders({
-        status: ORDER_STATUS.CANCELLED,
+        statuses: [ORDER_STATUS.CANCELLED],
         symbol,
         pageSize: 1,
       });
@@ -412,7 +413,7 @@ describe("FireflyClient", () => {
 
     it("should get 0 expired orders as page 10 does not exist for expired orders", async () => {
       const data = await client.getUserOrders({
-        status: ORDER_STATUS.EXPIRED,
+        statuses: [ORDER_STATUS.EXPIRED],
         symbol,
         pageNumber: 10,
       });

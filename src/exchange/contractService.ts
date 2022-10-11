@@ -16,13 +16,14 @@ export const adjustLeverageContractCall = async (
   getPublicAddress: () => address
 ) => {
   return TransformToResponseSchema(async () => {
-      return await (
-        await (perpContract as contracts_exchange.Perpetual)
-          .connect(wallet)
-          .adjustLeverage(getPublicAddress(), toBigNumberStr(leverage), {
-            gasLimit,
-          })
-      ).wait();
+    const tx = await (perpContract as contracts_exchange.Perpetual)
+    .connect(wallet)
+    .adjustLeverage(getPublicAddress(), toBigNumberStr(leverage), {
+      gasLimit,
+    })
+    if (wallet.constructor.name === Wallet.name) {
+      await (tx).wait();
+    }
   }, "Success");
 };
 

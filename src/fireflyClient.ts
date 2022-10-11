@@ -326,7 +326,8 @@ export class FireflyClient {
       .connect(this.getWallet())
       .getAccountBankBalance(this.getPublicAddress());
 
-    return bnStrToBaseNumber(bnToString(balance.toHexString()));
+    const balanceNumber = bnStrToBaseNumber(bnToString(balance.toHexString()));
+    return Math.floor(balanceNumber * 1000000) / 1000000; // making balance returned always in 6 precision
   };
 
   /**
@@ -655,12 +656,10 @@ export class FireflyClient {
   cancelAllOpenOrders = async (symbol: MarketSymbol) => {
     const openOrders = await this.getUserOrders({
       symbol,
-      status: ORDER_STATUS.OPEN,
+      statuses: [ORDER_STATUS.OPEN],
     });
 
-    const hashes = (await openOrders.data?.map(
-      (order) => order.hash
-    )) as string[];
+    const hashes = openOrders.data?.map((order) => order.hash) as string[];
 
     const response = await this.postCancelOrder({ hashes, symbol });
 
