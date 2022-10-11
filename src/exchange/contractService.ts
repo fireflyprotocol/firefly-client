@@ -97,7 +97,8 @@ export const depositToMarginBankContractCall = async (
   gasLimit: number,
   getPublicAddress: () => address
 ) => {
-  return TransformToResponseSchema(async () => { await (
+  return TransformToResponseSchema(async () => { 
+    await (
       await (tokenContract as Contract)
         .connect(wallet)
         .approve(

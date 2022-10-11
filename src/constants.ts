@@ -30,4 +30,4 @@ export const Networks = {
 };
 
 export const BICONOMY_API_KEY =
-  "4DVAjlPjH.bdfe6110-9735-4975-a69d-4e52eb40eace";
+  "up_rW7i3I.b96415e2-3176-4cc9-9761-e245fa48b449";

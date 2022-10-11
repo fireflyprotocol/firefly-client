@@ -3,7 +3,9 @@ import {
     ADJUST_MARGIN,
     contracts_exchange,
     toBigNumberStr,
+    Wallet,
   } from "@firefly-exchange/library";
+import { Contract, Signer } from "ethers";
 import { TransformToResponseSchema } from "./contractErrorHandling.service";
   
   export const adjustLeverageBiconomyCall = async (
@@ -115,30 +117,28 @@ import { TransformToResponseSchema } from "./contractErrorHandling.service";
     tokenContract: any,
     marginBankContract: any,
     amountString: string,
+    wallet: Signer | Wallet,
+    gasLimit:number,
     biconomy:any,
     getPublicAddress: () => address
   ) => {
     return TransformToResponseSchema(async () => { 
 
-        const bicProvider = biconomy.getEthersProvider();
-
-        const { data:approvalData } = await tokenContract.populateTransaction.approve(
+    await (
+        await (tokenContract as Contract)
+          .connect(wallet)
+          .approve(
             (marginBankContract as contracts_exchange.MarginBank).address,
-            amountString
-        )
-        const txParamsApprove = {
-            data: approvalData,
-            to: tokenContract.address,
-            from: getPublicAddress(),
-            signatureType: "PERSONAL_SIGN"
-        };
-        await bicProvider.send("eth_sendTransaction", [txParamsApprove]);
+            amountString,
+            { gasLimit: gasLimit }
+          )
+      ).wait();
 
         const { data } = await marginBankContract.populateTransaction.depositToBank(
             getPublicAddress(),
             amountString
         );
-        
+
         const txParams = {
             data: data,
             to: marginBankContract.address,
@@ -146,6 +146,7 @@ import { TransformToResponseSchema } from "./contractErrorHandling.service";
             signatureType: "PERSONAL_SIGN"
         };
 
+        const bicProvider = biconomy.getEthersProvider();
         return await bicProvider.send("eth_sendTransaction", [txParams]);
 
     },'Success');

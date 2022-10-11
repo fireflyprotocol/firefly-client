@@ -78,7 +78,6 @@ import {
   depositToMarginBankBiconomyCall,
   withdrawFromMarginBankBiconomyCall,
 } from "./exchange/biconomyService";
-
 export class FireflyClient {
   protected readonly network: Network;
 
@@ -130,7 +129,7 @@ export class FireflyClient {
    * @param _isTermAccepted boolean indicating if exchange terms and conditions are accepted
    * @param _network containing network rpc url and chain id
    * @param _acctPvtKey private key for the account to be used for placing orders
-   * @param _useBiconomy boolean if true biconomy(Gasless transactions) will be used for contract interaction 
+   * @param _useBiconomy boolean if true biconomy(Gasless transactions) will be used for contract interaction
    */
   constructor(
     _isTermAccepted: boolean,
@@ -199,6 +198,7 @@ export class FireflyClient {
     }
 
     this.contractAddresses = addresses.data;
+
     // onboard user if not onboarded
     if (userOnboarding) {
       await this.userOnBoarding();
@@ -220,6 +220,7 @@ export class FireflyClient {
 
       this.marketSymbols = (await this.getMarketSymbols()).response.data;
 
+      this.marketSymbols = ['BTC-PERP']
       const biconomyAddresses = this.marketSymbols.map((symbol) => {
         return this.getContractAddressByName(
           this._perpetual,
@@ -252,9 +253,9 @@ export class FireflyClient {
         resolve(biconomy);
       });
 
-      biconomy.onEvent(biconomy.ERROR, async (data:any) => {
-        console.log(JSON.stringify(data))
-        throw Error(data?.message)
+      biconomy.onEvent(biconomy.ERROR, async (data: any) => {
+        console.log(JSON.stringify(data));
+        throw Error(data?.message);
       });
     });
   };
@@ -403,6 +404,8 @@ export class FireflyClient {
         tokenContract,
         marginBankContract,
         amountString,
+        this.getWallet(),
+        this.maxBlockGasLimit,
         this.biconomy,
         this.getPublicAddress
       );
