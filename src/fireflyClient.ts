@@ -67,6 +67,7 @@ import { BICONOMY_API_KEY, Networks } from "./constants";
 import {
   adjustLeverageContractCall,
   adjustMarginContractCall,
+  approvalFromUSDCContractCall,
   depositToMarginBankContractCall,
   withdrawFromMarginBankContractCall,
 } from "./exchange/contractService";
@@ -399,7 +400,6 @@ export class FireflyClient {
     const marginBankContract = this.getContract(this._marginBank, mbContract);
     const amountString = toBigNumberStr(amount, this.MarginTokenPrecision);
 
-    // approve usdc contract to allow margin bank to take funds out for user's behalf
     let resp;
     if (this.useBiconomy) {
       resp = await depositToMarginBankBiconomyCall(
@@ -424,6 +424,25 @@ export class FireflyClient {
 
     return resp;
   };
+
+  approvalFromUSDC = async (
+    amount: number,
+    usdcContract?: address,
+    mbContract?: address
+  ): Promise<ResponseSchema> => {
+    const tokenContract = this.getContract(this._usdcToken, usdcContract);
+    const marginBankContract = this.getContract(this._marginBank, mbContract);
+    const amountString = toBigNumberStr(amount, this.MarginTokenPrecision);
+
+    // approve usdc contract to allow margin bank to take funds out for user's behalf
+    return approvalFromUSDCContractCall(
+      tokenContract,
+      marginBankContract,
+      amountString,
+      this.getWallet(),
+      this.maxBlockGasLimit
+    )
+  }
 
   /**
    * Transfers usdc from MarginBank, back to usdc contract
