@@ -6,6 +6,7 @@ import {
     Wallet,
   } from "@firefly-exchange/library";
 import { Contract, Signer } from "ethers";
+import { SignatureType, TransactionType } from "../constants";
 import { TransformToResponseSchema } from "./contractErrorHandling.service";
   
   export const adjustLeverageBiconomyCall = async (
@@ -24,11 +25,11 @@ import { TransformToResponseSchema } from "./contractErrorHandling.service";
             data: data,
             to: perpContract.address,
             from: getPublicAddress(),
-            signatureType: "PERSONAL_SIGN"
+            signatureType: SignatureType.PERSONAL_SIGN
         };
     
         const bicProvider = biconomy.getEthersProvider();
-        return await bicProvider.send("eth_sendTransaction", [txParams]);
+        return await bicProvider.send(TransactionType.eth_sendTransaction, [txParams]);
     }, "Success");
 
   };
@@ -52,7 +53,7 @@ import { TransformToResponseSchema } from "./contractErrorHandling.service";
                 data: data,
                 to: perpContract.address,
                 from: getPublicAddress(),
-                signatureType: "PERSONAL_SIGN"
+                signatureType: SignatureType.PERSONAL_SIGN
             };
         }else{
             const { data } = await perpContract.populateTransaction.removeMargin(
@@ -64,13 +65,13 @@ import { TransformToResponseSchema } from "./contractErrorHandling.service";
                 data: data,
                 to: perpContract.address,
                 from: getPublicAddress(),
-                signatureType: "PERSONAL_SIGN"
+                signatureType: SignatureType.PERSONAL_SIGN
             };
         }
         
         
         const bicProvider = biconomy.getEthersProvider();
-        return await bicProvider.send("eth_sendTransaction", [txParams]);
+        return await bicProvider.send(TransactionType.eth_sendTransaction, [txParams]);
     }, "Success");
 
   };
@@ -104,11 +105,11 @@ import { TransformToResponseSchema } from "./contractErrorHandling.service";
             data: data,
             to: marginBankContract.address,
             from: getPublicAddress(),
-            signatureType: "PERSONAL_SIGN"
+            signatureType: SignatureType.PERSONAL_SIGN
         };
 
         const bicProvider = biconomy.getEthersProvider();
-        return await bicProvider.send("eth_sendTransaction", [txParams]);
+        return await bicProvider.send(TransactionType.eth_sendTransaction, [txParams]);
 
     },'Success');
   };
@@ -144,11 +145,11 @@ import { TransformToResponseSchema } from "./contractErrorHandling.service";
             data: data,
             to: marginBankContract.address,
             from: getPublicAddress(),
-            signatureType: "PERSONAL_SIGN"
+            signatureType: SignatureType.PERSONAL_SIGN
         };
 
         const bicProvider = biconomy.getEthersProvider();
-        return await bicProvider.send("eth_sendTransaction", [txParams]);
+        return await bicProvider.send(TransactionType.eth_sendTransaction, [txParams]);
 
     },'Success');
   };

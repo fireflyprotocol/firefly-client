@@ -220,7 +220,6 @@ export class FireflyClient {
 
       this.marketSymbols = (await this.getMarketSymbols()).response.data;
 
-      this.marketSymbols = ['BTC-PERP']
       const biconomyAddresses = this.marketSymbols.map((symbol) => {
         return this.getContractAddressByName(
           this._perpetual,

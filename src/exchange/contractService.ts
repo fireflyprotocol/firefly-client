@@ -22,7 +22,7 @@ export const adjustLeverageContractCall = async (
       gasLimit,
     })
     if (wallet.constructor.name === Wallet.name) {
-      await (tx).wait();
+      return await (tx).wait();
     }
   }, "Success");
 };
@@ -44,7 +44,7 @@ export const adjustMarginContractCall = async (
         gasLimit: gasLimit,
       })
       if (wallet.constructor.name === Wallet.name) {
-        await (tx).wait();
+        return await (tx).wait();
       }
     }
     // REMOVE margin
@@ -55,7 +55,7 @@ export const adjustMarginContractCall = async (
         gasLimit: gasLimit,
       })
       if (wallet.constructor.name === Wallet.name) {
-        await (tx).wait();
+        return await (tx).wait();
       }
     }
   }, "Success");

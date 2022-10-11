@@ -27,8 +27,8 @@ import {
 chai.use(chaiAsPromised);
 
 const testAcctKey =
-  "2e792a159afff0d33b9efb66c90f3b3905fcf18e649fdfa41696faba11eea154";
-const testAcctPubAddr = "0x87fA278A55f3926c8f73C7aD0D0477b4b716E62a";
+  "4d6c9531e0042cc8f7cf13d8c3cf77bfe239a8fed95e198d498ee1ec0b1a7e83";
+const testAcctPubAddr = "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF";
 
 let client: FireflyClient;
 
@@ -72,12 +72,12 @@ describe("FireflyClient", () => {
   });
 
   beforeEach(async () => {
-    // client = new FireflyClient(true, network, testAcctKey);
-    // await client.init();
+    client = new FireflyClient(true, network, testAcctKey);
+    await client.init();
   });
 
   afterEach(() => {
-    // client.sockets.close();
+    client.sockets.close();
   });
 
   it("should initialize the client", async () => {

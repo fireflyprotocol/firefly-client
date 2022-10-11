@@ -31,3 +31,12 @@ export const Networks = {
 
 export const BICONOMY_API_KEY =
   "up_rW7i3I.b96415e2-3176-4cc9-9761-e245fa48b449";
+
+//TODO: move to library
+export enum SignatureType {
+  PERSONAL_SIGN = 'PERSONAL_SIGN'
+}
+
+export enum TransactionType {
+  eth_sendTransaction = 'eth_sendTransaction'
+}
