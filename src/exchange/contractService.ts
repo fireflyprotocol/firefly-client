@@ -13,6 +13,7 @@ export const adjustLeverageContractCall = async (
   wallet: Signer | Wallet,
   leverage: number,
   gasLimit: number,
+  //@no-check
   getPublicAddress: () => address
 ) => {
   return TransformToResponseSchema(async () => {
@@ -71,7 +72,7 @@ export const withdrawFromMarginBankContractCall = async (
   MarginTokenPrecision: number,
   wallet: Signer | Wallet,
   gasLimit: number,
-  //@ts-ignore
+  //@no-check
   getMarginBankBalance: (address: string) => Promise<number>,
   getPublicAddress: () => address,
   amount?: number

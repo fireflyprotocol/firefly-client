@@ -77,7 +77,7 @@ export const withdrawFromMarginBankBiconomyCall = async (
   marginBankContract: any,
   MarginTokenPrecision: number,
   biconomy: any,
-  //@ts-ignore
+  //@no-check
   getMarginBankBalance: (address: string) => Promise<number>,
   getPublicAddress: () => address,
   amount?: number
