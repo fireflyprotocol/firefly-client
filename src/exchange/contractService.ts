@@ -24,6 +24,8 @@ export const adjustLeverageContractCall = async (
     if (wallet.constructor.name === Wallet.name) {
       return await (tx).wait();
     }
+
+    return tx;
   }, "Success");
 };
 
@@ -46,6 +48,8 @@ export const adjustMarginContractCall = async (
       if (wallet.constructor.name === Wallet.name) {
         return await (tx).wait();
       }
+
+      return tx;
     }
     // REMOVE margin
     else {
@@ -57,6 +61,8 @@ export const adjustMarginContractCall = async (
       if (wallet.constructor.name === Wallet.name) {
         return await (tx).wait();
       }
+
+      return tx;
     }
   }, "Success");
 };
