@@ -197,7 +197,7 @@ describe("FireflyClient", () => {
       const clientTemp = new FireflyClient(true, network, wallet.privateKey);
       await clientTemp.init();
       // When
-      const newLeverage = 2;
+      const newLeverage = 4;
       const res = await clientTemp.adjustLeverage(symbol, newLeverage); // set leverage will do contract call as the account using is new
       const lev = await clientTemp.getUserDefaultLeverage(symbol); // get leverage
       // Then
@@ -384,7 +384,7 @@ describe("FireflyClient", () => {
   });
 
   describe("Get User Orders", () => {
-    it.only("should get all open orders", async () => {
+    it("should get all open orders", async () => {
       const data = await client.getUserOrders({
         statuses: [ORDER_STATUS.OPEN],
         symbol,
