@@ -79,6 +79,7 @@ import {
   depositToMarginBankBiconomyCall,
   withdrawFromMarginBankBiconomyCall,
 } from "./exchange/biconomyService";
+
 export class FireflyClient {
   protected readonly network: Network;
 
@@ -441,8 +442,8 @@ export class FireflyClient {
       amountString,
       this.getWallet(),
       this.maxBlockGasLimit
-    )
-  }
+    );
+  };
 
   /**
    * Transfers usdc from MarginBank, back to usdc contract
@@ -676,7 +677,11 @@ export class FireflyClient {
   cancelAllOpenOrders = async (symbol: MarketSymbol) => {
     const openOrders = await this.getUserOrders({
       symbol,
-      statuses: [ORDER_STATUS.OPEN],
+      statuses: [
+        ORDER_STATUS.OPEN,
+        ORDER_STATUS.PARTIAL_FILLED,
+        ORDER_STATUS.PENDING,
+      ],
     });
 
     const hashes = openOrders.data?.map((order) => order.hash) as string[];
