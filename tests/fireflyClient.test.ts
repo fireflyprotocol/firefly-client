@@ -65,8 +65,8 @@ describe("FireflyClient", () => {
     ) {
       const midPrice = bnStrToBaseNumber(marketData.data.midMarketPrice);
       const percentChange = 3 / 100; // 3%
-      buyPrice = midPrice - midPrice * percentChange;
-      sellPrice = midPrice + midPrice * percentChange;
+      buyPrice = Number((midPrice - midPrice * percentChange).toFixed(0));
+      sellPrice = Number((midPrice + midPrice * percentChange).toFixed(0));
       console.log(`- mid market price: ${midPrice}`);
     }
   });
@@ -389,7 +389,6 @@ describe("FireflyClient", () => {
         statuses: [ORDER_STATUS.OPEN],
         symbol,
       });
-      console.log("open orders: ", data);
       expect(data.ok).to.be.equals(true);
       expect(data.response.data.length).to.be.gte(0);
     });
