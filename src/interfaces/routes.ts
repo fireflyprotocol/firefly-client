@@ -289,6 +289,8 @@ export interface MarketData {
   bestBidQty: string;
   midMarketPrice: string;
   midMarketPriceDirection: number;
+  marketPrice: string;
+  marketPriceDirection: number;
   indexPrice: string;
   time: string;
   lastFundingRate: string;
