@@ -390,7 +390,7 @@ export class FireflyClient {
    * @param amount the number of usdc to be transferred
    * @param usdcContract (optional) address of usdc contract
    * @param mbContract (address) address of Margin Bank contract
-   * @returns boolean true if funds are transferred, false otherwise
+   * @returns ResponseSchema
    */
   depositToMarginBank = async (
     amount: number,
@@ -399,14 +399,14 @@ export class FireflyClient {
   ): Promise<ResponseSchema> => {
     const tokenContract = this.getContract(this._usdcToken, usdcContract);
     const marginBankContract = this.getContract(this._marginBank, mbContract);
-    const amountString = toBigNumberStr(amount, this.MarginTokenPrecision);
 
     let resp;
     if (this.useBiconomy) {
       resp = await depositToMarginBankBiconomyCall(
         tokenContract,
         marginBankContract,
-        amountString,
+        amount,
+        this.MarginTokenPrecision,
         this.getWallet(),
         this.maxBlockGasLimit,
         this.biconomy,
@@ -416,7 +416,8 @@ export class FireflyClient {
       resp = await depositToMarginBankContractCall(
         tokenContract,
         marginBankContract,
-        amountString,
+        amount,
+        this.MarginTokenPrecision,
         this.getWallet(),
         this.maxBlockGasLimit,
         this.getPublicAddress
@@ -426,6 +427,13 @@ export class FireflyClient {
     return resp;
   };
 
+  /**
+   * Approves margin to deposit form USDC contract
+   * @param amount the number of usdc to approve
+   * @param usdcContract (optional) address of usdc contract
+   * @param mbContract (address) address of Margin Bank contract
+   * @returns ResponseSchema
+   */
   approvalFromUSDC = async (
     amount: number,
     usdcContract?: address,
@@ -433,13 +441,13 @@ export class FireflyClient {
   ): Promise<ResponseSchema> => {
     const tokenContract = this.getContract(this._usdcToken, usdcContract);
     const marginBankContract = this.getContract(this._marginBank, mbContract);
-    const amountString = toBigNumberStr(amount, this.MarginTokenPrecision);
 
     // approve usdc contract to allow margin bank to take funds out for user's behalf
     return approvalFromUSDCContractCall(
       tokenContract,
       marginBankContract,
-      amountString,
+      amount,
+      this.MarginTokenPrecision,
       this.getWallet(),
       this.maxBlockGasLimit
     );
@@ -696,7 +704,7 @@ export class FireflyClient {
    * @param symbol market symbol get information about
    * @param leverage new leverage you want to change to
    * @param perpetualAddress (address) address of Perpetual contract
-   * @returns boolean indicating if leverage updated successfully
+   * @returns ResponseSchema
    */
 
   async adjustLeverage(
@@ -784,7 +792,7 @@ export class FireflyClient {
    * @param operationType operation you want to perform `Add` | `Remove` margin
    * @param amount (number) amount user wants to add or remove from the position
    * @param perpetualAddress (address) address of Perpetual contract
-   * @returns boolean value indicating if margin adjusted successfully
+   * @returns ResponseSchema
    */
   adjustMargin = async (
     symbol: MarketSymbol,

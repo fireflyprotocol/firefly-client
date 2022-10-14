@@ -6,7 +6,10 @@ import {
 } from "@firefly-exchange/library";
 
 import { Contract, Signer, Wallet } from "ethers";
-import { TransformToResponseSchema } from "./contractErrorHandling.service";
+import { DEFAULT_PRECISION } from "../constants";
+import { SuccessMessages, TransformToResponseSchema } from "./contractErrorHandling.service";
+//@ts-ignore
+import { default as interpolate } from "interpolate";
 
 export const adjustLeverageContractCall = async (
   perpContract: any,
@@ -27,7 +30,7 @@ export const adjustLeverageContractCall = async (
     }
 
     return tx;
-  }, "Success");
+  }, interpolate(SuccessMessages.adjustLeverage, {leverage}));
 };
 
 export const adjustMarginContractCall = async (
@@ -38,6 +41,7 @@ export const adjustMarginContractCall = async (
   gasLimit: number,
   getPublicAddress: () => address
 ) => {
+  const msg = operationType === ADJUST_MARGIN.Add ? SuccessMessages.adjustMarginAdd : SuccessMessages.adjustMarginRemove
   return TransformToResponseSchema(async () => {
     // ADD margin
     if (operationType === ADJUST_MARGIN.Add) {
@@ -65,8 +69,9 @@ export const adjustMarginContractCall = async (
 
       return tx;
     }
-  }, "Success");
+  }, interpolate(msg, {amount: amount.toFixed(DEFAULT_PRECISION)}));
 };
+
 export const withdrawFromMarginBankContractCall = async (
   marginBankContract: any,
   MarginTokenPrecision: number,
@@ -77,8 +82,9 @@ export const withdrawFromMarginBankContractCall = async (
   getPublicAddress: () => address,
   amount?: number
 ) => {
+
+  let amountNumber = amount;
   return TransformToResponseSchema(async () => {
-    let amountNumber = amount;
     if (!amount) {
       // get all margin bank balance when amount not provided by user
       amountNumber = await getMarginBankBalance(
@@ -94,17 +100,19 @@ export const withdrawFromMarginBankContractCall = async (
           gasLimit: gasLimit,
         })
     ).wait();
-  }, "Success");
+  }, interpolate(SuccessMessages.withdrawMargin, {amount: amountNumber?.toFixed(DEFAULT_PRECISION)}));
 };
-
 
 export const approvalFromUSDCContractCall = async (
   tokenContract: any,
   marginBankContract: any,
-  amountString: string,
+  amount: number,
+  MarginTokenPrecision: number,
   wallet: Signer | Wallet,
   gasLimit: number
 ) => {
+  const amountString = toBigNumberStr(amount, MarginTokenPrecision);
+
   return TransformToResponseSchema(async () => {
     return (
       await (tokenContract as Contract)
@@ -115,23 +123,27 @@ export const approvalFromUSDCContractCall = async (
           { gasLimit: gasLimit }
         )
     ).wait();
-  }, "Success");
+  }, interpolate(SuccessMessages.approveUSDC, {amount: amount.toFixed(DEFAULT_PRECISION)}));
 };
 
 export const depositToMarginBankContractCall = async (
   tokenContract: any,
   marginBankContract: any,
-  amountString: string,
+  amount: number,
+  MarginTokenPrecision: number,
   wallet: Signer | Wallet,
   gasLimit: number,
   getPublicAddress: () => address
 ) => {
+  const amountString = toBigNumberStr(amount, MarginTokenPrecision);
+
   return TransformToResponseSchema(async () => {
     if (wallet.constructor.name === Wallet.name) {
       await approvalFromUSDCContractCall(
         tokenContract,
         marginBankContract,
-        amountString,
+        amount,
+        MarginTokenPrecision,
         wallet,
         gasLimit
       );
@@ -145,5 +157,5 @@ export const depositToMarginBankContractCall = async (
           gasLimit: gasLimit,
         })
     ).wait();
-  }, "Success");
+  }, interpolate(SuccessMessages.depositToBank, {amount: amount.toFixed(DEFAULT_PRECISION)}));
 };

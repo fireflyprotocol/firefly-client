@@ -4226,6 +4226,11 @@ internal-slot@^1.0.3:
     has "^1.0.3"
     side-channel "^1.0.4"
 
+interpolate@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/interpolate/-/interpolate-0.1.0.tgz#b60177a4ba941fb3724c821905d99aade13d1df9"
+  integrity sha512-IHNHKuwhIPaSHjhmEgCzMko+pzpn+G+qXDViwnqx3L0E7Y5DeoMsKH7WfNpDJTiZrbGirsMeaJRbzTI56le7Jg==
+
 interpret@^2.2.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/interpret/-/interpret-2.2.0.tgz#1a78a0b5965c40a5416d007ad6f50ad27c417df9"
