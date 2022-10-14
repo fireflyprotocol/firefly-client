@@ -5,9 +5,11 @@ import {
   toBigNumberStr,
 } from "@firefly-exchange/library";
 import { Signer, Wallet } from "ethers";
-import { SignatureType, TransactionType } from "../constants";
-import { TransformToResponseSchema } from "./contractErrorHandling.service";
+import { DEFAULT_PRECISION, SignatureType, TransactionType } from "../constants";
+import { SuccessMessages, TransformToResponseSchema } from "./contractErrorHandling.service";
 import { approvalFromUSDCContractCall } from "./contractService";
+//@ts-ignore
+import { default as interpolate } from "interpolate";
 
 export const adjustLeverageBiconomyCall = async (
   perpContract: any,
@@ -30,7 +32,7 @@ export const adjustLeverageBiconomyCall = async (
 
     const bicProvider = biconomy.getEthersProvider();
     return bicProvider.send(TransactionType.eth_sendTransaction, [txParams]);
-  }, "Success");
+  }, interpolate(SuccessMessages.adjustLeverage, {leverage}));
 };
 
 export const adjustMarginBiconomyCall = async (
@@ -40,8 +42,10 @@ export const adjustMarginBiconomyCall = async (
   biconomy: any,
   getPublicAddress: () => address
 ) => {
+  const msg = operationType === ADJUST_MARGIN.Add ? SuccessMessages.adjustMarginAdd : SuccessMessages.adjustMarginRemove
   return TransformToResponseSchema(async () => {
     let txParams: Object;
+    //ADD MARGIN
     if (operationType === ADJUST_MARGIN.Add) {
       const { data } = await perpContract.populateTransaction.addMargin(
         getPublicAddress(),
@@ -54,7 +58,9 @@ export const adjustMarginBiconomyCall = async (
         from: getPublicAddress(),
         signatureType: SignatureType.PERSONAL_SIGN,
       };
-    } else {
+    } 
+    //REMOVE MARGIN
+    else {
       const { data } = await perpContract.populateTransaction.removeMargin(
         getPublicAddress(),
         toBigNumberStr(amount)
@@ -70,7 +76,7 @@ export const adjustMarginBiconomyCall = async (
 
     const bicProvider = biconomy.getEthersProvider();
     return bicProvider.send(TransactionType.eth_sendTransaction, [txParams]);
-  }, "Success");
+  }, interpolate(msg, {amount: amount.toFixed(DEFAULT_PRECISION)}));
 };
 
 export const withdrawFromMarginBankBiconomyCall = async (
@@ -82,8 +88,9 @@ export const withdrawFromMarginBankBiconomyCall = async (
   getPublicAddress: () => address,
   amount?: number
 ) => {
+
+  let amountNumber = amount;
   return TransformToResponseSchema(async () => {
-    let amountNumber = amount;
     if (!amount) {
       // get all margin bank balance when amount not provided by user
       amountNumber = await getMarginBankBalance(
@@ -107,24 +114,28 @@ export const withdrawFromMarginBankBiconomyCall = async (
 
     const bicProvider = biconomy.getEthersProvider();
     return bicProvider.send(TransactionType.eth_sendTransaction, [txParams]);
-  }, "Success");
+  }, interpolate(SuccessMessages.withdrawMargin, {amount: amountNumber?.toFixed(DEFAULT_PRECISION)}));
 };
 
 export const depositToMarginBankBiconomyCall = async (
   tokenContract: any,
   marginBankContract: any,
-  amountString: string,
+  amount: number,
+  MarginTokenPrecision: number,
   wallet: Signer | Wallet,
   gasLimit: number,
   biconomy: any,
   getPublicAddress: () => address
 ) => {
+  const amountString = toBigNumberStr(amount, MarginTokenPrecision);
+
   return TransformToResponseSchema(async () => {
     if (wallet.constructor.name === Wallet.name) {
       await approvalFromUSDCContractCall(
         tokenContract,
         marginBankContract,
-        amountString,
+        amount,
+        MarginTokenPrecision,
         wallet,
         gasLimit
       );
@@ -143,5 +154,5 @@ export const depositToMarginBankBiconomyCall = async (
 
     const bicProvider = biconomy.getEthersProvider();
     return bicProvider.send(TransactionType.eth_sendTransaction, [txParams]);
-  }, "Success");
+  }, interpolate(SuccessMessages.depositToBank, {amount: amount.toFixed(DEFAULT_PRECISION)}));
 };

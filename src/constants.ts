@@ -29,6 +29,9 @@ export const Networks = {
   },
 };
 
+export const DEFAULT_PRECISION = 2
+
+//TODO: should come from server
 export const BICONOMY_API_KEY =
   "up_rW7i3I.b96415e2-3176-4cc9-9761-e245fa48b449";
 

@@ -57,3 +57,13 @@ export const TransformToResponseSchema = async (
     return handleResponse({ ...serializeError(error) }, false);
   }
 };
+
+
+export enum SuccessMessages {
+  adjustLeverage = "Leverage Adjusted to {leverage}x.",
+  adjustMarginAdd = "{amount} USDC margin Added to position.",
+  adjustMarginRemove = "{amount} USDC margin Removed from position.",
+  withdrawMargin = "{amount} USDC withdrawn.",
+  approveUSDC = "{amount} USDC approved.",
+  depositToBank = "{amount} USDC deposited to Margin Bank."
+}
