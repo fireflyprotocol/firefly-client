@@ -491,12 +491,11 @@ describe("FireflyClient", () => {
   });
 
   describe("Get Market Orderbook", () => {
-    it.only(`should get ${symbol} orderbook with best ask and bid`, async () => {
+    it(`should get ${symbol} orderbook with best ask and bid`, async () => {
       const response = await client.getOrderbook({
         symbol,
         limit: 1,
       });
-      console.log(response)
       expect(response.ok).to.be.equal(true);
       expect(response?.data?.limit).to.be.equal(1);
       expect(response?.data?.symbol).to.be.equal(symbol);
