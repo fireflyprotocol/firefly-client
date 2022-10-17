@@ -491,7 +491,7 @@ describe("FireflyClient", () => {
   });
 
   describe("Get Market Orderbook", () => {
-    it("should get BTC orderbook with best ask and bid", async () => {
+    it(`should get ${symbol} orderbook with best ask and bid`, async () => {
       const response = await client.getOrderbook({
         symbol,
         limit: 1,
