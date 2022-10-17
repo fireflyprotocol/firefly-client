@@ -25,7 +25,7 @@ export const adjustLeverageContractCall = async (
       .adjustLeverage(getPublicAddress(), toBigNumberStr(leverage), {
         gasLimit,
       });
-    if (wallet.constructor.name === Wallet.name) {
+    if (wallet instanceof Wallet) {
       return tx.wait();
     }
 
@@ -50,7 +50,7 @@ export const adjustMarginContractCall = async (
         .addMargin(getPublicAddress(), toBigNumberStr(amount), {
           gasLimit: gasLimit,
         });
-      if (wallet.constructor.name === Wallet.name) {
+      if (wallet instanceof Wallet) {
         return tx.wait();
       }
 
@@ -63,7 +63,7 @@ export const adjustMarginContractCall = async (
         .removeMargin(getPublicAddress(), toBigNumberStr(amount), {
           gasLimit: gasLimit,
         });
-      if (wallet.constructor.name === Wallet.name) {
+      if (wallet instanceof Wallet) {
         return tx.wait();
       }
 
@@ -138,7 +138,7 @@ export const depositToMarginBankContractCall = async (
   const amountString = toBigNumberStr(amount, MarginTokenPrecision);
 
   return TransformToResponseSchema(async () => {
-    if (wallet.constructor.name === Wallet.name) {
+    if (wallet instanceof Wallet) {
       await approvalFromUSDCContractCall(
         tokenContract,
         marginBankContract,

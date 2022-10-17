@@ -130,7 +130,7 @@ export const depositToMarginBankBiconomyCall = async (
   const amountString = toBigNumberStr(amount, MarginTokenPrecision);
 
   return TransformToResponseSchema(async () => {
-    if (wallet.constructor.name === Wallet.name) {
+    if (wallet instanceof Wallet) {
       await approvalFromUSDCContractCall(
         tokenContract,
         marginBankContract,
