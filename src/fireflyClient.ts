@@ -113,6 +113,8 @@ export class FireflyClient {
 
   private maxBlockGasLimit = 0;
 
+  private maxSaltLimit = 2 ** 60;
+
   // the number of decimals supported by USDC contract
   private MarginTokenPrecision = 6;
 
@@ -190,7 +192,7 @@ export class FireflyClient {
   };
 
   /**
-   * initializes contract addresses
+   * initializes contract addresses, biconomy & onboards user
    */
   init = async (userOnboarding: boolean = true) => {
     // get contract addresses
@@ -206,8 +208,10 @@ export class FireflyClient {
       await this.userOnBoarding();
     }
 
+    // fetch gas limit
     this.maxBlockGasLimit = (await this.web3.eth.getBlock("latest")).gasLimit;
 
+    // initialize biconomy
     if (this.useBiconomy) {
       let provider: any;
 
@@ -304,7 +308,7 @@ export class FireflyClient {
   /**
    * Returns the USDC balance of user in USDC contract
    * @param contract (optional) address of USDC contract
-   * @returns Number representing balance of user
+   * @returns Number representing balance of user in USDC contract
    */
   getUSDCBalance = async (contract?: address): Promise<number> => {
     const tokenContract = this.getContract(this._usdcToken, contract);
@@ -321,7 +325,7 @@ export class FireflyClient {
   /**
    * Returns the usdc Balance(Free Collateral) of the account in Margin Bank contract
    * @param contract (optional) address of Margin Bank contract
-   * @returns Number representing balance of user
+   * @returns Number representing balance of user in Margin Bank contract
    */
   getMarginBankBalance = async (contract?: address): Promise<number> => {
     const marginBankContract = this.getContract(this._marginBank, contract);
@@ -598,7 +602,7 @@ export class FireflyClient {
 
   /**
    * Verifies if the order
-   * @param params
+   * @param params OrderSignatureResponse
    * @returns boolean indicating if order signature is valid
    */
   verifyOrderSignature = (params: OrderSignatureResponse): boolean => {
@@ -648,7 +652,7 @@ export class FireflyClient {
   };
 
   /**
-   * Posts to exchange for cancellation of provided orders
+   * Posts to exchange for cancellation of provided orders with signature
    * @param params OrderCancellationRequest containing order hashes to be cancelled and cancellation signature
    * @returns response from exchange server
    */
@@ -665,6 +669,11 @@ export class FireflyClient {
     return response;
   };
 
+  /**
+   * Creates signature and posts order for cancellation on exchange of provided orders
+   * @param params OrderCancelSignatureRequest containing order hashes to be cancelled
+   * @returns response from exchange server
+   */
   postCancelOrder = async (params: OrderCancelSignatureRequest) => {
     if (params.hashes.length <= 0) {
       throw Error(`No orders to cancel`);
@@ -706,12 +715,11 @@ export class FireflyClient {
    * @param perpetualAddress (address) address of Perpetual contract
    * @returns ResponseSchema
    */
-
-  async adjustLeverage(
+  adjustLeverage = async (
     symbol: MarketSymbol,
     leverage: number,
     perpetualAddress?: address
-  ): Promise<ResponseSchema> {
+  ): Promise<ResponseSchema> => {
     const userPosition = await this.getUserPosition({ symbol });
     if (!userPosition.data) {
       throw Error(`User positions data doesn't exist`);
@@ -719,7 +727,7 @@ export class FireflyClient {
 
     const position = userPosition.data as any as GetPositionResponse;
 
-    // if user position exists, make contract call to add or remove margin
+    // if user position exists, make contract call
     if (Object.keys(position).length > 0) {
       // TODO [BFLY-603]: this should be returned as array from dapi, remove this typecasting when done
       const perpContract = this.getContract(
@@ -748,6 +756,7 @@ export class FireflyClient {
 
       return resp;
     }
+    // call API to update leverage
     const {
       ok,
       data,
@@ -758,7 +767,7 @@ export class FireflyClient {
     });
     const response: ResponseSchema = { ok, data, code: errorCode, message };
     return response;
-  }
+  };
 
   /**
    * Gets Users default leverage.
@@ -778,7 +787,6 @@ export class FireflyClient {
       return bnStrToBaseNumber(accDataByMarket[0].selectedLeverage);
     }
     /// user is new and symbol data is not present in accountDataByMarket
-
     const exchangeInfo = await this.getExchangeInfo(symbol);
     if (!exchangeInfo.data) {
       throw Error(`Provided Market Symbol(${symbol}) does not exist`);
@@ -1029,24 +1037,6 @@ export class FireflyClient {
     return address;
   };
 
-  getWallet = (): Wallet | Signer => {
-    const walletOrSigner: Signer | Wallet = this.wallet
-      ? (this.wallet as Wallet)
-      : (this.signer as Signer);
-    if (!walletOrSigner) {
-      throw Error(`Invalid Signer`);
-    }
-    return walletOrSigner;
-  };
-
-  getSigningMethod = () => {
-    return this.wallet ? SigningMethod.Hash : this.signingMethod;
-  };
-
-  getOnboardSigningMethod = () => {
-    return this.wallet ? SigningMethod.TypedData : this.signingMethod;
-  };
-
   /**
    * Creates message to be signed, creates signature and authorize it from dapi
    * @returns auth token
@@ -1079,13 +1069,36 @@ export class FireflyClient {
   //= ==============================================================//
   //                    PRIVATE HELPER FUNCTIONS
   //= ==============================================================//
+  /**
+   * Checks if Firefly client was initialized with Private Key or Web3Provider and returns respective signer
+   * @returns Wallet if initialized with private key else signer object
+   */
+  private getWallet = (): Wallet | Signer => {
+    const walletOrSigner: Signer | Wallet = this.wallet
+      ? (this.wallet as Wallet)
+      : (this.signer as Signer);
+    if (!walletOrSigner) {
+      throw Error(`Invalid Signer`);
+    }
+    return walletOrSigner;
+  };
 
   /**
-   * Private function to return a global(Test usdc Token / Margin Bank) contract
-   * @param contract address of contract
-   * @returns Contract | MarginBank or throws error
+   * Checks if Firefly client was initialized with Private Key or Web3Provider and returns respective signing method
+   * @returns Signing Method
    */
-  public getContract = (
+  private getSigningMethod = () => {
+    return this.wallet ? SigningMethod.Hash : this.signingMethod;
+  };
+
+  /**
+   * Private function to get the contract address of given contract name mapped with respective factory
+   * @param contractName name of the contract eg: `Perpetual`, `USDC` etc
+   * @param contract address of contract
+   * @param market name of the specific market to get address for
+   * @returns Contract | MarginBank | IsolatedTrader or throws error
+   */
+  private getContract = (
     contractName: string,
     contract?: address,
     market?: MarketSymbol
@@ -1093,8 +1106,6 @@ export class FireflyClient {
     | Contract
     | contracts_exchange.MarginBank
     | contracts_exchange.IsolatedTrader => {
-    // if a market name is provided and contract address is not provided
-
     contract = this.getContractAddressByName(contractName, contract, market);
 
     switch (contractName) {
@@ -1119,11 +1130,19 @@ export class FireflyClient {
     }
   };
 
-  public getContractAddressByName = (
+  /**
+   * Gets the contract address of provided name
+   * @param contractName name of the contract eg: `Perpetual`, `USDC` etc
+   * @param contract address of contract
+   * @param market name of the specific market to get address for
+   * @returns contract address of given name
+   */
+  private getContractAddressByName = (
     contractName: string,
     contract?: address,
     market?: MarketSymbol
   ): string => {
+    // if a market name is provided and contract address is not provided
     if (market && !contract) {
       try {
         contract = this.contractAddresses[market][contractName];
@@ -1168,9 +1187,9 @@ export class FireflyClient {
     }
 
     const salt =
-      params.salt && bigNumber(params.salt).lt(bigNumber(2 ** 60))
+      params.salt && bigNumber(params.salt).lt(bigNumber(this.maxSaltLimit))
         ? bigNumber(params.salt)
-        : bigNumber(this.randomNumber(1_000));
+        : bigNumber(this.generateRandomSalt(1_000));
 
     return {
       isBuy: params.side === ORDER_SIDE.BUY,
@@ -1224,7 +1243,12 @@ export class FireflyClient {
     return response;
   };
 
-  private randomNumber = (multiplier: number) => {
+  /**
+   * Generates random salt
+   * @param multiplier number to multiply with random number generated
+   * @returns random number
+   */
+  private generateRandomSalt = (multiplier: number) => {
     return Math.floor(
       (Date.now() + Math.random() + Math.random()) * multiplier
     );
