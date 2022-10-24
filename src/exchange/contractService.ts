@@ -114,7 +114,7 @@ export const approvalFromUSDCContractCall = async (
   const amountString = toBigNumberStr(amount, MarginTokenPrecision);
 
   return TransformToResponseSchema(async () => {
-    return (
+    return await(
       await (tokenContract as Contract)
         .connect(wallet)
         .approve(
