@@ -79,6 +79,7 @@ import {
   depositToMarginBankBiconomyCall,
   withdrawFromMarginBankBiconomyCall,
 } from "./exchange/biconomyService";
+import { generateRandomNumber } from "../utils/utils";
 
 export class FireflyClient {
   protected readonly network: Network;
@@ -1189,7 +1190,7 @@ export class FireflyClient {
     const salt =
       params.salt && bigNumber(params.salt).lt(bigNumber(this.maxSaltLimit))
         ? bigNumber(params.salt)
-        : bigNumber(this.generateRandomSalt(1_000));
+        : bigNumber(generateRandomNumber(1_000));
 
     return {
       isBuy: params.side === ORDER_SIDE.BUY,
@@ -1241,16 +1242,5 @@ export class FireflyClient {
       { isAuthenticationRequired: true }
     );
     return response;
-  };
-
-  /**
-   * Generates random salt
-   * @param multiplier number to multiply with random number generated
-   * @returns random number
-   */
-  private generateRandomSalt = (multiplier: number) => {
-    return Math.floor(
-      (Date.now() + Math.random() + Math.random()) * multiplier
-    );
   };
 }

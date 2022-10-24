@@ -10,6 +10,7 @@ import { SuccessMessages, TransformToResponseSchema } from "./contractErrorHandl
 import { approvalFromUSDCContractCall } from "./contractService";
 //@ts-ignore
 import { default as interpolate } from "interpolate";
+import { generateRandomNumber } from "../../utils/utils";
 
 export const adjustLeverageBiconomyCall = async (
   perpContract: any,
@@ -26,6 +27,7 @@ export const adjustLeverageBiconomyCall = async (
     const txParams = {
       data: data,
       to: perpContract.address,
+      batchId: generateRandomNumber(1_000),
       from: getPublicAddress(),
       signatureType: SignatureType.PERSONAL_SIGN,
     };
@@ -55,6 +57,7 @@ export const adjustMarginBiconomyCall = async (
       txParams = {
         data: data,
         to: perpContract.address,
+        batchId: generateRandomNumber(1_000),
         from: getPublicAddress(),
         signatureType: SignatureType.PERSONAL_SIGN,
       };
@@ -69,6 +72,7 @@ export const adjustMarginBiconomyCall = async (
       txParams = {
         data: data,
         to: perpContract.address,
+        batchId: generateRandomNumber(1_000),
         from: getPublicAddress(),
         signatureType: SignatureType.PERSONAL_SIGN,
       };
@@ -108,6 +112,7 @@ export const withdrawFromMarginBankBiconomyCall = async (
     const txParams = {
       data: data,
       to: marginBankContract.address,
+      batchId: generateRandomNumber(1_000),
       from: getPublicAddress(),
       signatureType: SignatureType.PERSONAL_SIGN,
     };
@@ -148,6 +153,7 @@ export const depositToMarginBankBiconomyCall = async (
     const txParams = {
       data: data,
       to: marginBankContract.address,
+      batchId: generateRandomNumber(1_000),
       from: getPublicAddress(),
       signatureType: SignatureType.PERSONAL_SIGN,
     };
