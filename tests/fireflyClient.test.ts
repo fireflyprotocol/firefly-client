@@ -418,6 +418,16 @@ describe("FireflyClient", () => {
       });
       expect(data.response.data.length).to.be.equals(0);
     });
+
+    it("should get only LIMIT filled orders", async () => {
+      const data = await client.getUserOrders({
+        statuses: [ORDER_STATUS.FILLED],
+        orderType: [ORDER_TYPE.LIMIT],
+        symbol,
+      });
+      expect(data.ok).to.be.equals(true);
+      expect(data.response.data.length).to.be.gte(0);
+    });
   });
 
   describe("Get User Position", () => {
@@ -510,22 +520,53 @@ describe("FireflyClient", () => {
     });
   });
 
+  describe("User History and Account Related Routes", async () => {
+    it("should get User Account Data", async () => {
+      const response = await client.getUserAccountData();
+      expect(response.ok).to.be.equal(true);
+    });
+
+    it("should get Transaction History records for user", async () => {
+      const response = await client.getUserTransactionHistory({
+        symbol,
+        pageSize: 2,
+        pageNumber: 1,
+      });
+      expect(response.ok).to.be.equal(true);
+    });
+
+    it("should get Funding History records for user", async () => {
+      const response = await client.getUserFundingHistory({
+        pageSize: 2,
+        cursor: 1,
+      });
+      expect(response.ok).to.be.equal(true);
+    });
+
+    it(`should get Funding History records of ${symbol}`, async () => {
+      const response = await client.getUserFundingHistory({
+        symbol,
+        pageSize: 2,
+        cursor: 1,
+      });
+      expect(response.ok).to.be.equal(true);
+    });
+
+    it("should get all Transfer History records for user", async () => {
+      const response = await client.getUserTransferHistory({});
+      expect(response.ok).to.be.equal(true);
+    });
+
+    it("should get Transfer History of `Withdraw` records for user", async () => {
+      const response = await client.getUserTransferHistory({
+        action: "Withdraw"
+      });
+      expect(response.ok).to.be.equal(true);
+    });
+  })
+
   it("should get contract address", async () => {
     const response = await client.getContractAddresses();
-    expect(response.ok).to.be.equal(true);
-  });
-
-  it("should get User Account Data", async () => {
-    const response = await client.getUserAccountData();
-    expect(response.ok).to.be.equal(true);
-  });
-
-  it("should get Transaction History records for user", async () => {
-    const response = await client.getUserTransactionHistory({
-      symbol,
-      pageSize: 2,
-      pageNumber: 1,
-    });
     expect(response.ok).to.be.equal(true);
   });
 
@@ -566,6 +607,21 @@ describe("FireflyClient", () => {
     expect(response.ok).to.be.equal(true);
   });
 
+  it("should get market ticker data for BTC Market", async () => {
+    const response = await client.getTickerData(symbol);
+    expect(response.ok).to.be.equal(true);
+  });
+
+  it("should get master info of all markets", async () => {
+    const response = await client.getMasterInfo();
+    expect(response.ok).to.be.equal(true);
+  });
+
+  it(`should get master info of ${symbol}`, async () => {
+    const response = await client.getMasterInfo(symbol);
+    expect(response.ok).to.be.equal(true);
+  });
+
   it("should get market symbols", async () => {
     const response = await client.getMarketSymbols();
     expect(response.ok).to.be.equal(true);
@@ -576,6 +632,11 @@ describe("FireflyClient", () => {
     expect(response.ok).to.be.equal(true);
     expect(response.data?.isAlive).to.be.equal(true);
   });
+
+  it(`should return funding rate of ${symbol}`, async () => {
+    const response = await client.getMarketFundingRate(symbol)
+    expect(response.ok).to.be.equal(true)
+  })
 
   describe("Sockets", () => {
     beforeEach(async () => {
