@@ -16,8 +16,20 @@ export interface GetTransactionHistoryRequest {
   pageNumber?: number; // will fetch particular page records. A single page contains 50 records.
 }
 
+export interface GetFundingHistoryRequest {
+  symbol?: MarketSymbol; // will fetch orders of provided market
+  pageSize?: number; // will get only provided number of orders must be <= 50
+  cursor?: number; // will fetch particular page records. A single page contains 50 records.
+}
+
+export interface GetTransferHistoryRequest {
+  pageSize?: number; // will get only provided number of orders must be <= 50
+  cursor?: number; // will fetch particular page records. A single page contains 50 records.
+  action?: string; //Deposit / Withdraw
+}
 export interface GetOrderRequest extends GetTransactionHistoryRequest {
   statuses: ORDER_STATUS[]; // status of orders to be fetched
+  orderType?: ORDER_TYPE[]; //order type LIMIT / MARKET
 }
 
 export interface GetPositionRequest extends GetTransactionHistoryRequest {}
@@ -75,7 +87,6 @@ interface OrderResponse {
   reduceOnly: boolean;
   expiration: number;
   salt: number;
-  orderSignature: string;
   filledQty: string;
   avgFillPrice: string;
   createdAt: number;
@@ -90,9 +101,11 @@ export interface GetOrderResponse extends OrderResponse {
   fee: string;
   postOnly: boolean;
   triggerPrice: string;
+  margin: string;
 }
-
-export interface PlaceOrderResponse extends OrderResponse {}
+export interface PlaceOrderResponse extends OrderResponse {
+  postOnly?: boolean;
+}
 
 export interface OrderCancelSignatureRequest {
   symbol: MarketSymbol;
@@ -177,6 +190,7 @@ export interface GetUserTradesResponse {
   commission: string;
   commissionAsset: string;
   maker: boolean;
+  orderHash: string;
   side: ORDER_SIDE;
   price: string;
   quantity: string;
@@ -185,6 +199,7 @@ export interface GetUserTradesResponse {
   time: number;
   clientId: string;
   orderId: number;
+  tradeType: string;
 }
 
 export interface MarketAccountData {
@@ -229,6 +244,53 @@ export interface GetUserTransactionHistoryResponse {
   traderType: string;
 }
 
+export interface GetUserTransferHistoryResponse {
+  data: UserTransferHistoryResponse[];
+  nextCursor: number;
+  isMoreDataAvailable: boolean;
+}
+
+export interface UserTransferHistoryResponse {
+  id: number;
+  status: string;
+  action: string;
+  amount: string;
+  userAddress: string;
+  blockNumber: number;
+  latestTxHash: string;
+  time: number;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface GetFundingRateResponse {
+  symbol: MarketSymbol;
+  createdAt: number;
+  nextTime: number;
+  fundingRate: string;
+}
+
+export interface GetUserFundingHistoryResponse {
+  data: UserFundingHistoryResponse[];
+  nextCursor: number;
+  isMoreDataAvailable: boolean;
+}
+export interface UserFundingHistoryResponse {
+  id: number;
+  symbol: MarketSymbol;
+  userAddress: string;
+  quantity: string;
+  time: number;
+  appliedFundingRate: string;
+  isFundingRatePositive: boolean;
+  payment: string;
+  isPaymentPositive: boolean;
+  oraclePrice: string;
+  side: ORDER_SIDE;
+  blockNumber: number;
+  isPositionPositive: boolean
+}
+
 export interface GetMarketRecentTradesRequest {
   symbol: MarketSymbol;
   pageSize?: number;
@@ -257,70 +319,95 @@ export interface GetCandleStickRequest {
 /* Market Endpoints */
 export interface ExchangeInfo {
   symbol: MarketSymbol;
-  maintenanceMarginReq: string;
-  initialMarginReq: string;
+  status: string;
   baseAssetSymbol: string;
   baseAssetName: string;
   quoteAssetSymbol: string;
   quoteAssetName: string;
+  maintenanceMarginReq: string;
+  initialMarginReq: string;
   stepSize: number;
   tickSize: number;
   minOrderSize: number;
-  maxMarketOrderSize: string;
   maxLimitOrderSize: string;
+  maxMarketOrderSize: string;
   minOrderPrice: string;
   maxOrderPrice: string;
   defaultMakerFee: string;
   defaultTakerFee: string;
-  liquidationFee: string;
+  insurancePoolPercentage: string;
   mtbLong: string;
   mtbShort: string;
   defaultLeverage: string;
-  status: string;
-  insurancePoolPercentage: string;
-  maxAllowedOrderQuantityRules: [];
+  maxAllowedOIOpen: [];
 }
 
 export interface MarketData {
-  symbol: MarketSymbol;
-  bestAskPrice: string;
-  bestAskQty: string;
-  bestBidPrice: string;
-  bestBidQty: string;
-  midMarketPrice: string;
-  midMarketPriceDirection: number;
-  marketPrice: string;
-  marketPriceDirection: number;
-  indexPrice: string;
-  time: string;
-  lastFundingRate: string;
-  nextFundingTime: string;
-  lastPrice: string;
+  ssymbol: MarketSymbol;
   lastQty: string;
   lastTime: string;
-  _24hrPriceChange: string;
-  _24hrPriceChangePercent: string;
-  _24hrOpenPrice: string;
+  lastPrice: string;
   _24hrHighPrice: string;
   _24hrLowPrice: string;
-  _24hrClosePrice: string;
-  _24hrVolume: string;
+  _24hrVolume: string; 
   _24hrQuoteVolume: string;
-  _24hrOpenTime: string;
+  _24hrClosePrice: string;
+  _24hrOpenPrice: string;
   _24hrCloseTime: string;
+  _24hrOpenTime: string;
+  _24hrCount: string;
+  indexPrice: string;
+  midMarketPrice: string;
   _24hrFirstId: number;
   _24hrLastId: number;
-  _24hrCount: string;
+  bestBidPrice: string;
+  bestBidQty: string;
+  bestAskPrice: string;
+  bestAskQty: string;
+  lastFundingRate: string;
+  nextFundingTime: string;
+  time: string;
+  _24hrPriceChange: string;
+  midMarketPriceDirection: number;
+  _24hrPriceChangePercent: string;
+  marketPrice: string;
+  marketPriceDirection: number;
 }
 
 export interface MarketMeta {
   symbol: MarketSymbol;
   domainHash: string;
+  onboardingWebsiteUrl: string;
   rpcURI: string;
   networkID: string;
   orderAddress: address;
+  liquidationAddress: address;
   perpetualAddress: address;
-  onboardingWebsiteUrl: string;
+}
+
+export interface MasterInfo {
+  _24hrTrades: string;
+  _24hrVolume: string;
+  data: MasterInfoData[];
+}
+
+export interface MasterInfoData {
+  symbol: string;
+  meta: MarketMeta;
+  exchangeInfo: ExchangeInfo;
+  marketData: MarketData;
+}
+
+export interface TickerData {
+  symbol: MarketSymbol;
+  _24hrPriceChange: string;
+  _24hrPriceChangePercent: string;
+  openTime: number;
+  closeTime: number;
+  price: string;
+  priceDirection: number;
+  _24hrVolume: string;
+  indexPrice: string;
 }
 
 export interface StatusResponse {

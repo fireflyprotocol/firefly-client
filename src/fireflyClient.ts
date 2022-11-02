@@ -58,6 +58,13 @@ import {
   AdjustLeverageResponse,
   CancelOrderResponse,
   FundGasResponse,
+  TickerData,
+  MasterInfo,
+  GetFundingHistoryRequest,
+  GetUserFundingHistoryResponse,
+  GetUserTransferHistoryResponse,
+  GetFundingRateResponse,
+  GetTransferHistoryRequest,
 } from "./interfaces/routes";
 
 import { APIService } from "./exchange/apiService";
@@ -927,6 +934,59 @@ export class FireflyClient {
   };
 
   /**
+   * Gets user funding history
+   * @param params GetFundingHistoryRequest
+   * @returns GetUserTransactionHistoryResponse
+   */
+   getUserFundingHistory = async (params: GetFundingHistoryRequest) => {
+    const response = await this.apiService.get<
+    GetUserFundingHistoryResponse
+    >(
+      SERVICE_URLS.USER.FUNDING_HISTORY,
+      {
+        ...params,
+      },
+      { isAuthenticationRequired: true }
+    );
+    return response;
+  };
+
+  /**
+   * Gets user transfer history
+   * @param params GetTransferHistoryRequest
+   * @returns GetUserTransferHistoryResponse
+   */
+   getUserTransferHistory = async (params: GetTransferHistoryRequest) => {
+    const response = await this.apiService.get<
+    GetUserTransferHistoryResponse
+    >(
+      SERVICE_URLS.USER.TRANSFER_HISTORY,
+      {
+        ...params,
+      },
+      { isAuthenticationRequired: true }
+    );
+    return response;
+  };
+
+  /**
+   * Gets market funding rate
+   * @param symbol market symbol to fetch funding rate of
+   * @returns GetFundingRateResponse
+   */
+   getMarketFundingRate = async (symbol: MarketSymbol) => {
+    const response = await this.apiService.get<
+    GetFundingRateResponse
+    >(
+      SERVICE_URLS.MARKET.FUNDING_RATE,
+      {
+        symbol
+      }
+    );
+    return response;
+  };
+
+  /**
    * Gets market recent trades
    * @param params GetMarketRecentTradesRequest
    * @returns GetMarketRecentTradesResponse
@@ -992,6 +1052,19 @@ export class FireflyClient {
   };
 
   /**
+   * Gets Master Info of the market(s)
+   * @param symbol (optional) market symbol get information about, by default fetches info on all available markets
+   * @returns MasterInfo
+   */
+   getMasterInfo = async (symbol?: MarketSymbol) => {
+    const response = await this.apiService.get<MasterInfo>(
+      SERVICE_URLS.MARKET.MASTER_INFO,
+      { symbol }
+    );
+    return response;
+  };
+
+  /**
    * Gets the list of market symbols available on exchange
    * @returns array of strings representing MARKET SYMBOLS
    */
@@ -1025,6 +1098,19 @@ export class FireflyClient {
     );
     return response;
   };
+
+  /**
+   * Gets ticker data of any market
+   * @param symbol market symbol to get information about, if not provided fetches data of all markets
+   * @returns TickerData
+   */
+  getTickerData = async (symbol?: MarketSymbol) => {
+    const response = await this.apiService.get<TickerData>(
+      SERVICE_URLS.MARKET.TICKER,
+      { symbol }
+    );
+    return response;
+  }
 
   /**
    * Returns the public address of account connected with the client
