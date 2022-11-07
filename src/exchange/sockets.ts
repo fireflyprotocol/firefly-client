@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { io } from "socket.io-client";
 import {
-  address,
   SocketInstance,
   MarketSymbol,
   SOCKET_EVENTS,
@@ -23,8 +22,11 @@ export class Sockets {
 
   private url: string;
 
+  private token: string;
+
   constructor(url: string) {
     this.url = url;
+    this.token = "";
   }
 
   createDynamicUrl(dynamicUrl: string, object: any) {
@@ -76,25 +78,45 @@ export class Sockets {
     return true;
   }
 
-  subscribeUserUpdateByAddress(ethAddress: address): boolean {
+  setAuthToken(token: string) {
+    this.token = token;
+  }
+
+  private onSubscription(data: any) {
+    console.log(data);
+  }
+
+  subscribeUserUpdateByToken(): boolean {
     if (!this.socketInstance) return false;
-    this.socketInstance.emit("SUBSCRIBE", [
-      {
-        e: SOCKET_EVENTS.UserUpdatesRoom,
-        u: ethAddress.toLowerCase(),
-      },
-    ]);
+    this.socketInstance.emit(
+      "SUBSCRIBE",
+      [
+        {
+          e: SOCKET_EVENTS.UserUpdatesRoom,
+          t: this.token,
+        },
+      ],
+      (data: any) => {
+        this.onSubscription(data);
+      }
+    );
     return true;
   }
 
-  unsubscribeUserUpdateByAddress(ethAddress: address): boolean {
+  unsubscribeUserUpdateByToken(): boolean {
     if (!this.socketInstance) return false;
-    this.socketInstance.emit("UNSUBSCRIBE", [
-      {
-        e: SOCKET_EVENTS.UserUpdatesRoom,
-        u: ethAddress.toLowerCase(),
-      },
-    ]);
+    this.socketInstance.emit(
+      "UNSUBSCRIBE",
+      [
+        {
+          e: SOCKET_EVENTS.UserUpdatesRoom,
+          t: this.token,
+        },
+      ],
+      (data: any) => {
+        this.onSubscription(data);
+      }
+    );
     return true;
   }
 

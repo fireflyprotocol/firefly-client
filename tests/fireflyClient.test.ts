@@ -582,7 +582,7 @@ describe("FireflyClient", () => {
       client.sockets.open();
       client.addMarket(symbol);
       client.sockets.subscribeGlobalUpdatesBySymbol(symbol);
-      client.sockets.subscribeUserUpdateByAddress(client.getPublicAddress());
+      client.sockets.subscribeUserUpdateByToken();
     });
 
     it("should receive an event from candle stick", (done) => {
