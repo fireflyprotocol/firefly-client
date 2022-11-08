@@ -343,3 +343,8 @@ export interface AdjustLeverageResponse {
 export interface FundGasResponse {
   message: string;
 }
+
+export interface UserSubscriptionAck {
+  success: boolean;
+  message: string;
+}

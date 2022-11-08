@@ -15,6 +15,7 @@ import {
   GetUserTradesResponse,
   GetAccountDataResponse,
   MarketData,
+  UserSubscriptionAck,
 } from "../interfaces/routes";
 
 export class Sockets {
@@ -82,7 +83,7 @@ export class Sockets {
     this.token = token;
   }
 
-  private onSubscription(data: any) {
+  private onSubscription(data: UserSubscriptionAck) {
     console.log(data);
   }
 
@@ -96,7 +97,7 @@ export class Sockets {
           t: this.token,
         },
       ],
-      (data: any) => {
+      (data: UserSubscriptionAck) => {
         this.onSubscription(data);
       }
     );
@@ -113,7 +114,7 @@ export class Sockets {
           t: this.token,
         },
       ],
-      (data: any) => {
+      (data: UserSubscriptionAck) => {
         this.onSubscription(data);
       }
     );
