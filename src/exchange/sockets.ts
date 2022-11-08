@@ -83,11 +83,7 @@ export class Sockets {
     this.token = token;
   }
 
-  private onSubscription(data: UserSubscriptionAck) {
-    console.log(data);
-  }
-
-  subscribeUserUpdateByToken(): boolean {
+  subscribeUserUpdateByToken(callback?: any): boolean {
     if (!this.socketInstance) return false;
     this.socketInstance.emit(
       "SUBSCRIBE",
@@ -98,13 +94,13 @@ export class Sockets {
         },
       ],
       (data: UserSubscriptionAck) => {
-        this.onSubscription(data);
+        if (callback instanceof Function) callback(data);
       }
     );
     return true;
   }
 
-  unsubscribeUserUpdateByToken(): boolean {
+  unsubscribeUserUpdateByToken(callback?: any): boolean {
     if (!this.socketInstance) return false;
     this.socketInstance.emit(
       "UNSUBSCRIBE",
@@ -115,7 +111,7 @@ export class Sockets {
         },
       ],
       (data: UserSubscriptionAck) => {
-        this.onSubscription(data);
+        if (callback instanceof Function) callback(data);
       }
     );
     return true;
