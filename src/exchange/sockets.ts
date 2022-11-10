@@ -79,9 +79,9 @@ export class Sockets {
     return true;
   }
 
-  setAuthToken(token: string) {
+  setAuthToken = (token: string) => {
     this.token = token;
-  }
+  };
 
   subscribeUserUpdateByToken(callback?: any): boolean {
     if (!this.socketInstance) return false;
