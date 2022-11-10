@@ -10,6 +10,7 @@ import {
   ORDER_SIDE,
   PlaceOrderResponse,
   ORDER_TYPE,
+  UserSubscriptionAck,
 } from "../index";
 
 async function main() {
@@ -27,7 +28,9 @@ async function main() {
 
   // start listening to global market and local user events
   client.sockets.subscribeGlobalUpdatesBySymbol(MARKET_SYMBOLS.DOT);
-  client.sockets.subscribeUserUpdateByToken();
+  client.sockets.subscribeUserUpdateByToken((data: UserSubscriptionAck) => {
+    console.log(data);
+  });
 
   const callback = ({ order }: { order: PlaceOrderResponse }) => {
     console.log(order);

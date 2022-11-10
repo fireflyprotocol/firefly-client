@@ -22,6 +22,7 @@ import {
   GetUserTradesResponse,
   GetAccountDataResponse,
   Networks,
+  UserSubscriptionAck,
 } from "../index";
 
 chai.use(chaiAsPromised);
@@ -582,7 +583,9 @@ describe("FireflyClient", () => {
       client.sockets.open();
       client.addMarket(symbol);
       client.sockets.subscribeGlobalUpdatesBySymbol(symbol);
-      client.sockets.subscribeUserUpdateByToken();
+      client.sockets.subscribeUserUpdateByToken((data: UserSubscriptionAck) => {
+        console.log(data);
+      });
     });
 
     it("should receive an event from candle stick", (done) => {
