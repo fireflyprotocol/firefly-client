@@ -28,8 +28,13 @@ export interface GetTransferHistoryRequest {
   action?: string; //Deposit / Withdraw
 }
 export interface GetOrderRequest extends GetTransactionHistoryRequest {
+  symbol?: MarketSymbol;
+  orderId?: number;
+  orderHashes?: string[];
   statuses: ORDER_STATUS[]; // status of orders to be fetched
   orderType?: ORDER_TYPE[]; //order type LIMIT / MARKET
+  pageSize?: number;
+  pageNumber?: number;
 }
 
 export interface GetPositionRequest extends GetTransactionHistoryRequest {}

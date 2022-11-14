@@ -393,6 +393,35 @@ describe("FireflyClient", () => {
       expect(data.response.data.length).to.be.gte(0);
     });
 
+    it("should handle get open orders of non-existent hashes", async () => {
+      const data = await client.getUserOrders({
+        statuses: [ORDER_STATUS.OPEN],
+        symbol,
+        orderHashes: ["test0"], // incorrect hash
+      });
+      expect(data.ok).to.be.equals(true);
+      expect(data.response.data.length).to.be.eq(0);
+    });
+
+    it("should get open orders of specific hashes", async () => {
+      const data = await client.getUserOrders({
+        statuses: [ORDER_STATUS.OPEN],
+        symbol,
+      });
+      if (data.ok && data.data!.length > 0) {
+        const data1 = await client.getUserOrders({
+          statuses: [ORDER_STATUS.OPEN],
+          symbol,
+          orderHashes: data.response.data[0].hash,
+        });
+
+        expect(data1.ok).to.be.equals(true);
+        expect(data1.data!.length).to.be.eq(1);
+      }
+
+      expect(data.ok).to.be.equals(true);
+    });
+
     it("should get all cancelled orders", async () => {
       const data = await client.getUserOrders({
         statuses: [ORDER_STATUS.CANCELLED],
@@ -559,11 +588,11 @@ describe("FireflyClient", () => {
 
     it("should get Transfer History of `Withdraw` records for user", async () => {
       const response = await client.getUserTransferHistory({
-        action: "Withdraw"
+        action: "Withdraw",
       });
       expect(response.ok).to.be.equal(true);
     });
-  })
+  });
 
   it("should get contract address", async () => {
     const response = await client.getContractAddresses();
@@ -634,9 +663,9 @@ describe("FireflyClient", () => {
   });
 
   it(`should return funding rate of ${symbol}`, async () => {
-    const response = await client.getMarketFundingRate(symbol)
-    expect(response.ok).to.be.equal(true)
-  })
+    const response = await client.getMarketFundingRate(symbol);
+    expect(response.ok).to.be.equal(true);
+  });
 
   describe("Sockets", () => {
     beforeEach(async () => {
