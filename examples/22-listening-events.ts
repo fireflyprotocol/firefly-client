@@ -10,6 +10,7 @@ import {
   ORDER_SIDE,
   PlaceOrderResponse,
   ORDER_TYPE,
+  UserSubscriptionAck,
 } from "../index";
 
 async function main() {
@@ -17,8 +18,8 @@ async function main() {
   const dummyAccountKey =
     "a182091b4d5a090b65d604e36f68629a692e3bf2aa864bd3f037854034cdd676";
 
-  const client = new FireflyClient(true, Networks.TESTNET, dummyAccountKey); //passing isTermAccepted = true for compliance and authorizarion
-  await client.init()
+  const client = new FireflyClient(true, Networks.TESTNET, dummyAccountKey); // passing isTermAccepted = true for compliance and authorizarion
+  await client.init();
 
   client.addMarket(MARKET_SYMBOLS.DOT);
 
@@ -27,7 +28,9 @@ async function main() {
 
   // start listening to global market and local user events
   client.sockets.subscribeGlobalUpdatesBySymbol(MARKET_SYMBOLS.DOT);
-  client.sockets.subscribeUserUpdateByAddress(client.getPublicAddress());
+  client.sockets.subscribeUserUpdateByToken((data: UserSubscriptionAck) => {
+    console.log(data);
+  });
 
   const callback = ({ order }: { order: PlaceOrderResponse }) => {
     console.log(order);
@@ -44,7 +47,7 @@ async function main() {
     price: 0,
     quantity: 0.5,
     side: ORDER_SIDE.BUY,
-    orderType: ORDER_TYPE.MARKET
+    orderType: ORDER_TYPE.MARKET,
   });
 }
 
