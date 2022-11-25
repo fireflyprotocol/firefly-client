@@ -27,15 +27,16 @@ import {
 
 chai.use(chaiAsPromised);
 
-const testAcctKey =
-  "4d6c9531e0042cc8f7cf13d8c3cf77bfe239a8fed95e198d498ee1ec0b1a7e83";
-const testAcctPubAddr = "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF";
-
+// const testAcctKey =
+//   "0a9bfc4993c9637a752ad99b8498f4f0fc4c7ae92a5ee8b7b711cf1ff625b810";
+// const testAcctPubAddr = "0xC5E5Fdc35a808C85383faF0A6894e3b8dD666442";
+const testAcctKey = "bcbd32e50c26581184beb65f7fa76b1dd4b6662d14c26bbe993f820cf6e5300d";
+const testAcctPubAddr = "0x4030fC2b4D7FFF8b07c32CeF4B8e575fc9252118"
 let client: FireflyClient;
 
 describe("FireflyClient", () => {
   //* set environment from here
-  const network = Networks.DEV;
+  const network = Networks.TESTNET;
   const symbol = "BTC-PERP";
   let defaultLeverage = 4;
   let buyPrice = 18000;
@@ -62,11 +63,11 @@ describe("FireflyClient", () => {
     const marketData = await client.getMarketData(symbol);
     if (
       marketData.data &&
-      bnStrToBaseNumber(marketData.data.midMarketPrice) > 0
+      bnStrToBaseNumber(marketData.data.marketPrice) > 0
     ) {
       const midPrice = bnStrToBaseNumber(marketData.data.midMarketPrice);
       const percentChange = 3 / 100; // 3%
-      buyPrice = Number((midPrice - midPrice * percentChange).toFixed(0));
+      // buyPrice = Number((midPrice - midPrice * percentChange).toFixed(0));
       sellPrice = Number((midPrice + midPrice * percentChange).toFixed(0));
       console.log(`- mid market price: ${midPrice}`);
     }
@@ -80,6 +81,18 @@ describe("FireflyClient", () => {
   afterEach(() => {
     client.sockets.close();
   });
+
+  it.only("adjusting leverage: ", async () => {
+    var success = 0
+    for (var i = 0; i < 10; i++){
+      const res = await client.adjustLeverage(symbol, 5); // set leverage will make contract call
+      console.log("adjustLeverage res: ", res)
+      if (res.ok) {
+        success++
+      }  
+    }
+    console.log("SUCCESS: ", success)
+  })
 
   it("should initialize the client", async () => {
     expect(client).to.be.not.eq(undefined);

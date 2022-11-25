@@ -16,19 +16,17 @@ export const adjustLeverageContractCall = async (
   wallet: Signer | Wallet,
   leverage: number,
   gasLimit: number,
-  //@no-check
   getPublicAddress: () => address
 ) => {
+  console.log("gas: ", gasLimit)
   return TransformToResponseSchema(async () => {
     const tx = await (perpContract as contracts_exchange.Perpetual)
       .connect(wallet)
-      .adjustLeverage(getPublicAddress(), toBigNumberStr(leverage), {
-        gasLimit,
-      });
+      .adjustLeverage(getPublicAddress(), toBigNumberStr(leverage));
     if (wallet instanceof Wallet) {
       return tx.wait();
     }
-
+    
     return tx;
   }, interpolate(SuccessMessages.adjustLeverage, {leverage}));
 };
@@ -77,7 +75,6 @@ export const withdrawFromMarginBankContractCall = async (
   MarginTokenPrecision: number,
   wallet: Signer | Wallet,
   gasLimit: number,
-  //@no-check
   getMarginBankBalance: (address: string) => Promise<number>,
   getPublicAddress: () => address,
   amount?: number

@@ -70,7 +70,7 @@ import {
 import { APIService } from "./exchange/apiService";
 import { SERVICE_URLS } from "./exchange/apiUrls";
 import { Sockets } from "./exchange/sockets";
-import { BICONOMY_API_KEY, Networks } from "./constants";
+import { ARBITRUM_NETWROK, BICONOMY_API_KEY, Networks } from "./constants";
 import {
   adjustLeverageContractCall,
   adjustMarginContractCall,
@@ -118,6 +118,8 @@ export class FireflyClient {
   private isTermAccepted = false;
 
   private useBiconomy = false;
+
+  private isArbitrumNetwork = false;
 
   private maxBlockGasLimit = 0;
 
@@ -251,6 +253,10 @@ export class FireflyClient {
         biconomyAddresses
       );
     }
+
+    // check if Network is arbitrum
+    this.isArbitrumNetwork = this.network.url.includes(ARBITRUM_NETWROK)
+    console.log("isArbitrumNetwork", this.isArbitrumNetwork)
   };
 
   /**
