@@ -31,6 +31,7 @@ export const Networks = {
 
 export const DEFAULT_PRECISION = 2
 export const ARBITRUM_NETWROK = "arbitrum"
+export const EXTRA_FEES = 10000
 
 //TODO: should come from server
 export const BICONOMY_API_KEY =

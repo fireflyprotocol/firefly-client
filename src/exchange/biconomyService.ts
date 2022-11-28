@@ -129,6 +129,7 @@ export const depositToMarginBankBiconomyCall = async (
   MarginTokenPrecision: number,
   wallet: Signer | Wallet,
   gasLimit: number,
+  estimateGas: boolean,
   biconomy: any,
   getPublicAddress: () => address
 ) => {
@@ -142,7 +143,8 @@ export const depositToMarginBankBiconomyCall = async (
         amount,
         MarginTokenPrecision,
         wallet,
-        gasLimit
+        gasLimit,
+        estimateGas
       );
     }
     const { data } = await marginBankContract.populateTransaction.depositToBank(

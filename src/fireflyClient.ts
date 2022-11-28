@@ -70,7 +70,7 @@ import {
 import { APIService } from "./exchange/apiService";
 import { SERVICE_URLS } from "./exchange/apiUrls";
 import { Sockets } from "./exchange/sockets";
-import { ARBITRUM_NETWROK, BICONOMY_API_KEY, Networks } from "./constants";
+import { ARBITRUM_NETWROK, BICONOMY_API_KEY, EXTRA_FEES, Networks } from "./constants";
 import {
   adjustLeverageContractCall,
   adjustMarginContractCall,
@@ -256,7 +256,6 @@ export class FireflyClient {
 
     // check if Network is arbitrum
     this.isArbitrumNetwork = this.network.url.includes(ARBITRUM_NETWROK)
-    console.log("isArbitrumNetwork", this.isArbitrumNetwork)
   };
 
   /**
@@ -362,16 +361,23 @@ export class FireflyClient {
       throw Error(`Function does not work on PRODUCTION`);
     }
 
-    const tokenContract = this.getContract(this._usdcToken, contract);
+    const amountString = toBigNumberStr(10000, this.MarginTokenPrecision)
+    const contractAdd = this.getContract(this._usdcToken, contract);
+    const tokenContract = (contractAdd as Contract).connect(this.getWallet())
+    let gasLimit = this.maxBlockGasLimit
+
+    if (this.isArbitrumNetwork) {
+      gasLimit = (+await tokenContract.estimateGas.approve(this.getPublicAddress(), amountString)) + EXTRA_FEES;    
+    }
+
     // mint 10K usdc token
     await (
-      await (tokenContract as Contract)
-        .connect(this.getWallet())
+      await tokenContract
         .mint(
           this.getPublicAddress(),
-          toBigNumberStr(10000, this.MarginTokenPrecision),
+          amountString,
           {
-            gasLimit: this.maxBlockGasLimit,
+            gasLimit: gasLimit,
           }
         )
     ).wait();
@@ -427,10 +433,12 @@ export class FireflyClient {
         this.MarginTokenPrecision,
         this.getWallet(),
         this.maxBlockGasLimit,
+        this.isArbitrumNetwork,
         this.biconomy,
         this.getPublicAddress
       );
-    } else {
+    } 
+    else {
       resp = await depositToMarginBankContractCall(
         tokenContract,
         marginBankContract,
@@ -438,6 +446,7 @@ export class FireflyClient {
         this.MarginTokenPrecision,
         this.getWallet(),
         this.maxBlockGasLimit,
+        this.isArbitrumNetwork,
         this.getPublicAddress
       );
     }
@@ -467,7 +476,8 @@ export class FireflyClient {
       amount,
       this.MarginTokenPrecision,
       this.getWallet(),
-      this.maxBlockGasLimit
+      this.maxBlockGasLimit,
+      this.isArbitrumNetwork
     );
   };
 
@@ -493,12 +503,14 @@ export class FireflyClient {
         this.getPublicAddress,
         amount
       );
-    } else {
+    } 
+    else {
       resp = await withdrawFromMarginBankContractCall(
         marginBankContract,
         this.MarginTokenPrecision,
         this.getWallet(),
         this.maxBlockGasLimit,
+        this.isArbitrumNetwork,
         this.getMarginBankBalance,
         this.getPublicAddress,
         amount
@@ -758,12 +770,14 @@ export class FireflyClient {
           this.biconomy,
           this.getPublicAddress
         );
-      } else {
+      } 
+      else {
         resp = await adjustLeverageContractCall(
           perpContract,
           this.getWallet(),
           leverage,
           this.maxBlockGasLimit,
+          this.isArbitrumNetwork,
           this.getPublicAddress
         );
       }
@@ -836,13 +850,15 @@ export class FireflyClient {
         this.biconomy,
         this.getPublicAddress
       );
-    } else {
+    } 
+    else {
       resp = await adjustMarginContractCall(
         operationType,
         perpContract,
         this.getWallet(),
         amount,
         this.maxBlockGasLimit,
+        this.isArbitrumNetwork,
         this.getPublicAddress
       );
     }
@@ -1202,9 +1218,11 @@ export class FireflyClient {
   ):
     | Contract
     | contracts_exchange.MarginBank
-    | contracts_exchange.IsolatedTrader => {
-    contract = this.getContractAddressByName(contractName, contract, market);
+    | contracts_exchange.IsolatedTrader
+    | contracts_exchange.Perpetual
+    | contracts_exchange.DummyUSDC => {
 
+    contract = this.getContractAddressByName(contractName, contract, market);
     switch (contractName) {
       case this._perpetual:
         const perpFactory = new contracts_exchange.Perpetual__factory();
