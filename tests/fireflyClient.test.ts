@@ -27,11 +27,6 @@ import {
 
 chai.use(chaiAsPromised);
 
-// const testAcctKey =
-//   "0a9bfc4993c9637a752ad99b8498f4f0fc4c7ae92a5ee8b7b711cf1ff625b810";
-// const testAcctPubAddr = "0xC5E5Fdc35a808C85383faF0A6894e3b8dD666442";
-// const testAcctKey = "bcbd32e50c26581184beb65f7fa76b1dd4b6662d14c26bbe993f820cf6e5300d";
-// const testAcctPubAddr = "0x4030fC2b4D7FFF8b07c32CeF4B8e575fc9252118"
 const testAcctKey =
   "4d6c9531e0042cc8f7cf13d8c3cf77bfe239a8fed95e198d498ee1ec0b1a7e83";
 const testAcctPubAddr = "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF";
