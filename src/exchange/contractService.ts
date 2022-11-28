@@ -6,7 +6,7 @@ import {
 } from "@firefly-exchange/library";
 
 import { Contract, Signer, Wallet } from "ethers";
-import { DEFAULT_PRECISION } from "../constants";
+import { DEFAULT_PRECISION, EXTRA_FEES } from "../constants";
 import { SuccessMessages, TransformToResponseSchema } from "./contractErrorHandling.service";
 //@ts-ignore
 import { default as interpolate } from "interpolate";
@@ -16,9 +16,14 @@ export const adjustLeverageContractCall = async (
   wallet: Signer | Wallet,
   leverage: number,
   gasLimit: number,
-  //@no-check
+  estimateGas: boolean,
   getPublicAddress: () => address
 ) => {
+  //estimate gas in case of ARBITRUM network because it doesn't work on max block gas limit
+  if (estimateGas) {
+    const contract = (perpContract as contracts_exchange.Perpetual).connect(wallet)
+    gasLimit = (+await contract.estimateGas.adjustLeverage(getPublicAddress(), toBigNumberStr(leverage))) + EXTRA_FEES;    
+  }
   return TransformToResponseSchema(async () => {
     const tx = await (perpContract as contracts_exchange.Perpetual)
       .connect(wallet)
@@ -39,8 +44,19 @@ export const adjustMarginContractCall = async (
   wallet: Signer | Wallet,
   amount: number,
   gasLimit: number,
+  estimateGas: boolean,
   getPublicAddress: () => address
 ) => {
+  //estimate gas in case of ARBITRUM network because it doesn't work on max block gas limit
+  if (estimateGas) {
+    const contract = (perpContract as contracts_exchange.Perpetual).connect(wallet)
+    if (operationType == ADJUST_MARGIN.Add) {
+      gasLimit = (+await contract.estimateGas.addMargin(getPublicAddress(), toBigNumberStr(amount))) + EXTRA_FEES;
+    }
+    else {
+      gasLimit = (+await contract.estimateGas.removeMargin(getPublicAddress(), toBigNumberStr(amount))) + EXTRA_FEES;
+    }
+  }
   const msg = operationType === ADJUST_MARGIN.Add ? SuccessMessages.adjustMarginAdd : SuccessMessages.adjustMarginRemove
   return TransformToResponseSchema(async () => {
     // ADD margin
@@ -77,7 +93,7 @@ export const withdrawFromMarginBankContractCall = async (
   MarginTokenPrecision: number,
   wallet: Signer | Wallet,
   gasLimit: number,
-  //@no-check
+  estimateGas: boolean,
   getMarginBankBalance: (address: string) => Promise<number>,
   getPublicAddress: () => address,
   amount?: number
@@ -92,12 +108,18 @@ export const withdrawFromMarginBankContractCall = async (
       );
     }
     const amountString = toBigNumberStr(amountNumber!, MarginTokenPrecision);
+    const contract = (marginBankContract as contracts_exchange.MarginBank).connect(wallet)
+
+    //estimate gas in case of ARBITRUM network because it doesn't work on max block gas limit
+    if (estimateGas) {
+      gasLimit = (+await contract.estimateGas.withdrawFromBank(getPublicAddress(), amountString)) + EXTRA_FEES;    
+    }
 
     return (
-      await (marginBankContract as contracts_exchange.MarginBank)
-        .connect(wallet)
-        .withdrawFromBank(getPublicAddress(), amountString, {
-          gasLimit: gasLimit,
+      await contract.withdrawFromBank(
+        getPublicAddress(), 
+        amountString, {
+        gasLimit: gasLimit,
         })
     ).wait();
   }, interpolate(SuccessMessages.withdrawMargin, {amount: amountNumber?.toFixed(DEFAULT_PRECISION)}));
@@ -109,14 +131,20 @@ export const approvalFromUSDCContractCall = async (
   amount: number,
   MarginTokenPrecision: number,
   wallet: Signer | Wallet,
-  gasLimit: number
+  gasLimit: number,
+  estimateGas: boolean
 ) => {
   const amountString = toBigNumberStr(amount, MarginTokenPrecision);
+  const contract = (tokenContract as Contract).connect(wallet)
+
+  //estimate gas in case of ARBITRUM network because it doesn't work on max block gas limit
+  if (estimateGas) {
+    gasLimit = (+await contract.estimateGas.approve((marginBankContract as contracts_exchange.MarginBank).address, amountString)) + EXTRA_FEES;    
+  }
 
   return TransformToResponseSchema(async () => {
     return await(
-      await (tokenContract as Contract)
-        .connect(wallet)
+      await contract
         .approve(
           (marginBankContract as contracts_exchange.MarginBank).address,
           amountString,
@@ -133,6 +161,7 @@ export const depositToMarginBankContractCall = async (
   MarginTokenPrecision: number,
   wallet: Signer | Wallet,
   gasLimit: number,
+  estimateGas: boolean,
   getPublicAddress: () => address
 ) => {
   const amountString = toBigNumberStr(amount, MarginTokenPrecision);
@@ -145,14 +174,20 @@ export const depositToMarginBankContractCall = async (
         amount,
         MarginTokenPrecision,
         wallet,
-        gasLimit
+        gasLimit,
+        estimateGas
       );
+    }  
+    
+    const contract = (marginBankContract as contracts_exchange.MarginBank).connect(wallet)
+    //estimate gas in case of ARBITRUM network because it doesn't work on max block gas limit
+    if (estimateGas) {
+      gasLimit = (+await contract.estimateGas.depositToBank(getPublicAddress(), amountString)) + EXTRA_FEES;
     }
 
     // deposit `amount` usdc to margin bank
     return (
-      await (marginBankContract as contracts_exchange.MarginBank)
-        .connect(wallet)
+      await contract
         .depositToBank(getPublicAddress(), amountString, {
           gasLimit: gasLimit,
         })
