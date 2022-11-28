@@ -669,7 +669,7 @@ describe("FireflyClient", () => {
     expect(response.ok).to.be.equal(true);
   });
 
-  describe.only("Sockets", () => {
+  describe("Sockets", () => {
     beforeEach(async () => {
       client.sockets.open();
       client.addMarket(symbol);
