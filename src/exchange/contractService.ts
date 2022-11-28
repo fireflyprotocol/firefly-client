@@ -51,10 +51,10 @@ export const adjustMarginContractCall = async (
   if (estimateGas) {
     const contract = (perpContract as contracts_exchange.Perpetual).connect(wallet)
     if (operationType == ADJUST_MARGIN.Add) {
-      gasLimit = +await contract.estimateGas.addMargin(getPublicAddress(), toBigNumberStr(amount));
+      gasLimit = (+await contract.estimateGas.addMargin(getPublicAddress(), toBigNumberStr(amount))) + EXTRA_FEES;
     }
     else {
-      gasLimit = +await contract.estimateGas.removeMargin(getPublicAddress(), toBigNumberStr(amount));
+      gasLimit = (+await contract.estimateGas.removeMargin(getPublicAddress(), toBigNumberStr(amount))) + EXTRA_FEES;
     }
   }
   const msg = operationType === ADJUST_MARGIN.Add ? SuccessMessages.adjustMarginAdd : SuccessMessages.adjustMarginRemove
