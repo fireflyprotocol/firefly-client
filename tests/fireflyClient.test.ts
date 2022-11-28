@@ -60,15 +60,14 @@ describe("FireflyClient", () => {
 
     // market data
     const marketData = await client.getMarketData(symbol);
-    if (
-      marketData.data &&
-      bnStrToBaseNumber(marketData.data.marketPrice) > 0
-    ) {
-      const midPrice = bnStrToBaseNumber(marketData.data.midMarketPrice);
+    if (marketData.data && bnStrToBaseNumber(marketData.data.marketPrice) > 0) {
+      const marketPrice = bnStrToBaseNumber(marketData.data.marketPrice);
       const percentChange = 3 / 100; // 3%
-      buyPrice = Number((midPrice - midPrice * percentChange).toFixed(0));
-      sellPrice = Number((midPrice + midPrice * percentChange).toFixed(0));
-      console.log(`- mid market price: ${midPrice}`);
+      buyPrice = Number((marketPrice - marketPrice * percentChange).toFixed(0));
+      sellPrice = Number(
+        (marketPrice + marketPrice * percentChange).toFixed(0)
+      );
+      console.log(`- market price: ${marketPrice}`);
     }
   });
 
@@ -639,7 +638,6 @@ describe("FireflyClient", () => {
 
   it("should get market ticker data for BTC Market", async () => {
     const response = await client.getTickerData(symbol);
-    console.log(response)
     expect(response.ok).to.be.equal(true);
   });
 
