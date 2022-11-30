@@ -25,7 +25,7 @@ let client: FireflyClient;
 
 describe("FireflyClient", () => {
   //* set environment from here
-  const network = Networks.LOCAL;
+  const network = Networks.DEV;
   const symbol = "BTC-PERP";
   let defaultLeverage = 4;
   let buyPrice = 18000;
@@ -50,15 +50,14 @@ describe("FireflyClient", () => {
 
     // market data
     const marketData = await client.getMarketData(symbol);
-    if (
-      marketData.data &&
-      bnStrToBaseNumber(marketData.data.midMarketPrice) > 0
-    ) {
-      const midPrice = bnStrToBaseNumber(marketData.data.midMarketPrice);
+    if (marketData.data && bnStrToBaseNumber(marketData.data.marketPrice) > 0) {
+      const marketPrice = bnStrToBaseNumber(marketData.data.marketPrice);
       const percentChange = 3 / 100; // 3%
-      buyPrice = Number((midPrice - midPrice * percentChange).toFixed(0));
-      sellPrice = Number((midPrice + midPrice * percentChange).toFixed(0));
-      console.log(`- mid market price: ${midPrice}`);
+      buyPrice = Number((marketPrice - marketPrice * percentChange).toFixed(0));
+      sellPrice = Number(
+        (marketPrice + marketPrice * percentChange).toFixed(0)
+      );
+      console.log(`- market price: ${marketPrice}`);
     }
   });
 

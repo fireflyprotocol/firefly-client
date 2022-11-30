@@ -1,7 +1,7 @@
 export const Networks = {
   TESTNET: {
-    url: "https://bobabase.boba.network/",
-    chainId: 1297,
+    url: "https://rinkeby.arbitrum.io/rpc",
+    chainId: 421611,
     apiGateway: "https://dapi-testnet.firefly.exchange",
     socketURL: "wss://dapi-testnet.firefly.exchange",
     onboardingUrl: "https://testnet.firefly.exchange",
@@ -30,6 +30,8 @@ export const Networks = {
 };
 
 export const DEFAULT_PRECISION = 2
+export const ARBITRUM_NETWROK = "arbitrum"
+export const EXTRA_FEES = 10000
 
 //TODO: should come from server
 export const BICONOMY_API_KEY =
