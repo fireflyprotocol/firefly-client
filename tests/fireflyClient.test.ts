@@ -5,24 +5,14 @@ import chaiAsPromised from "chai-as-promised";
 import { setTimeout } from "timers/promises";
 
 import {
-  ORDER_STATUS,
-  ORDER_SIDE,
-  MinifiedCandleStick,
-  BigNumber,
-  ORDER_TYPE,
-  Web3,
-  bnStrToBaseNumber,
+  BigNumber, bnStrToBaseNumber, MinifiedCandleStick, ORDER_SIDE, ORDER_STATUS, ORDER_TYPE,
+  Web3
 } from "@firefly-exchange/library";
 
 import {
-  FireflyClient,
-  PlaceOrderResponse,
-  GetMarketRecentTradesResponse,
+  FireflyClient, GetAccountDataResponse, GetMarketRecentTradesResponse,
   GetPositionResponse,
-  GetUserTradesResponse,
-  GetAccountDataResponse,
-  Networks,
-  UserSubscriptionAck,
+  GetUserTradesResponse, Networks, PlaceOrderResponse, UserSubscriptionAck
 } from "../index";
 
 chai.use(chaiAsPromised);
@@ -35,7 +25,7 @@ let client: FireflyClient;
 
 describe("FireflyClient", () => {
   //* set environment from here
-  const network = Networks.DEV;
+  const network = Networks.LOCAL;
   const symbol = "BTC-PERP";
   let defaultLeverage = 4;
   let buyPrice = 18000;
@@ -665,6 +655,11 @@ describe("FireflyClient", () => {
 
   it(`should return funding rate of ${symbol}`, async () => {
     const response = await client.getMarketFundingRate(symbol);
+    expect(response.ok).to.be.equal(true);
+  });
+
+  it(`should return verification status`, async () => {
+    const response = await client.verifyDeposit(100);
     expect(response.ok).to.be.equal(true);
   });
 

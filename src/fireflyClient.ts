@@ -1,92 +1,45 @@
 /* eslint-disable prettier/prettier */
-import { Contract, Wallet, providers, Signer, ethers } from "ethers";
+import { Contract, ethers, providers, Signer, Wallet } from "ethers";
 
 import {
-  toBigNumberStr,
-  bigNumber,
-  toBigNumber,
-  ORDER_SIDE,
-  ORDER_TYPE,
-  TIME_IN_FORCE,
-  SigningMethod,
-  MarketSymbol,
-  address,
-  DAPIKlineResponse,
-  ORDER_STATUS,
-  Network,
-  SignedOrder,
-  Order,
-  OrderSigner,
-  contracts_exchange,
-  bnStrToBaseNumber,
-  MARGIN_TYPE,
-  bnToString,
-  Web3,
-  ADJUST_MARGIN,
-  OnboardingSigner,
+  address, ADJUST_MARGIN, bigNumber, bnStrToBaseNumber, bnToString, contracts_exchange, DAPIKlineResponse, MARGIN_TYPE, MarketSymbol, Network, OnboardingSigner, Order,
+  OrderSigner, ORDER_SIDE, ORDER_STATUS, ORDER_TYPE, SignedOrder, SigningMethod, TIME_IN_FORCE, toBigNumber, toBigNumberStr, Web3
 } from "@firefly-exchange/library";
 // @ts-ignore
 import { Biconomy } from "@biconomy/mexa";
 import HDWalletProvider from "@truffle/hdwallet-provider";
 import {
-  GetOrderResponse,
-  GetOrderRequest,
-  OrderSignatureRequest,
+  AdjustLeverageResponse, AuthorizeHashResponse, CancelOrderResponse, ExchangeInfo, FundGasResponse, GetAccountDataResponse, GetCandleStickRequest, GetFundingHistoryRequest, GetFundingRateResponse, GetMarketRecentTradesRequest,
+  GetMarketRecentTradesResponse, GetOrderbookRequest,
+  GetOrderBookResponse, GetOrderRequest, GetOrderResponse, GetPositionRequest,
+  GetPositionResponse, GetTransactionHistoryRequest, GetTransferHistoryRequest, GetUserFundingHistoryResponse, GetUserTradesRequest,
+  GetUserTradesResponse, GetUserTransactionHistoryResponse, GetUserTransferHistoryResponse, MarketData,
+  MarketMeta, MasterInfo, OrderCancellationRequest, OrderCancelSignatureRequest, OrderSignatureRequest,
   OrderSignatureResponse,
   PlaceOrderRequest,
-  PlaceOrderResponse,
-  GetPositionRequest,
-  GetPositionResponse,
-  OrderCancelSignatureRequest,
-  OrderCancellationRequest,
-  GetOrderbookRequest,
-  GetOrderBookResponse,
-  PostOrderRequest,
-  GetUserTradesRequest,
-  GetUserTradesResponse,
-  GetAccountDataResponse,
-  GetTransactionHistoryRequest,
-  GetUserTransactionHistoryResponse,
-  GetMarketRecentTradesRequest,
-  GetMarketRecentTradesResponse,
-  GetCandleStickRequest,
-  ExchangeInfo,
-  MarketData,
-  MarketMeta,
-  StatusResponse,
-  AuthorizeHashResponse,
-  AdjustLeverageResponse,
-  CancelOrderResponse,
-  FundGasResponse,
-  TickerData,
-  MasterInfo,
-  GetFundingHistoryRequest,
-  GetUserFundingHistoryResponse,
-  GetUserTransferHistoryResponse,
-  GetFundingRateResponse,
-  GetTransferHistoryRequest,
+  PlaceOrderResponse, PostOrderRequest, StatusResponse, TickerData, verifyDepositResponse
 } from "./interfaces/routes";
 
+import { BICONOMY_API_KEY, Networks } from "./constants";
 import { APIService } from "./exchange/apiService";
 import { SERVICE_URLS } from "./exchange/apiUrls";
-import { Sockets } from "./exchange/sockets";
-import { BICONOMY_API_KEY, Networks } from "./constants";
+import { ResponseSchema } from "./exchange/contractErrorHandling.service";
 import {
   adjustLeverageContractCall,
   adjustMarginContractCall,
   approvalFromUSDCContractCall,
   depositToMarginBankContractCall,
-  withdrawFromMarginBankContractCall,
+  withdrawFromMarginBankContractCall
 } from "./exchange/contractService";
-import { ResponseSchema } from "./exchange/contractErrorHandling.service";
+import { Sockets } from "./exchange/sockets";
 // @ts-ignore
+import { generateRandomNumber } from "../utils/utils";
 import {
   adjustLeverageBiconomyCall,
   adjustMarginBiconomyCall,
   depositToMarginBankBiconomyCall,
-  withdrawFromMarginBankBiconomyCall,
+  withdrawFromMarginBankBiconomyCall
 } from "./exchange/biconomyService";
-import { generateRandomNumber } from "../utils/utils";
 
 export class FireflyClient {
   protected readonly network: Network;
@@ -453,6 +406,17 @@ export class FireflyClient {
   ): Promise<ResponseSchema> => {
     const tokenContract = this.getContract(this._usdcToken, usdcContract);
     const marginBankContract = this.getContract(this._marginBank, mbContract);
+
+    //verify the user address via chainalysis
+    let verficationStatus = await this.verifyDeposit(amount);
+    if(verficationStatus.response.data.toLowerCase()!='Success' && verficationStatus.response.data!=null){
+        verficationStatus.status = 500;
+        verficationStatus.response.message=`Your address has been identified as ‘high risk’ by Chainalysis. 
+        You will not be allowed to make further deposits or add to your positions.
+        You may, however, close any open positions and withdraw your funds. When you have closed all positions and 
+        withdrawn all of your funds, your user address will be blacklisted on the exchange`
+        return this.apiService.transformAPItoResponseSchema(verficationStatus);
+    }
 
     // approve usdc contract to allow margin bank to take funds out for user's behalf
     return approvalFromUSDCContractCall(
@@ -910,6 +874,21 @@ export class FireflyClient {
     const response = await this.apiService.get<GetAccountDataResponse>(
       SERVICE_URLS.USER.ACCOUNT,
       {},
+      { isAuthenticationRequired: true }
+    );
+    return response;
+  };
+
+  /**
+     * Gets verification status of user account
+     * @param amount deposit amount
+     * @returns verification status of user
+     */
+  verifyDeposit = async (amount: number) => {
+    const response = await this.apiService.get<verifyDepositResponse>(
+      SERVICE_URLS.USER.VERIFY_DEPOSIT,
+      { depositAmount : amount
+      },
       { isAuthenticationRequired: true }
     );
     return response;
