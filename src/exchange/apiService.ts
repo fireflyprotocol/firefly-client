@@ -125,14 +125,13 @@ export class APIService {
     };
   }
 
-  public transformAPItoResponseSchema(APIResponse : any) : ResponseSchema{
-
+  public transformAPItoResponseSchema(APIResponse: any): ResponseSchema {
     const mutatedResponse = {
       ok: APIResponse.ok,
       data: APIResponse.response.data,
-      message: APIResponse.data.message,
-      code: APIResponse.status
-    }
+      message: APIResponse.response.message,
+      code: APIResponse.status,
+    };
     return mutatedResponse;
   }
 }

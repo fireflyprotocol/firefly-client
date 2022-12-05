@@ -144,7 +144,7 @@ describe("FireflyClient", () => {
       await clientTemp.init();
       // When
       await clientTemp.fundGas(); // should fund 0.01 boba
-      const response = await clientTemp.getBobaBalance();
+      const response = await clientTemp.getChainNativeBalance();
       expect(new BigNumber(response).gte(new BigNumber(0))).to.eq(true);
     });
   });

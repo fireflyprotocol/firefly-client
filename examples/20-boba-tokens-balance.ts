@@ -16,7 +16,7 @@ async function main() {
     
     console.log(
       "User's balance is: ",
-      bnStrToBaseNumber(await client.getBobaBalance())
+      bnStrToBaseNumber(await client.getChainNativeBalance())
     );
 }
 

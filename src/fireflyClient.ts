@@ -20,10 +20,10 @@ import {
   PlaceOrderResponse, PostOrderRequest, StatusResponse, TickerData, verifyDepositResponse
 } from "./interfaces/routes";
 
+import { ARBITRUM_NETWROK, BICONOMY_API_KEY, EXTRA_FEES, Networks } from "./constants";
 import { APIService } from "./exchange/apiService";
 import { SERVICE_URLS } from "./exchange/apiUrls";
 import { ResponseSchema } from "./exchange/contractErrorHandling.service";
-import { ARBITRUM_NETWROK, BICONOMY_API_KEY, EXTRA_FEES, Networks } from "./constants";
 import {
   adjustLeverageContractCall,
   adjustMarginContractCall,
@@ -355,7 +355,7 @@ export class FireflyClient {
    * Returns boba balance in user's account
    * @returns Number representing boba balance in account
    */
-  getBobaBalance = async (): Promise<number> => {
+  getChainNativeBalance = async (): Promise<number> => {
     return bnStrToBaseNumber(
       bnToString((await this.getWallet().getBalance()).toHexString())
     );
@@ -423,16 +423,16 @@ export class FireflyClient {
     const marginBankContract = this.getContract(this._marginBank, mbContract);
 
     //verify the user address via chainalysis
-    let verficationStatus = await this.verifyDeposit(amount);
-    if(verficationStatus.response.data.toLowerCase()!='Success' && verficationStatus.response.data!=null){
-        verficationStatus.status = 500;
+    const verficationStatus = await this.verifyDeposit(amount);
+    if(verficationStatus.response.data.verificationStatus!== 'Success' && verficationStatus.response.data.verificationStatus!=null){
+        verficationStatus.ok = false;
+        verficationStatus.status = 5001;
         verficationStatus.response.message=`Your address has been identified as ‘high risk’ by Chainalysis. 
         You will not be allowed to make further deposits or add to your positions.
         You may, however, close any open positions and withdraw your funds. When you have closed all positions and 
         withdrawn all of your funds, your user address will be blacklisted on the exchange`
         return this.apiService.transformAPItoResponseSchema(verficationStatus);
-    }
-
+   }
     // approve usdc contract to allow margin bank to take funds out for user's behalf
     return approvalFromUSDCContractCall(
       tokenContract,

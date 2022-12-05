@@ -20,7 +20,7 @@ async function main() {
     // initial balance will be zero, after successfull call of fundGas() it should be >= 0.01"
     console.log(
       "User's balance is: ",
-      bnStrToBaseNumber(await client.getBobaBalance())
+      bnStrToBaseNumber(await client.getChainNativeBalance())
     );
 }
 
