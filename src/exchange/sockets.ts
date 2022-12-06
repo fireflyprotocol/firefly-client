@@ -16,6 +16,7 @@ import {
 } from "../interfaces/routes";
 // const WebSocket = require('ws');
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+const WebSocket = require('ws')
 export class Sockets {
   private socketInstance!: WebSocket;
 
@@ -41,24 +42,45 @@ export class Sockets {
   /**
    * opens socket instance connection
    */
-  open(cbOpen: () => void, cbError: (err: any) => void) {
+  async open() {
+    console.log("HELLO")
+
     this.socketInstance = new WebSocket(
-      "wss://k8s-albdapi-775184c5a7-538590878.us-east-1.elb.amazonaws.com:2063"
+      this.url
     );
-    this.socketInstance.onopen = function () {
-      console.log("OPEN");
-      cbOpen();
-    };
-    this.socketInstance.onerror = function (err) {
-      cbError(err);
-    };
+
+
+    const testSocket = this.socketInstance;
+
+    const myPromise = new Promise(function(resolve, reject) {
+      testSocket.onopen = function () {
+        console.log("OPEN");
+        resolve(true)
+      };
+      testSocket.onerror = function (err) {
+        console.log("ERROR");
+        reject(err)
+      };
+    });
+
+    // this.socketInstance.onopen = function () {
+    //   console.log("OPEN");
+    //   cbOpen();
+    // };
+    // this.socketInstance.onerror = function (err) {
+    //   console.log("ERROR");
+    //   cbError(err);
+    // };
 
     this.socketInstance.onmessage = (event: any) => {
+      console.log(event)
       event = JSON.parse(event.data);
       if (this.callbackListeners[event.eventName]) {
         this.callbackListeners[event.eventName](event.data);
       }
     };
+
+    return myPromise
   }
 
   /**

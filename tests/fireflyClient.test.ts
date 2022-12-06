@@ -69,6 +69,7 @@ describe("FireflyClient", () => {
       sellPrice = Number((midPrice + midPrice * percentChange).toFixed(0));
       console.log(`- mid market price: ${midPrice}`);
     }
+    console.log("END BEFORE")
   });
 
   beforeEach(async () => {
@@ -580,25 +581,34 @@ describe("FireflyClient", () => {
   });
 
   describe.only("Sockets", () => {
-    beforeEach(async (done) => {
-      client.sockets.open(
-        function () {
-          client.sockets.subscribeGlobalUpdatesBySymbol(symbol);
-          client.sockets.subscribeUserUpdateByToken((data: any) => {
-            console.log(data);
-          });
-          done();
-        },
-        function (err) {
-          console.log(err);
-        }
-      );
-      console.log("HELLo");
+    // before(async (done) => {
+    //   console.log("HELLO!!!",client.sockets)
+    //   done()
+    // })
+    function successCallback() {
+      console.log(`successCallback`);
+      client.sockets.subscribeGlobalUpdatesBySymbol(symbol);
+      client.sockets.subscribeUserUpdateByToken((data: any) => {
+        console.log(data);
+      });
+    }
+    
+    function failureCallback(error: any) {
+      console.error(`Error : ${error}`);
+    }
 
-      client.addMarket(symbol);
+    before((done) => {
+        console.log("HELLO!!!",client.sockets)
+        client.sockets.open().then(x=>{
+          console.log("HELLo");
+          done();
+
+        });
+
+      // client.addMarket(symbol);
     });
 
-    it("should receive an event from candle stick", (done) => {
+    xit("should receive an event from candle stick", (done) => {
       const callback = (candle: MinifiedCandleStick) => {
         expect(candle[candle.length - 1]).to.be.equal(symbol);
         done();
@@ -627,7 +637,7 @@ describe("FireflyClient", () => {
       });
     });
 
-    it("should receive an event when a trade is performed", (done) => {
+    xit("should receive an event when a trade is performed", (done) => {
       const callback = ({
         trades,
       }: {
@@ -652,7 +662,7 @@ describe("FireflyClient", () => {
       });
     });
 
-    it("should receive order update event", (done) => {
+    xit("should receive order update event", (done) => {
       const callback = ({ order }: { order: PlaceOrderResponse }) => {
         expect(order.symbol).to.be.equal(symbol);
         done();
@@ -673,7 +683,7 @@ describe("FireflyClient", () => {
       });
     });
 
-    it("should receive position update event", (done) => {
+    xit("should receive position update event", (done) => {
       const callback = ({ position }: { position: GetPositionResponse }) => {
         expect(position.userAddress).to.be.equal(
           client.getPublicAddress().toLocaleLowerCase()
@@ -696,7 +706,7 @@ describe("FireflyClient", () => {
       });
     });
 
-    it("should receive user update event", (done) => {
+    xit("should receive user update event", (done) => {
       const callback = ({ trade }: { trade: GetUserTradesResponse }) => {
         expect(trade.maker).to.be.equal(false);
         expect(trade.symbol).to.be.equal(symbol);
@@ -718,7 +728,7 @@ describe("FireflyClient", () => {
       });
     });
 
-    it("should receive user account update event", (done) => {
+    xit("should receive user account update event", (done) => {
       const callback = ({
         accountData,
       }: {
