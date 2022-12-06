@@ -23,7 +23,7 @@ import {
 import { ARBITRUM_NETWROK, BICONOMY_API_KEY, EXTRA_FEES, Networks } from "./constants";
 import { APIService } from "./exchange/apiService";
 import { SERVICE_URLS } from "./exchange/apiUrls";
-import { ResponseSchema } from "./exchange/contractErrorHandling.service";
+import { APIErrorMessages, ResponseSchema, VerificationStatus } from "./exchange/contractErrorHandling.service";
 import {
   adjustLeverageContractCall,
   adjustMarginContractCall,
@@ -424,13 +424,11 @@ export class FireflyClient {
 
     //verify the user address via chainalysis
     const verficationStatus = await this.verifyDeposit(amount);
-    if(verficationStatus.response.data.verificationStatus!== 'Success' && verficationStatus.response.data.verificationStatus!=null){
+    if(verficationStatus.response.data.verificationStatus && 
+      verficationStatus.response.data.verificationStatus.toLocaleLowerCase()!== VerificationStatus.Success){
         verficationStatus.ok = false;
         verficationStatus.status = 5001;
-        verficationStatus.response.message=`Your address has been identified as ‘high risk’ by Chainalysis. 
-        You will not be allowed to make further deposits or add to your positions.
-        You may, however, close any open positions and withdraw your funds. When you have closed all positions and 
-        withdrawn all of your funds, your user address will be blacklisted on the exchange`
+        verficationStatus.response.message= APIErrorMessages.restrictedUser;
         return this.apiService.transformAPItoResponseSchema(verficationStatus);
    }
     // approve usdc contract to allow margin bank to take funds out for user's behalf
