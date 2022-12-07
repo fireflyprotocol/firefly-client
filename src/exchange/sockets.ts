@@ -73,8 +73,9 @@ export class Sockets {
     // };
 
     this.socketInstance.onmessage = (event: any) => {
-      console.log(event)
       event = JSON.parse(event.data);
+      // console.log(event)
+      console.log("TA--->" + this.callbackListeners[event.eventName])
       if (this.callbackListeners[event.eventName]) {
         this.callbackListeners[event.eventName](event.data);
       }
@@ -189,6 +190,7 @@ export class Sockets {
     interval: string,
     cb: (candle: MinifiedCandleStick) => void
   ) => {
+    console.log("TA-------> candle stick")
     this.callbackListeners[
       this.createDynamicUrl(SOCKET_EVENTS.GET_LAST_KLINE_WITH_INTERVAL, {
         symbol,

@@ -581,34 +581,21 @@ describe("FireflyClient", () => {
   });
 
   describe.only("Sockets", () => {
-    // before(async (done) => {
-    //   console.log("HELLO!!!",client.sockets)
-    //   done()
-    // })
-    function successCallback() {
-      console.log(`successCallback`);
-      client.sockets.subscribeGlobalUpdatesBySymbol(symbol);
-      client.sockets.subscribeUserUpdateByToken((data: any) => {
-        console.log(data);
-      });
-    }
-    
-    function failureCallback(error: any) {
-      console.error(`Error : ${error}`);
-    }
+
 
     before((done) => {
-        console.log("HELLO!!!",client.sockets)
+        client.addMarket(symbol);
         client.sockets.open().then(x=>{
-          console.log("HELLo");
+          client.sockets.subscribeGlobalUpdatesBySymbol(symbol);
+          client.sockets.subscribeUserUpdateByToken((data: any) => {
+            console.log(data);
+          });
           done();
-
         });
-
-      // client.addMarket(symbol);
     });
 
-    xit("should receive an event from candle stick", (done) => {
+    it("should receive an event from candle stick", (done) => {
+      console.log("HELLO1234")
       const callback = (candle: MinifiedCandleStick) => {
         expect(candle[candle.length - 1]).to.be.equal(symbol);
         done();
@@ -616,7 +603,7 @@ describe("FireflyClient", () => {
       client.sockets.onCandleStickUpdate(symbol, "1m", callback);
     });
 
-    it("should receive an event for orderbook update when an order is placed on exchange", (done) => {
+    xit("should receive an event for orderbook update when an order is placed on exchange", (done) => {
       const callback = ({ orderbook }: any) => {
         expect(orderbook.symbol).to.be.equal(symbol);
         done();
