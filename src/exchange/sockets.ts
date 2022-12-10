@@ -14,7 +14,7 @@ import {
   GetAccountDataResponse,
   MarketData,
 } from "../interfaces/routes";
-// const WebSocket = require('ws');
+
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 const WebSocket = require("ws");
 
@@ -71,7 +71,6 @@ export class Sockets {
    */
   close() {
     if (this.socketInstance) {
-      // this.socketInstance.disconnect();
       this.socketInstance.close();
     }
 
@@ -124,9 +123,6 @@ export class Sockets {
           },
         ],
       ])
-      // (data: UserSubscriptionAck) => {
-      //   if (callback instanceof Function) callback(data);
-      // }
     );
     return true;
   }
@@ -143,9 +139,6 @@ export class Sockets {
           },
         ],
       ])
-      // (data: UserSubscriptionAck) => {
-      //   if (callback instanceof Function) callback(data);
-      // }
     );
     return true;
   }
