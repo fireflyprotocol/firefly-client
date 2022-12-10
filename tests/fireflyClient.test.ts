@@ -59,21 +59,19 @@ describe("FireflyClient", () => {
 
     // market data
     const marketData = await client.getMarketData(symbol);
-    if (
-      marketData.data &&
-      bnStrToBaseNumber(marketData.data.midMarketPrice) > 0
-    ) {
-      const midPrice = bnStrToBaseNumber(marketData.data.midMarketPrice);
+    if (marketData.data && bnStrToBaseNumber(marketData.data.marketPrice) > 0) {
+      const marketPrice = bnStrToBaseNumber(marketData.data.marketPrice);
       const percentChange = 3 / 100; // 3%
-      buyPrice = Number((midPrice - midPrice * percentChange).toFixed(0));
-      sellPrice = Number((midPrice + midPrice * percentChange).toFixed(0));
-      console.log(`- mid market price: ${midPrice}`);
+      buyPrice = Number((marketPrice - marketPrice * percentChange).toFixed(0));
+      sellPrice = Number(
+        (marketPrice + marketPrice * percentChange).toFixed(0)
+      );
+      console.log(`- market price: ${marketPrice}`);
     }
-    console.log("END BEFORE")
   });
 
   beforeEach(async () => {
-    client = new FireflyClient(true, network, testAcctKey, true);
+    client = new FireflyClient(true, network, testAcctKey);
     await client.init();
   });
 
@@ -168,12 +166,10 @@ describe("FireflyClient", () => {
     });
 
     it("should move 1 USDC token to Margin Bank", async () => {
-      // const usdcBalance = await client.getUSDCBalance();
-      client.depositToMarginBank(1);
-      client.depositToMarginBank(1);
+      const usdcBalance = await client.getUSDCBalance();
       expect((await client.depositToMarginBank(1))?.ok).to.be.equal(true);
-      // expect(await client.getMarginBankBalance()).to.be.gte(1);
-      // expect(await client.getUSDCBalance()).to.be.gte(usdcBalance - 1);
+      expect(await client.getMarginBankBalance()).to.be.gte(1);
+      expect(await client.getUSDCBalance()).to.be.gte(usdcBalance - 1);
     });
 
     it("should withdraw 1 USDC token from Margin Bank", async () => {
@@ -396,6 +392,35 @@ describe("FireflyClient", () => {
       expect(data.response.data.length).to.be.gte(0);
     });
 
+    it("should handle get open orders of non-existent hashes", async () => {
+      const data = await client.getUserOrders({
+        statuses: [ORDER_STATUS.OPEN],
+        symbol,
+        orderHashes: ["test0"], // incorrect hash
+      });
+      expect(data.ok).to.be.equals(true);
+      expect(data.response.data.length).to.be.eq(0);
+    });
+
+    it("should get open orders of specific hashes", async () => {
+      const data = await client.getUserOrders({
+        statuses: [ORDER_STATUS.OPEN],
+        symbol,
+      });
+      if (data.ok && data.data!.length > 0) {
+        const data1 = await client.getUserOrders({
+          statuses: [ORDER_STATUS.OPEN],
+          symbol,
+          orderHashes: data.response.data[0].hash,
+        });
+
+        expect(data1.ok).to.be.equals(true);
+        expect(data1.data!.length).to.be.eq(1);
+      }
+
+      expect(data.ok).to.be.equals(true);
+    });
+
     it("should get all cancelled orders", async () => {
       const data = await client.getUserOrders({
         statuses: [ORDER_STATUS.CANCELLED],
@@ -420,6 +445,16 @@ describe("FireflyClient", () => {
         pageNumber: 10,
       });
       expect(data.response.data.length).to.be.equals(0);
+    });
+
+    it("should get only LIMIT filled orders", async () => {
+      const data = await client.getUserOrders({
+        statuses: [ORDER_STATUS.FILLED],
+        orderType: [ORDER_TYPE.LIMIT],
+        symbol,
+      });
+      expect(data.ok).to.be.equals(true);
+      expect(data.response.data.length).to.be.gte(0);
     });
   });
 
@@ -513,22 +548,53 @@ describe("FireflyClient", () => {
     });
   });
 
+  describe("User History and Account Related Routes", async () => {
+    it("should get User Account Data", async () => {
+      const response = await client.getUserAccountData();
+      expect(response.ok).to.be.equal(true);
+    });
+
+    it("should get Transaction History records for user", async () => {
+      const response = await client.getUserTransactionHistory({
+        symbol,
+        pageSize: 2,
+        pageNumber: 1,
+      });
+      expect(response.ok).to.be.equal(true);
+    });
+
+    it("should get Funding History records for user", async () => {
+      const response = await client.getUserFundingHistory({
+        pageSize: 2,
+        cursor: 1,
+      });
+      expect(response.ok).to.be.equal(true);
+    });
+
+    it(`should get Funding History records of ${symbol}`, async () => {
+      const response = await client.getUserFundingHistory({
+        symbol,
+        pageSize: 2,
+        cursor: 1,
+      });
+      expect(response.ok).to.be.equal(true);
+    });
+
+    it("should get all Transfer History records for user", async () => {
+      const response = await client.getUserTransferHistory({});
+      expect(response.ok).to.be.equal(true);
+    });
+
+    it("should get Transfer History of `Withdraw` records for user", async () => {
+      const response = await client.getUserTransferHistory({
+        action: "Withdraw",
+      });
+      expect(response.ok).to.be.equal(true);
+    });
+  });
+
   it("should get contract address", async () => {
     const response = await client.getContractAddresses();
-    expect(response.ok).to.be.equal(true);
-  });
-
-  it("should get User Account Data", async () => {
-    const response = await client.getUserAccountData();
-    expect(response.ok).to.be.equal(true);
-  });
-
-  it("should get Transaction History records for user", async () => {
-    const response = await client.getUserTransactionHistory({
-      symbol,
-      pageSize: 2,
-      pageNumber: 1,
-    });
     expect(response.ok).to.be.equal(true);
   });
 
@@ -569,6 +635,21 @@ describe("FireflyClient", () => {
     expect(response.ok).to.be.equal(true);
   });
 
+  it("should get market ticker data for BTC Market", async () => {
+    const response = await client.getTickerData(symbol);
+    expect(response.ok).to.be.equal(true);
+  });
+
+  it("should get master info of all markets", async () => {
+    const response = await client.getMasterInfo();
+    expect(response.ok).to.be.equal(true);
+  });
+
+  it(`should get master info of ${symbol}`, async () => {
+    const response = await client.getMasterInfo(symbol);
+    expect(response.ok).to.be.equal(true);
+  });
+
   it("should get market symbols", async () => {
     const response = await client.getMarketSymbols();
     expect(response.ok).to.be.equal(true);
@@ -580,22 +661,26 @@ describe("FireflyClient", () => {
     expect(response.data?.isAlive).to.be.equal(true);
   });
 
+  it(`should return funding rate of ${symbol}`, async () => {
+    const response = await client.getMarketFundingRate(symbol);
+    expect(response.ok).to.be.equal(true);
+  });
+
   describe.only("Sockets", () => {
+    beforeEach(async () => {
+      client.addMarket(symbol);
+      await client.sockets.open();
+      client.sockets.subscribeGlobalUpdatesBySymbol(symbol);
+      client.sockets.subscribeUserUpdateByToken((data: any) => {
+        console.log(data);
+      });
+    });
 
-
-    before((done) => {
-        client.addMarket(symbol);
-        client.sockets.open().then(x=>{
-          client.sockets.subscribeGlobalUpdatesBySymbol(symbol);
-          client.sockets.subscribeUserUpdateByToken((data: any) => {
-            console.log(data);
-          });
-          done();
-        });
+    afterEach(() => {
+      client.sockets.close();
     });
 
     it("should receive an event from candle stick", (done) => {
-      console.log("HELLO1234")
       const callback = (candle: MinifiedCandleStick) => {
         expect(candle[candle.length - 1]).to.be.equal(symbol);
         done();
@@ -603,7 +688,7 @@ describe("FireflyClient", () => {
       client.sockets.onCandleStickUpdate(symbol, "1m", callback);
     });
 
-    xit("should receive an event for orderbook update when an order is placed on exchange", (done) => {
+    it("should receive an event for orderbook update when an order is placed on exchange", (done) => {
       const callback = ({ orderbook }: any) => {
         expect(orderbook.symbol).to.be.equal(symbol);
         done();
@@ -624,7 +709,7 @@ describe("FireflyClient", () => {
       });
     });
 
-    xit("should receive an event when a trade is performed", (done) => {
+    it("should receive an event when a trade is performed", (done) => {
       const callback = ({
         trades,
       }: {
@@ -642,14 +727,14 @@ describe("FireflyClient", () => {
           symbol,
           price: 0,
           quantity: 0.1,
-          side: ORDER_SIDE.SELL,
+          side: ORDER_SIDE.BUY,
           leverage: defaultLeverage,
           orderType: ORDER_TYPE.MARKET,
         });
       });
     });
 
-    xit("should receive order update event", (done) => {
+    it("should receive order update event", (done) => {
       const callback = ({ order }: { order: PlaceOrderResponse }) => {
         expect(order.symbol).to.be.equal(symbol);
         done();
@@ -663,14 +748,14 @@ describe("FireflyClient", () => {
           symbol,
           price: sellPrice + 1,
           quantity: 0.1,
-          side: ORDER_SIDE.SELL,
+          side: ORDER_SIDE.BUY,
           leverage: defaultLeverage,
           orderType: ORDER_TYPE.LIMIT,
         });
       });
     });
 
-    xit("should receive position update event", (done) => {
+    it("should receive position update event", (done) => {
       const callback = ({ position }: { position: GetPositionResponse }) => {
         expect(position.userAddress).to.be.equal(
           client.getPublicAddress().toLocaleLowerCase()
@@ -693,7 +778,7 @@ describe("FireflyClient", () => {
       });
     });
 
-    xit("should receive user update event", (done) => {
+    it("should receive user update event", (done) => {
       const callback = ({ trade }: { trade: GetUserTradesResponse }) => {
         expect(trade.maker).to.be.equal(false);
         expect(trade.symbol).to.be.equal(symbol);
@@ -715,7 +800,7 @@ describe("FireflyClient", () => {
       });
     });
 
-    xit("should receive user account update event", (done) => {
+    it("should receive user account update event", (done) => {
       const callback = ({
         accountData,
       }: {

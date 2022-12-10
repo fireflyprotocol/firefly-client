@@ -16,13 +16,13 @@ import {
 } from "../interfaces/routes";
 // const WebSocket = require('ws');
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-const WebSocket = require('ws')
+const WebSocket = require("ws");
+
+const callbackListeners: Record<string, any> = {};
 export class Sockets {
   private socketInstance!: WebSocket;
 
   private token: string;
-
-  private callbackListeners: Record<string, any> = {};
 
   private url: string;
 
@@ -43,45 +43,27 @@ export class Sockets {
    * opens socket instance connection
    */
   async open() {
-    console.log("HELLO")
+    this.socketInstance = new WebSocket(this.url);
 
-    this.socketInstance = new WebSocket(
-      this.url
-    );
+    const tempSocket = this.socketInstance;
 
-
-    const testSocket = this.socketInstance;
-
-    const myPromise = new Promise(function(resolve, reject) {
-      testSocket.onopen = function () {
-        console.log("OPEN");
-        resolve(true)
+    const socketOpenPromise = new Promise(function (resolve, reject) {
+      tempSocket.onopen = function () {
+        resolve(true);
       };
-      testSocket.onerror = function (err) {
-        console.log("ERROR");
-        reject(err)
+      tempSocket.onerror = function (err) {
+        reject(err);
       };
     });
 
-    // this.socketInstance.onopen = function () {
-    //   console.log("OPEN");
-    //   cbOpen();
-    // };
-    // this.socketInstance.onerror = function (err) {
-    //   console.log("ERROR");
-    //   cbError(err);
-    // };
-
     this.socketInstance.onmessage = (event: any) => {
       event = JSON.parse(event.data);
-      // console.log(event)
-      console.log("TA--->" + this.callbackListeners[event.eventName])
-      if (this.callbackListeners[event.eventName]) {
-        this.callbackListeners[event.eventName](event.data);
+      if (callbackListeners[event.eventName]) {
+        callbackListeners[event.eventName](event.data);
       }
     };
 
-    return myPromise
+    return socketOpenPromise;
   }
 
   /**
@@ -92,6 +74,10 @@ export class Sockets {
       // this.socketInstance.disconnect();
       this.socketInstance.close();
     }
+
+    Object.keys(callbackListeners).forEach(function (key) {
+      delete callbackListeners[key];
+    });
   }
 
   subscribeGlobalUpdatesBySymbol(symbol: MarketSymbol): boolean {
@@ -170,19 +156,19 @@ export class Sockets {
 
   // Emitted when any price bin on the oderbook is updated.
   onOrderBookUpdate = (cb: ({ orderbook }: any) => void) => {
-    this.callbackListeners[SOCKET_EVENTS.OrderbookUpdateKey] = cb;
+    callbackListeners[SOCKET_EVENTS.OrderbookUpdateKey] = cb;
   };
 
   onMarketDataUpdate = (
     cb: ({ marketData }: { marketData: MarketData }) => void
   ) => {
-    this.callbackListeners[SOCKET_EVENTS.MarketDataUpdateKey] = cb;
+    callbackListeners[SOCKET_EVENTS.MarketDataUpdateKey] = cb;
   };
 
   onMarketHealthChange = (
     cb: ({ status, symbol }: { status: MARKET_STATUS; symbol: string }) => void
   ) => {
-    this.callbackListeners[SOCKET_EVENTS.MarketHealthKey] = cb;
+    callbackListeners[SOCKET_EVENTS.MarketHealthKey] = cb;
   };
 
   onCandleStickUpdate = (
@@ -190,8 +176,7 @@ export class Sockets {
     interval: string,
     cb: (candle: MinifiedCandleStick) => void
   ) => {
-    console.log("TA-------> candle stick")
-    this.callbackListeners[
+    callbackListeners[
       this.createDynamicUrl(SOCKET_EVENTS.GET_LAST_KLINE_WITH_INTERVAL, {
         symbol,
         interval,
@@ -202,37 +187,37 @@ export class Sockets {
   onExchangeHealthChange = (
     cb: ({ isAlive }: { isAlive: boolean }) => void
   ) => {
-    this.callbackListeners[SOCKET_EVENTS.ExchangeHealthKey] = cb;
+    callbackListeners[SOCKET_EVENTS.ExchangeHealthKey] = cb;
   };
 
   // TODO: figure out what it does
   onRecentTrades = (
     cb: ({ trades }: { trades: GetMarketRecentTradesResponse[] }) => void
   ) => {
-    this.callbackListeners[SOCKET_EVENTS.RecentTradesKey] = cb;
+    callbackListeners[SOCKET_EVENTS.RecentTradesKey] = cb;
   };
 
   onUserOrderUpdate = (
     cb: ({ order }: { order: PlaceOrderResponse }) => void
   ) => {
-    this.callbackListeners[SOCKET_EVENTS.OrderUpdateKey] = cb;
+    callbackListeners[SOCKET_EVENTS.OrderUpdateKey] = cb;
   };
 
   onUserPositionUpdate = (
     cb: ({ position }: { position: GetPositionResponse }) => void
   ) => {
-    this.callbackListeners[SOCKET_EVENTS.PositionUpdateKey] = cb;
+    callbackListeners[SOCKET_EVENTS.PositionUpdateKey] = cb;
   };
 
   onUserUpdates = (
     cb: ({ trade }: { trade: GetUserTradesResponse }) => void
   ) => {
-    this.callbackListeners[SOCKET_EVENTS.UserTradeKey] = cb;
+    callbackListeners[SOCKET_EVENTS.UserTradeKey] = cb;
   };
 
   onUserAccountDataUpdate = (
     cb: ({ accountData }: { accountData: GetAccountDataResponse }) => void
   ) => {
-    this.callbackListeners[SOCKET_EVENTS.AccountDataUpdateKey] = cb;
+    callbackListeners[SOCKET_EVENTS.AccountDataUpdateKey] = cb;
   };
 }
