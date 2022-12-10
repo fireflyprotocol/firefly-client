@@ -26,6 +26,12 @@ export const Networks = {
     apiGateway: "https://dapi.firefly.exchange",
     socketURL: "wss://dapi.firefly.exchange",
     onboardingUrl: "https://trade.firefly.exchange",
+  },PRODUCTION_ARB: {
+    url: "https://arb1.arbitrum.io/rpc/",
+    chainId: 42161,
+    apiGateway: "https://dapi-arb.firefly.exchange",
+    socketURL: "wss://dapi-arb.firefly.exchange",
+    onboardingUrl: "https://trade-arb.firefly.exchange",
   },
 };
 

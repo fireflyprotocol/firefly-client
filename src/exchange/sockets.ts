@@ -43,15 +43,14 @@ export class Sockets {
    * opens socket instance connection
    */
   async open() {
-    this.socketInstance = new WebSocket(this.url);
-
-    const tempSocket = this.socketInstance;
+    const socket = new WebSocket(this.url)
+    this.socketInstance = socket
 
     const socketOpenPromise = new Promise(function (resolve, reject) {
-      tempSocket.onopen = function () {
+      socket.onopen = function () {
         resolve(true);
       };
-      tempSocket.onerror = function (err) {
+      socket.onerror = function (err:any) {
         reject(err);
       };
     });
