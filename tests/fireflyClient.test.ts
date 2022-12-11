@@ -668,16 +668,10 @@ describe("FireflyClient", () => {
 
   describe("Sockets", () => {
     beforeEach(async () => {
+      client.sockets.open();
       client.addMarket(symbol);
-      await client.sockets.open();
       client.sockets.subscribeGlobalUpdatesBySymbol(symbol);
-      client.sockets.subscribeUserUpdateByToken((data: any) => {
-        console.log(data);
-      });
-    });
-
-    afterEach(() => {
-      client.sockets.close();
+      client.sockets.subscribeUserUpdateByToken();
     });
 
     it("should receive an event from candle stick", (done) => {
@@ -727,7 +721,7 @@ describe("FireflyClient", () => {
           symbol,
           price: 0,
           quantity: 0.1,
-          side: ORDER_SIDE.BUY,
+          side: ORDER_SIDE.SELL,
           leverage: defaultLeverage,
           orderType: ORDER_TYPE.MARKET,
         });
@@ -748,7 +742,7 @@ describe("FireflyClient", () => {
           symbol,
           price: sellPrice + 1,
           quantity: 0.1,
-          side: ORDER_SIDE.BUY,
+          side: ORDER_SIDE.SELL,
           leverage: defaultLeverage,
           orderType: ORDER_TYPE.LIMIT,
         });
@@ -813,6 +807,168 @@ describe("FireflyClient", () => {
       };
 
       client.sockets.onUserAccountDataUpdate(callback);
+
+      // wait for 1 sec as room might not had been subscribed
+      setTimeout(1000).then(() => {
+        client.postOrder({
+          symbol,
+          price: 0,
+          quantity: 0.1,
+          side: ORDER_SIDE.BUY,
+          leverage: defaultLeverage,
+          orderType: ORDER_TYPE.MARKET,
+        });
+      });
+    });
+  });
+
+  describe("WebSockets", () => {
+    beforeEach(async () => {
+      client.addMarket(symbol);
+      await client.webSockets?.open();
+      client.webSockets?.subscribeGlobalUpdatesBySymbol(symbol);
+      client.webSockets?.subscribeUserUpdateByToken((data: any) => {
+        console.log(data);
+      });
+    });
+
+    afterEach(() => {
+      client.webSockets?.close();
+    });
+
+    it("WebSocket Client: should receive an event from candle stick", (done) => {
+      const callback = (candle: MinifiedCandleStick) => {
+        expect(candle[candle.length - 1]).to.be.equal(symbol);
+        done();
+      };
+      client.webSockets?.onCandleStickUpdate(symbol, "1m", callback);
+    });
+
+    it("WebSocket Client: should receive an event for orderbook update when an order is placed on exchange", (done) => {
+      const callback = ({ orderbook }: any) => {
+        expect(orderbook.symbol).to.be.equal(symbol);
+        done();
+      };
+
+      client.webSockets?.onOrderBookUpdate(callback);
+
+      // wait for 1 sec as room might not had been subscribed
+      setTimeout(1000).then(() => {
+        client.postOrder({
+          symbol,
+          price: sellPrice + 3,
+          quantity: 0.1,
+          side: ORDER_SIDE.SELL,
+          leverage: defaultLeverage,
+          orderType: ORDER_TYPE.LIMIT,
+        });
+      });
+    });
+
+    it("WebSocket Client: should receive an event when a trade is performed", (done) => {
+      const callback = ({
+        trades,
+      }: {
+        trades: GetMarketRecentTradesResponse[];
+      }) => {
+        expect(trades[0].symbol).to.be.equal(symbol);
+        done();
+      };
+
+      client.webSockets?.onRecentTrades(callback);
+
+      // wait for 1 sec as room might not had been subscribed
+      setTimeout(1000).then(() => {
+        client.postOrder({
+          symbol,
+          price: 0,
+          quantity: 0.1,
+          side: ORDER_SIDE.BUY,
+          leverage: defaultLeverage,
+          orderType: ORDER_TYPE.MARKET,
+        });
+      });
+    });
+
+    it("WebSocket Client: should receive order update event", (done) => {
+      const callback = ({ order }: { order: PlaceOrderResponse }) => {
+        expect(order.symbol).to.be.equal(symbol);
+        done();
+      };
+
+      client.webSockets?.onUserOrderUpdate(callback);
+
+      // wait for 1 sec as room might not had been subscribed
+      setTimeout(1000).then(() => {
+        client.postOrder({
+          symbol,
+          price: sellPrice + 1,
+          quantity: 0.1,
+          side: ORDER_SIDE.BUY,
+          leverage: defaultLeverage,
+          orderType: ORDER_TYPE.LIMIT,
+        });
+      });
+    });
+
+    it("WebSocket Client: should receive position update event", (done) => {
+      const callback = ({ position }: { position: GetPositionResponse }) => {
+        expect(position.userAddress).to.be.equal(
+          client.getPublicAddress().toLocaleLowerCase()
+        );
+        done();
+      };
+
+      client.webSockets?.onUserPositionUpdate(callback);
+
+      // wait for 1 sec as room might not had been subscribed
+      setTimeout(1000).then(() => {
+        client.postOrder({
+          symbol,
+          price: 0,
+          quantity: 0.1,
+          side: ORDER_SIDE.BUY,
+          leverage: defaultLeverage,
+          orderType: ORDER_TYPE.MARKET,
+        });
+      });
+    });
+
+    it("WebSocket Client: should receive user update event", (done) => {
+      const callback = ({ trade }: { trade: GetUserTradesResponse }) => {
+        expect(trade.maker).to.be.equal(false);
+        expect(trade.symbol).to.be.equal(symbol);
+        done();
+      };
+
+      client.webSockets?.onUserUpdates(callback);
+
+      // wait for 1 sec as room might not had been subscribed
+      setTimeout(1000).then(() => {
+        client.postOrder({
+          symbol,
+          price: 0,
+          quantity: 0.1,
+          side: ORDER_SIDE.BUY,
+          leverage: defaultLeverage,
+          orderType: ORDER_TYPE.MARKET,
+        });
+      });
+    });
+
+    it("WebSocket Client: should receive user account update event", (done) => {
+      const callback = ({
+        accountData,
+      }: {
+        accountData: GetAccountDataResponse;
+      }) => {
+        expect(accountData.address).to.be.equal(
+          client.getPublicAddress().toLocaleLowerCase()
+        );
+        done();
+      };
+
+      client.webSockets?.onUserAccountDataUpdate(callback);
 
       // wait for 1 sec as room might not had been subscribed
       setTimeout(1000).then(() => {

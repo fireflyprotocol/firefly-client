@@ -1,5 +1,7 @@
 /* eslint-disable no-unused-vars */
+import { io } from "socket.io-client";
 import {
+  SocketInstance,
   MarketSymbol,
   SOCKET_EVENTS,
   MARKET_STATUS,
@@ -13,18 +15,15 @@ import {
   GetUserTradesResponse,
   GetAccountDataResponse,
   MarketData,
+  UserSubscriptionAck,
 } from "../interfaces/routes";
 
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-const WebSocket = require("ws");
-
-const callbackListeners: Record<string, any> = {};
 export class Sockets {
-  private socketInstance!: WebSocket;
-
-  private token: string;
+  private socketInstance!: SocketInstance;
 
   private url: string;
+
+  private token: string;
 
   constructor(url: string) {
     this.url = url;
@@ -42,27 +41,10 @@ export class Sockets {
   /**
    * opens socket instance connection
    */
-  async open() {
-    const socket = new WebSocket(this.url)
-    this.socketInstance = socket
-
-    const socketOpenPromise = new Promise(function (resolve, reject) {
-      socket.onopen = function () {
-        resolve(true);
-      };
-      socket.onerror = function (err:any) {
-        reject(err);
-      };
+  open() {
+    this.socketInstance = io(this.url, {
+      transports: ["websocket"],
     });
-
-    this.socketInstance.onmessage = (event: any) => {
-      event = JSON.parse(event.data);
-      if (callbackListeners[event.eventName]) {
-        callbackListeners[event.eventName](event.data);
-      }
-    };
-
-    return socketOpenPromise;
   }
 
   /**
@@ -70,75 +52,30 @@ export class Sockets {
    */
   close() {
     if (this.socketInstance) {
+      this.socketInstance.disconnect();
       this.socketInstance.close();
     }
-
-    Object.keys(callbackListeners).forEach(function (key) {
-      delete callbackListeners[key];
-    });
   }
 
   subscribeGlobalUpdatesBySymbol(symbol: MarketSymbol): boolean {
     if (!this.socketInstance) return false;
-    this.socketInstance.send(
-      JSON.stringify([
-        "SUBSCRIBE",
-        [
-          {
-            e: SOCKET_EVENTS.GLOBAL_UPDATES_ROOM,
-            p: symbol,
-          },
-        ],
-      ])
-    );
+    this.socketInstance.emit("SUBSCRIBE", [
+      {
+        e: SOCKET_EVENTS.GLOBAL_UPDATES_ROOM,
+        p: symbol,
+      },
+    ]);
     return true;
   }
 
   unsubscribeGlobalUpdatesBySymbol(symbol: MarketSymbol): boolean {
     if (!this.socketInstance) return false;
-    this.socketInstance.send(
-      JSON.stringify([
-        "UNSUBSCRIBE",
-        [
-          {
-            e: SOCKET_EVENTS.GLOBAL_UPDATES_ROOM,
-            p: symbol,
-          },
-        ],
-      ])
-    );
-    return true;
-  }
-
-  subscribeUserUpdateByToken(callback?: any): boolean {
-    if (!this.socketInstance) return false;
-    this.socketInstance.send(
-      JSON.stringify([
-        "SUBSCRIBE",
-        [
-          {
-            e: SOCKET_EVENTS.UserUpdatesRoom,
-            t: this.token,
-          },
-        ],
-      ])
-    );
-    return true;
-  }
-
-  unsubscribeUserUpdateByToken(callback?: any): boolean {
-    if (!this.socketInstance) return false;
-    this.socketInstance.send(
-      JSON.stringify([
-        "UNSUBSCRIBE",
-        [
-          {
-            e: SOCKET_EVENTS.UserUpdatesRoom,
-            t: this.token,
-          },
-        ],
-      ])
-    );
+    this.socketInstance.emit("UNSUBSCRIBE", [
+      {
+        e: SOCKET_EVENTS.GLOBAL_UPDATES_ROOM,
+        p: symbol,
+      },
+    ]);
     return true;
   }
 
@@ -146,21 +83,55 @@ export class Sockets {
     this.token = token;
   };
 
+  subscribeUserUpdateByToken(callback?: UserSubscriptionAck): boolean {
+    if (!this.socketInstance) return false;
+    this.socketInstance.emit(
+      "SUBSCRIBE",
+      [
+        {
+          e: SOCKET_EVENTS.UserUpdatesRoom,
+          t: this.token,
+        },
+      ],
+      (data: UserSubscriptionAck) => {
+        if (callback instanceof Function) callback(data);
+      }
+    );
+    return true;
+  }
+
+  unsubscribeUserUpdateByToken(callback?: UserSubscriptionAck): boolean {
+    if (!this.socketInstance) return false;
+    this.socketInstance.emit(
+      "UNSUBSCRIBE",
+      [
+        {
+          e: SOCKET_EVENTS.UserUpdatesRoom,
+          t: this.token,
+        },
+      ],
+      (data: UserSubscriptionAck) => {
+        if (callback instanceof Function) callback(data);
+      }
+    );
+    return true;
+  }
+
   // Emitted when any price bin on the oderbook is updated.
   onOrderBookUpdate = (cb: ({ orderbook }: any) => void) => {
-    callbackListeners[SOCKET_EVENTS.OrderbookUpdateKey] = cb;
+    this.socketInstance.on(SOCKET_EVENTS.OrderbookUpdateKey, cb);
   };
 
   onMarketDataUpdate = (
     cb: ({ marketData }: { marketData: MarketData }) => void
   ) => {
-    callbackListeners[SOCKET_EVENTS.MarketDataUpdateKey] = cb;
+    this.socketInstance.on(SOCKET_EVENTS.MarketDataUpdateKey, cb);
   };
 
   onMarketHealthChange = (
     cb: ({ status, symbol }: { status: MARKET_STATUS; symbol: string }) => void
   ) => {
-    callbackListeners[SOCKET_EVENTS.MarketHealthKey] = cb;
+    this.socketInstance.on(SOCKET_EVENTS.MarketHealthKey, cb);
   };
 
   onCandleStickUpdate = (
@@ -168,48 +139,49 @@ export class Sockets {
     interval: string,
     cb: (candle: MinifiedCandleStick) => void
   ) => {
-    callbackListeners[
+    this.socketInstance.on(
       this.createDynamicUrl(SOCKET_EVENTS.GET_LAST_KLINE_WITH_INTERVAL, {
         symbol,
         interval,
-      })
-    ] = cb;
+      }),
+      cb
+    );
   };
 
   onExchangeHealthChange = (
     cb: ({ isAlive }: { isAlive: boolean }) => void
   ) => {
-    callbackListeners[SOCKET_EVENTS.ExchangeHealthKey] = cb;
+    this.socketInstance.on(SOCKET_EVENTS.ExchangeHealthKey, cb);
   };
 
   // TODO: figure out what it does
   onRecentTrades = (
     cb: ({ trades }: { trades: GetMarketRecentTradesResponse[] }) => void
   ) => {
-    callbackListeners[SOCKET_EVENTS.RecentTradesKey] = cb;
+    this.socketInstance.on(SOCKET_EVENTS.RecentTradesKey, cb);
   };
 
   onUserOrderUpdate = (
     cb: ({ order }: { order: PlaceOrderResponse }) => void
   ) => {
-    callbackListeners[SOCKET_EVENTS.OrderUpdateKey] = cb;
+    this.socketInstance.on(SOCKET_EVENTS.OrderUpdateKey, cb);
   };
 
   onUserPositionUpdate = (
     cb: ({ position }: { position: GetPositionResponse }) => void
   ) => {
-    callbackListeners[SOCKET_EVENTS.PositionUpdateKey] = cb;
+    this.socketInstance.on(SOCKET_EVENTS.PositionUpdateKey, cb);
   };
 
   onUserUpdates = (
     cb: ({ trade }: { trade: GetUserTradesResponse }) => void
   ) => {
-    callbackListeners[SOCKET_EVENTS.UserTradeKey] = cb;
+    this.socketInstance.on(SOCKET_EVENTS.UserTradeKey, cb);
   };
 
   onUserAccountDataUpdate = (
     cb: ({ accountData }: { accountData: GetAccountDataResponse }) => void
   ) => {
-    callbackListeners[SOCKET_EVENTS.AccountDataUpdateKey] = cb;
+    this.socketInstance.on(SOCKET_EVENTS.AccountDataUpdateKey, cb);
   };
 }

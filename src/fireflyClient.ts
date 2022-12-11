@@ -87,6 +87,7 @@ import {
   withdrawFromMarginBankBiconomyCall,
 } from "./exchange/biconomyService";
 import { generateRandomNumber } from "../utils/utils";
+import { WebSockets } from "./exchange/WebSocket";
 
 export class FireflyClient {
   protected readonly network: Network;
@@ -100,6 +101,7 @@ export class FireflyClient {
   private apiService: APIService;
 
   public sockets: Sockets;
+  public webSockets: WebSockets | undefined;
 
   public marketSymbols: string[] = []; // to save array market symbols [DOT-PERP, SOL-PERP]
 
@@ -158,6 +160,10 @@ export class FireflyClient {
     this.apiService = new APIService(this.network.apiGateway);
 
     this.sockets = new Sockets(this.network.socketURL);
+
+    if(this.network.webSocketURL){
+      this.webSockets = new WebSockets(this.network.webSocketURL);
+    }
 
     this.isTermAccepted = _isTermAccepted;
 
