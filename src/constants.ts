@@ -10,7 +10,8 @@ export const Networks = {
     url: "https://l2-dev.firefly.exchange/",
     chainId: 78602,
     apiGateway: "https://dapi-dev.firefly.exchange",
-    socketURL: "wss://dapi-dev.firefly.exchange/",
+    socketURL: "wss://dapi-dev.firefly.exchange",
+    webSocketURL: "wss://k8s-albdapi-775184c5a7-538590878.us-east-1.elb.amazonaws.com:2063",
     onboardingUrl: "https://dev.firefly.exchange",
   },
   SANDBOX: {
@@ -26,6 +27,12 @@ export const Networks = {
     apiGateway: "https://dapi.firefly.exchange",
     socketURL: "wss://dapi.firefly.exchange",
     onboardingUrl: "https://trade.firefly.exchange",
+  },PRODUCTION_ARB: {
+    url: "https://arb1.arbitrum.io/rpc/",
+    chainId: 42161,
+    apiGateway: "https://dapi-arb.firefly.exchange",
+    socketURL: "wss://dapi-arb.firefly.exchange",
+    onboardingUrl: "https://trade-arb.firefly.exchange",
   },
 };
 
