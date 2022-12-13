@@ -15,7 +15,9 @@ import {
     MarketData,
   } from "../interfaces/routes";
   
+  //@ts-ignore
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+  //@ts-ignore
   const WebSocket = require("ws");
   
   const callbackListeners: Record<string, any> = {};
@@ -110,7 +112,7 @@ import {
       return true;
     }
   
-    subscribeUserUpdateByToken(callback?: any): boolean {
+    subscribeUserUpdateByToken(): boolean {
       if (!this.socketInstance) return false;
       this.socketInstance.send(
         JSON.stringify([
@@ -126,7 +128,7 @@ import {
       return true;
     }
   
-    unsubscribeUserUpdateByToken(callback?: any): boolean {
+    unsubscribeUserUpdateByToken(): boolean {
       if (!this.socketInstance) return false;
       this.socketInstance.send(
         JSON.stringify([

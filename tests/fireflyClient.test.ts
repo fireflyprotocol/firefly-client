@@ -826,9 +826,7 @@ describe("FireflyClient", () => {
       client.addMarket(symbol);
       await client.webSockets?.open();
       client.webSockets?.subscribeGlobalUpdatesBySymbol(symbol);
-      client.webSockets?.subscribeUserUpdateByToken((data: any) => {
-        console.log(data);
-      });
+      client.webSockets?.subscribeUserUpdateByToken();
     });
 
     afterEach(() => {

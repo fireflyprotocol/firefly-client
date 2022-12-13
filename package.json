@@ -74,5 +74,10 @@
   "lint-staged": {
     "**/*.{js,ts,json}": "prettier --write",
     "**/*.{js,ts}": "eslint --fix"
+  },
+  "browser": {
+    "fs": false,
+    "tls": false,
+    "net": false
   }
 }

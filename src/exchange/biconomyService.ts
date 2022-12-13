@@ -1,7 +1,8 @@
 import {
   address,
   ADJUST_MARGIN,
-  contracts_exchange,
+  contracts_exchange_arbitrum,
+  contracts_exchange_boba,
   toBigNumberStr,
 } from "@firefly-exchange/library";
 import { Signer, Wallet } from "ethers";
@@ -87,6 +88,7 @@ export const withdrawFromMarginBankBiconomyCall = async (
   marginBankContract: any,
   MarginTokenPrecision: number,
   biconomy: any,
+  isArbitrumNetwork: boolean,
   //@no-check
   getMarginBankBalance: (address: string) => Promise<number>,
   getPublicAddress: () => address,
@@ -97,9 +99,8 @@ export const withdrawFromMarginBankBiconomyCall = async (
   return TransformToResponseSchema(async () => {
     if (!amount) {
       // get all margin bank balance when amount not provided by user
-      amountNumber = await getMarginBankBalance(
-        (marginBankContract as contracts_exchange.MarginBank).address
-      );
+      const mbContract = isArbitrumNetwork ? marginBankContract as contracts_exchange_arbitrum.MarginBank : marginBankContract as contracts_exchange_boba.MarginBank
+      amountNumber = await getMarginBankBalance((mbContract).address);
     }
     const amountString = toBigNumberStr(amountNumber!, MarginTokenPrecision);
 

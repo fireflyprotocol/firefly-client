@@ -513,6 +513,7 @@ export class FireflyClient {
         marginBankContract,
         this.MarginTokenPrecision,
         this.biconomy,
+        this.isArbitrumNetwork,
         this.getMarginBankBalance,
         this.getPublicAddress,
         amount
