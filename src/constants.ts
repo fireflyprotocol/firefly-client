@@ -1,12 +1,7 @@
+import { Network } from "@firefly-exchange/library";
+
 export const Networks = {
-  TESTNET: {
-    url: "https://rinkeby.arbitrum.io/rpc",
-    chainId: 421611,
-    apiGateway: "https://dapi-testnet.firefly.exchange",
-    socketURL: "wss://dapi-testnet.firefly.exchange",
-    onboardingUrl: "https://testnet.firefly.exchange",
-  },
-  DEV: {
+  TESTNET_BOBA: {
     url: "https://l2-dev.firefly.exchange/",
     chainId: 78602,
     apiGateway: "https://dapi-dev.firefly.exchange",
@@ -14,24 +9,28 @@ export const Networks = {
     webSocketURL: "wss://k8s-albdapi-775184c5a7-538590878.us-east-1.elb.amazonaws.com:2063",
     onboardingUrl: "https://dev.firefly.exchange",
   },
-  SANDBOX: {
-    url: "https://l2-dev.firefly.exchange/",
-    chainId: 78602,
-    apiGateway: "https://dapi-dev-sandbox.firefly.exchange",
-    socketURL: "wss://dapi-dev-sandbox.firefly.exchange/",
-    onboardingUrl: "https://dev-sandbox.firefly.exchange",
+  TESTNET_ARBITRUM: {
+    url: "https://rinkeby.arbitrum.io/rpc",
+    chainId: 421611,
+    apiGateway: "https://dapi-testnet.firefly.exchange",
+    socketURL: "wss://dapi-testnet.firefly.exchange",
+    webSocketURL: "",
+    onboardingUrl: "https://testnet.firefly.exchange",
   },
-  PRODUCTION: {
+  PRODUCTION_BOBA: {
     url: "https://bobabeam.boba.network/",
     chainId: 1294,
     apiGateway: "https://dapi.firefly.exchange",
     socketURL: "wss://dapi.firefly.exchange",
+    webSocketURL: "",
     onboardingUrl: "https://trade.firefly.exchange",
-  },PRODUCTION_ARB: {
+  },
+  PRODUCTION_ARBITRUM: {
     url: "https://arb1.arbitrum.io/rpc/",
     chainId: 42161,
     apiGateway: "https://dapi-arb.firefly.exchange",
     socketURL: "wss://dapi-arb.firefly.exchange",
+    webSocketURL: "",
     onboardingUrl: "https://trade-arb.firefly.exchange",
   },
 };
@@ -51,4 +50,9 @@ export enum SignatureType {
 
 export enum TransactionType {
   eth_sendTransaction = 'eth_sendTransaction'
+}
+
+//adding this here as it's temporary support for socket.io
+export interface ExtendedNetwork extends Network {
+  webSocketURL: string
 }
