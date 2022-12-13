@@ -1,8 +1,8 @@
 import {
   address,
   ADJUST_MARGIN,
-  contracts_exchange_arbitrum,
-  contracts_exchange_boba,
+  FactoryName,
+  mapContract,
   toBigNumberStr,
 } from "@firefly-exchange/library";
 import { Signer, Wallet } from "ethers";
@@ -88,7 +88,7 @@ export const withdrawFromMarginBankBiconomyCall = async (
   marginBankContract: any,
   MarginTokenPrecision: number,
   biconomy: any,
-  isArbitrumNetwork: boolean,
+  networkName: string,
   //@no-check
   getMarginBankBalance: (address: string) => Promise<number>,
   getPublicAddress: () => address,
@@ -99,7 +99,7 @@ export const withdrawFromMarginBankBiconomyCall = async (
   return TransformToResponseSchema(async () => {
     if (!amount) {
       // get all margin bank balance when amount not provided by user
-      const mbContract = isArbitrumNetwork ? marginBankContract as contracts_exchange_arbitrum.MarginBank : marginBankContract as contracts_exchange_boba.MarginBank
+      const mbContract = mapContract(networkName, FactoryName.marginBank, marginBankContract)
       amountNumber = await getMarginBankBalance((mbContract).address);
     }
     const amountString = toBigNumberStr(amountNumber!, MarginTokenPrecision);
@@ -130,7 +130,7 @@ export const depositToMarginBankBiconomyCall = async (
   MarginTokenPrecision: number,
   wallet: Signer | Wallet,
   gasLimit: number,
-  estimateGas: boolean,
+  networkName: string,
   biconomy: any,
   getPublicAddress: () => address
 ) => {
@@ -145,7 +145,7 @@ export const depositToMarginBankBiconomyCall = async (
         MarginTokenPrecision,
         wallet,
         gasLimit,
-        estimateGas
+        networkName
       );
     }
     const { data } = await marginBankContract.populateTransaction.depositToBank(

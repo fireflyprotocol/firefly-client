@@ -1,8 +1,9 @@
 import {
   address,
   ADJUST_MARGIN,
-  contracts_exchange_boba,
-  contracts_exchange_arbitrum,
+  FactoryName,
+  mapContract,
+  NETWORK_NAME,
   toBigNumberStr,
 } from "@firefly-exchange/library";
 
@@ -17,14 +18,13 @@ export const adjustLeverageContractCall = async (
   wallet: Signer | Wallet,
   leverage: number,
   gasLimit: number,
-  estimateGas: boolean,
+  networkName: string,
   getPublicAddress: () => address
 ) => {
-  let contract = estimateGas ? (perpContract as contracts_exchange_arbitrum.Perpetual) : (perpContract as contracts_exchange_boba.Perpetual)
-  contract = contract.connect(wallet)
-  
+  const contract = mapContract(networkName, FactoryName.perpetual, perpContract).connect(wallet)
+
   //estimate gas in case of ARBITRUM network because it doesn't work on max block gas limit
-  if (estimateGas) {
+  if (networkName == NETWORK_NAME.arbitrum) {
     gasLimit = (+await contract.estimateGas.adjustLeverage(getPublicAddress(), toBigNumberStr(leverage))) + EXTRA_FEES;    
   }
   return TransformToResponseSchema(async () => {
@@ -45,14 +45,13 @@ export const adjustMarginContractCall = async (
   wallet: Signer | Wallet,
   amount: number,
   gasLimit: number,
-  estimateGas: boolean,
+  networkName: string,
   getPublicAddress: () => address
 ) => {
-  let contract = estimateGas ? (perpContract as contracts_exchange_arbitrum.Perpetual) : (perpContract as contracts_exchange_boba.Perpetual)
-  contract = contract.connect(wallet)
+  const contract = mapContract(networkName, FactoryName.perpetual, perpContract).connect(wallet)
 
   //estimate gas in case of ARBITRUM network because it doesn't work on max block gas limit
-  if (estimateGas) {
+  if (networkName == NETWORK_NAME.arbitrum) {
     if (operationType == ADJUST_MARGIN.Add) {
       gasLimit = (+await contract.estimateGas.addMargin(getPublicAddress(), toBigNumberStr(amount))) + EXTRA_FEES;
     }
@@ -94,7 +93,7 @@ export const withdrawFromMarginBankContractCall = async (
   MarginTokenPrecision: number,
   wallet: Signer | Wallet,
   gasLimit: number,
-  estimateGas: boolean,
+  networkName: string,
   getMarginBankBalance: (address: string) => Promise<number>,
   getPublicAddress: () => address,
   amount?: number
@@ -102,18 +101,18 @@ export const withdrawFromMarginBankContractCall = async (
 
   let amountNumber = amount;
   return TransformToResponseSchema(async () => {
-    let contract = estimateGas ? (marginBankContract as contracts_exchange_arbitrum.MarginBank) : (marginBankContract as contracts_exchange_boba.MarginBank)
+    const mbContract = mapContract(networkName, FactoryName.marginBank, marginBankContract)
 
     if (!amount) {
       // get all margin bank balance when amount not provided by user
-      amountNumber = await getMarginBankBalance((contract).address);
+      amountNumber = await getMarginBankBalance((mbContract).address);
     }
 
     const amountString = toBigNumberStr(amountNumber!, MarginTokenPrecision);
-    contract = contract.connect(wallet)
+    const contract = mbContract.connect(wallet)
   
     //estimate gas in case of ARBITRUM network because it doesn't work on max block gas limit
-    if (estimateGas) {
+    if (networkName == NETWORK_NAME.arbitrum) {
       gasLimit = (+await contract.estimateGas.withdrawFromBank(getPublicAddress(), amountString)) + EXTRA_FEES;    
     }
 
@@ -134,14 +133,14 @@ export const approvalFromUSDCContractCall = async (
   MarginTokenPrecision: number,
   wallet: Signer | Wallet,
   gasLimit: number,
-  estimateGas: boolean
+  networkName: string,
 ) => {
   const amountString = toBigNumberStr(amount, MarginTokenPrecision);
   const contract = (tokenContract as Contract).connect(wallet)
-  const mbContract = estimateGas ? (marginBankContract as contracts_exchange_arbitrum.MarginBank) : (marginBankContract as contracts_exchange_boba.MarginBank)
+  const mbContract = mapContract(networkName, FactoryName.marginBank, marginBankContract)
 
   //estimate gas in case of ARBITRUM network because it doesn't work on max block gas limit
-  if (estimateGas) {
+  if (networkName == NETWORK_NAME.arbitrum) {
     gasLimit = (+await contract.estimateGas.approve((mbContract).address, amountString)) + EXTRA_FEES;    
   }
 
@@ -164,7 +163,7 @@ export const depositToMarginBankContractCall = async (
   MarginTokenPrecision: number,
   wallet: Signer | Wallet,
   gasLimit: number,
-  estimateGas: boolean,
+  networkName: string,
   getPublicAddress: () => address
 ) => {
   const amountString = toBigNumberStr(amount, MarginTokenPrecision);
@@ -178,14 +177,14 @@ export const depositToMarginBankContractCall = async (
         MarginTokenPrecision,
         wallet,
         gasLimit,
-        estimateGas
+        networkName
       );
     }  
     
-    let contract = estimateGas ? (marginBankContract as contracts_exchange_arbitrum.MarginBank) : (marginBankContract as contracts_exchange_boba.MarginBank)
-    contract = contract.connect(wallet)
+    const contract = mapContract(networkName, FactoryName.marginBank, marginBankContract).connect(wallet)
+
     //estimate gas in case of ARBITRUM network because it doesn't work on max block gas limit
-    if (estimateGas) {
+    if (networkName == NETWORK_NAME.arbitrum) {
       gasLimit = (+await contract.estimateGas.depositToBank(getPublicAddress(), amountString)) + EXTRA_FEES;
     }
 
