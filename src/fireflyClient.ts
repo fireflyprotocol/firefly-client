@@ -13,11 +13,11 @@ import {
   address,
   DAPIKlineResponse,
   ORDER_STATUS,
-  Network,
   SignedOrder,
   Order,
   OrderSigner,
-  contracts_exchange,
+  contracts_exchange_boba,
+  contracts_exchange_arbitrum,
   bnStrToBaseNumber,
   MARGIN_TYPE,
   bnToString,
@@ -70,7 +70,7 @@ import {
 import { APIService } from "./exchange/apiService";
 import { SERVICE_URLS } from "./exchange/apiUrls";
 import { Sockets } from "./exchange/sockets";
-import { ARBITRUM_NETWROK, BICONOMY_API_KEY, EXTRA_FEES, Networks } from "./constants";
+import { ARBITRUM_NETWROK, BICONOMY_API_KEY, ExtendedNetwork, EXTRA_FEES, Networks } from "./constants";
 import {
   adjustLeverageContractCall,
   adjustMarginContractCall,
@@ -90,7 +90,7 @@ import { generateRandomNumber } from "../utils/utils";
 import { WebSockets } from "./exchange/WebSocket";
 
 export class FireflyClient {
-  protected readonly network: Network;
+  protected readonly network: ExtendedNetwork;
 
   private web3: Web3;
 
@@ -149,7 +149,7 @@ export class FireflyClient {
    */
   constructor(
     _isTermAccepted: boolean,
-    _network: Network,
+    _network: ExtendedNetwork,
     _acctPvtKey?: string,
     _useBiconomy: boolean = false
   ) {
@@ -348,9 +348,17 @@ export class FireflyClient {
    */
   getMarginBankBalance = async (contract?: address): Promise<number> => {
     const marginBankContract = this.getContract(this._marginBank, contract);
-    const balance = await (marginBankContract as contracts_exchange.MarginBank)
+    let balance: any
+    if (this.isArbitrumNetwork){
+      balance = await (marginBankContract as contracts_exchange_arbitrum.MarginBank)
       .connect(this.getWallet())
       .getAccountBankBalance(this.getPublicAddress());
+    }
+    else {
+      balance = await (marginBankContract as contracts_exchange_boba.MarginBank)
+      .connect(this.getWallet())
+      .getAccountBankBalance(this.getPublicAddress());
+    }
 
     const balanceNumber = bnStrToBaseNumber(bnToString(balance.toHexString()));
     return Math.floor(balanceNumber * 1000000) / 1000000; // making balance returned always in 6 precision
@@ -363,7 +371,7 @@ export class FireflyClient {
    * @returns Boolean true if user is funded, false otherwise
    */
   mintTestUSDC = async (contract?: address): Promise<boolean> => {
-    if (this.network === Networks.PRODUCTION) {
+    if (this.network === Networks.PRODUCTION_ARBITRUM || this.network === Networks.PRODUCTION_BOBA) {
       throw Error(`Function does not work on PRODUCTION`);
     }
 
@@ -1223,29 +1231,33 @@ export class FireflyClient {
     market?: MarketSymbol
   ):
     | Contract
-    | contracts_exchange.MarginBank
-    | contracts_exchange.IsolatedTrader
-    | contracts_exchange.Perpetual
-    | contracts_exchange.DummyUSDC => {
+    | contracts_exchange_arbitrum.MarginBank | contracts_exchange_boba.MarginBank
+    | contracts_exchange_arbitrum.IsolatedTrader | contracts_exchange_boba.IsolatedTrader
+    | contracts_exchange_arbitrum.Perpetual | contracts_exchange_boba.Perpetual
+    | contracts_exchange_arbitrum.DummyUSDC | contracts_exchange_boba.DummyUSDC => {
 
     contract = this.getContractAddressByName(contractName, contract, market);
     switch (contractName) {
       case this._perpetual:
-        const perpFactory = new contracts_exchange.Perpetual__factory();
-        const perp = perpFactory.attach(contract);
-        return perp as any as contracts_exchange.Perpetual;
+        const Perpetual__factory = this.isArbitrumNetwork ? contracts_exchange_arbitrum.Perpetual__factory : contracts_exchange_boba.Perpetual__factory
+        const perpFactory = new Perpetual__factory();
+        const perp = perpFactory.attach(contract) as any;
+        return this.isArbitrumNetwork ? perp as contracts_exchange_arbitrum.Perpetual : perp as contracts_exchange_boba.Perpetual
       case this._usdcToken:
-        const dummyFactory = new contracts_exchange.DummyUSDC__factory();
-        const dummyUSDC = dummyFactory.attach(contract);
-        return dummyUSDC as any as contracts_exchange.DummyUSDC;
+        const DummyUSDC__factory = this.isArbitrumNetwork ? contracts_exchange_arbitrum.DummyUSDC__factory : contracts_exchange_boba.DummyUSDC__factory
+        const dummyFactory = new DummyUSDC__factory();
+        const dummyUSDC = dummyFactory.attach(contract) as any;
+        return this.isArbitrumNetwork ? dummyUSDC as contracts_exchange_arbitrum.DummyUSDC : dummyUSDC as contracts_exchange_boba.DummyUSDC
       case this._marginBank:
-        const marginBankFactory = new contracts_exchange.MarginBank__factory();
-        const marginBank = marginBankFactory.attach(contract);
-        return marginBank as any as contracts_exchange.MarginBank;
+        const MarginBank__factory = this.isArbitrumNetwork ? contracts_exchange_arbitrum.MarginBank__factory : contracts_exchange_boba.MarginBank__factory
+        const marginBankFactory = new MarginBank__factory();
+        const marginBank = marginBankFactory.attach(contract) as any;
+        return this.isArbitrumNetwork ? marginBank as contracts_exchange_arbitrum.MarginBank : marginBank as contracts_exchange_boba.MarginBank
       case this._isolatedTrader:
-        const ordersFactory = new contracts_exchange.IsolatedTrader__factory();
-        const orders = ordersFactory.attach(contract);
-        return orders as any as contracts_exchange.IsolatedTrader;
+        const IsolatedTrader__factory = this.isArbitrumNetwork ? contracts_exchange_arbitrum.IsolatedTrader__factory : contracts_exchange_boba.IsolatedTrader__factory
+        const ordersFactory = new IsolatedTrader__factory();
+        const orders = ordersFactory.attach(contract) as any;
+        return this.isArbitrumNetwork ? orders as contracts_exchange_arbitrum.IsolatedTrader : orders as contracts_exchange_boba.IsolatedTrader
       default:
         throw Error(`Unknown contract name received: ${contractName}`);
     }

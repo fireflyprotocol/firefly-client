@@ -34,7 +34,7 @@ let client: FireflyClient;
 
 describe("FireflyClient", () => {
   //* set environment from here
-  const network = Networks.DEV;
+  const network = Networks.TESTNET_BOBA;
   const symbol = "BTC-PERP";
   let defaultLeverage = 4;
   let buyPrice = 18000;
@@ -310,7 +310,7 @@ describe("FireflyClient", () => {
       const signedOrder = await client.createSignedOrder({
         symbol,
         price: sellPrice,
-        quantity: 0.1,
+        quantity: 0.001,
         side: ORDER_SIDE.SELL,
         leverage: defaultLeverage,
         orderType: ORDER_TYPE.LIMIT,
@@ -319,7 +319,6 @@ describe("FireflyClient", () => {
         ...signedOrder,
         clientId: "test cancel order",
       });
-
       const cancelSignature = await client.createOrderCancellationSignature({
         symbol,
         hashes: [response.response.data.hash],
@@ -338,7 +337,7 @@ describe("FireflyClient", () => {
       const signedOrder = await client.createSignedOrder({
         symbol,
         price: sellPrice,
-        quantity: 0.1,
+        quantity: 0.001,
         side: ORDER_SIDE.SELL,
         leverage: defaultLeverage,
         orderType: ORDER_TYPE.LIMIT,

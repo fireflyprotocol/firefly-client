@@ -666,10 +666,10 @@
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
 
-"@firefly-exchange/library@1.0.61":
-  version "1.0.61"
-  resolved "https://registry.yarnpkg.com/@firefly-exchange/library/-/library-1.0.61.tgz#39291959dfc8230c8b10cf9433ebc1820bf681ae"
-  integrity sha512-WaknpvZVTIqqdwWUyUTImbUsoueu2HHNq5IbTKXKvf5wUmMH6dajG/AkQBWwD2cHnEDygwd/HbaC9vsHcjJdhg==
+"@firefly-exchange/library@^1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@firefly-exchange/library/-/library-1.1.1.tgz#47ca29807df05b6342b77eacd41e4c0ed89315fd"
+  integrity sha512-2cmcdlIqeLndAzmsqiSPqq+MlTj48JeakX6qT1DX5luqwZZamL1b+/khyXtmakqr9Y5Qj67fpERN7vXy2vgXsQ==
   dependencies:
     bignumber "^1.1.0"
     bignumber.js "^9.0.2"

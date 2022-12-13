@@ -1,7 +1,8 @@
 import {
   address,
   ADJUST_MARGIN,
-  contracts_exchange,
+  contracts_exchange_boba,
+  contracts_exchange_arbitrum,
   toBigNumberStr,
 } from "@firefly-exchange/library";
 
@@ -19,17 +20,17 @@ export const adjustLeverageContractCall = async (
   estimateGas: boolean,
   getPublicAddress: () => address
 ) => {
+  let contract = estimateGas ? (perpContract as contracts_exchange_arbitrum.Perpetual) : (perpContract as contracts_exchange_boba.Perpetual)
+  contract = contract.connect(wallet)
+  
   //estimate gas in case of ARBITRUM network because it doesn't work on max block gas limit
   if (estimateGas) {
-    const contract = (perpContract as contracts_exchange.Perpetual).connect(wallet)
     gasLimit = (+await contract.estimateGas.adjustLeverage(getPublicAddress(), toBigNumberStr(leverage))) + EXTRA_FEES;    
   }
   return TransformToResponseSchema(async () => {
-    const tx = await (perpContract as contracts_exchange.Perpetual)
-      .connect(wallet)
-      .adjustLeverage(getPublicAddress(), toBigNumberStr(leverage), {
-        gasLimit,
-      });
+    const tx = await contract.adjustLeverage(getPublicAddress(), toBigNumberStr(leverage), {
+      gasLimit,
+    });
     if (wallet instanceof Wallet) {
       return tx.wait();
     }
@@ -47,9 +48,11 @@ export const adjustMarginContractCall = async (
   estimateGas: boolean,
   getPublicAddress: () => address
 ) => {
+  let contract = estimateGas ? (perpContract as contracts_exchange_arbitrum.Perpetual) : (perpContract as contracts_exchange_boba.Perpetual)
+  contract = contract.connect(wallet)
+
   //estimate gas in case of ARBITRUM network because it doesn't work on max block gas limit
   if (estimateGas) {
-    const contract = (perpContract as contracts_exchange.Perpetual).connect(wallet)
     if (operationType == ADJUST_MARGIN.Add) {
       gasLimit = (+await contract.estimateGas.addMargin(getPublicAddress(), toBigNumberStr(amount))) + EXTRA_FEES;
     }
@@ -61,8 +64,7 @@ export const adjustMarginContractCall = async (
   return TransformToResponseSchema(async () => {
     // ADD margin
     if (operationType === ADJUST_MARGIN.Add) {
-      const tx = await (perpContract as contracts_exchange.Perpetual)
-        .connect(wallet)
+      const tx = await contract
         .addMargin(getPublicAddress(), toBigNumberStr(amount), {
           gasLimit: gasLimit,
         });
@@ -74,8 +76,7 @@ export const adjustMarginContractCall = async (
     }
     // REMOVE margin
     else {
-      const tx = await (perpContract as contracts_exchange.Perpetual)
-        .connect(wallet)
+      const tx = await contract
         .removeMargin(getPublicAddress(), toBigNumberStr(amount), {
           gasLimit: gasLimit,
         });
@@ -101,15 +102,16 @@ export const withdrawFromMarginBankContractCall = async (
 
   let amountNumber = amount;
   return TransformToResponseSchema(async () => {
+    let contract = estimateGas ? (marginBankContract as contracts_exchange_arbitrum.MarginBank) : (marginBankContract as contracts_exchange_boba.MarginBank)
+
     if (!amount) {
       // get all margin bank balance when amount not provided by user
-      amountNumber = await getMarginBankBalance(
-        (marginBankContract as contracts_exchange.MarginBank).address
-      );
+      amountNumber = await getMarginBankBalance((contract).address);
     }
-    const amountString = toBigNumberStr(amountNumber!, MarginTokenPrecision);
-    const contract = (marginBankContract as contracts_exchange.MarginBank).connect(wallet)
 
+    const amountString = toBigNumberStr(amountNumber!, MarginTokenPrecision);
+    contract = contract.connect(wallet)
+  
     //estimate gas in case of ARBITRUM network because it doesn't work on max block gas limit
     if (estimateGas) {
       gasLimit = (+await contract.estimateGas.withdrawFromBank(getPublicAddress(), amountString)) + EXTRA_FEES;    
@@ -136,17 +138,18 @@ export const approvalFromUSDCContractCall = async (
 ) => {
   const amountString = toBigNumberStr(amount, MarginTokenPrecision);
   const contract = (tokenContract as Contract).connect(wallet)
+  const mbContract = estimateGas ? (marginBankContract as contracts_exchange_arbitrum.MarginBank) : (marginBankContract as contracts_exchange_boba.MarginBank)
 
   //estimate gas in case of ARBITRUM network because it doesn't work on max block gas limit
   if (estimateGas) {
-    gasLimit = (+await contract.estimateGas.approve((marginBankContract as contracts_exchange.MarginBank).address, amountString)) + EXTRA_FEES;    
+    gasLimit = (+await contract.estimateGas.approve((mbContract).address, amountString)) + EXTRA_FEES;    
   }
 
   return TransformToResponseSchema(async () => {
     return await(
       await contract
         .approve(
-          (marginBankContract as contracts_exchange.MarginBank).address,
+          (mbContract).address,
           amountString,
           { gasLimit: gasLimit }
         )
@@ -179,7 +182,8 @@ export const depositToMarginBankContractCall = async (
       );
     }  
     
-    const contract = (marginBankContract as contracts_exchange.MarginBank).connect(wallet)
+    let contract = estimateGas ? (marginBankContract as contracts_exchange_arbitrum.MarginBank) : (marginBankContract as contracts_exchange_boba.MarginBank)
+    contract = contract.connect(wallet)
     //estimate gas in case of ARBITRUM network because it doesn't work on max block gas limit
     if (estimateGas) {
       gasLimit = (+await contract.estimateGas.depositToBank(getPublicAddress(), amountString)) + EXTRA_FEES;
