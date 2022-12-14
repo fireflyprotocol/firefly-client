@@ -39,6 +39,33 @@ export const adjustLeverageContractCall = async (
   }, interpolate(SuccessMessages.adjustLeverage, {leverage}));
 };
 
+export const setLocalOperators=async (
+  perpContract:any,
+  publicAddress:address,
+  status:boolean,
+  wallet: Signer | Wallet,
+  gasLimit: number,
+  networkName: string
+)=>{
+  const contract = mapContract(networkName, FactoryName.perpetual, perpContract).connect(wallet);
+
+  if (networkName == NETWORK_NAME.arbitrum) {
+    gasLimit = (+await contract.estimateGas.setLocalOperator(publicAddress,status)) + EXTRA_FEES;    
+  }
+
+  return TransformToResponseSchema(async () => {
+    const tx = await contract.setLocalOperator(publicAddress, status, {
+      gasLimit,
+    });
+    if (wallet instanceof Wallet) {
+      return tx.wait();
+    }
+
+    return tx;
+  }, interpolate(SuccessMessages.setLocalOperators, {address:publicAddress,status:status?"added":"removed"}));
+
+}
+
 export const adjustMarginContractCall = async (
   operationType: ADJUST_MARGIN,
   perpContract: any,

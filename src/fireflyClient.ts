@@ -81,6 +81,7 @@ import {
   approvalFromUSDCContractCall,
   depositToMarginBankContractCall,
   withdrawFromMarginBankContractCall,
+  setLocalOperators
 } from "./exchange/contractService";
 import { ResponseSchema } from "./exchange/contractErrorHandling.service";
 // @ts-ignore
@@ -289,6 +290,23 @@ export class FireflyClient {
       });
     });
   };
+
+  setLocalOperator=async (publicAddress:address,status:boolean)=>{
+    const perpContract = this.getContract(
+      this._perpetual,
+      undefined,
+      "BTC-PERP"
+    );
+    const resp = await setLocalOperators(
+      perpContract,
+      publicAddress,
+      status,
+      this.getWallet(),
+      this.maxBlockGasLimit,
+      this.networkName
+    );
+    return resp
+  }
 
   /**
    * Allows caller to add a market, internally creates order signer for the provided market
@@ -557,7 +575,7 @@ export class FireflyClient {
   createSignedOrder = async (
     params: OrderSignatureRequest
   ): Promise<OrderSignatureResponse> => {
-    const order = this.createOrderToSign(params);
+    const order = this.createOrderToSign(params,params.maker);
 
     const signer = this.orderSigners.get(params.symbol);
     if (!signer) {
@@ -568,7 +586,8 @@ export class FireflyClient {
 
     const orderSignature = await (signer as OrderSigner).signOrder(
       order,
-      this.getSigningMethod()
+      this.getSigningMethod(),
+      this.getPublicAddress()
     );
 
     const signedOrder: SignedOrder = {
@@ -587,6 +606,7 @@ export class FireflyClient {
       expiration: order.expiration.toNumber(),
       orderSignature: signedOrder.typedSignature,
       orderType: params.orderType,
+      maker:params.maker?params.maker:this.getPublicAddress().toLocaleLowerCase()
     };
   };
 
@@ -600,7 +620,7 @@ export class FireflyClient {
       SERVICE_URLS.ORDERS.ORDERS,
       {
         symbol: params.symbol,
-        userAddress: this.getPublicAddress().toLocaleLowerCase(),
+        userAddress: params.maker,
         orderType: params.orderType,
         price: toBigNumberStr(params.price),
         quantity: toBigNumberStr(params.quantity),
@@ -1307,7 +1327,7 @@ export class FireflyClient {
    * @param params OrderSignatureRequest
    * @returns Order
    */
-  private createOrderToSign = (params: OrderSignatureRequest): Order => {
+  private createOrderToSign = (params: OrderSignatureRequest,parentAccountAddress?:address): Order => {
     const expiration = new Date();
     // MARKET ORDER - set expiration of 1 minute
     if (params.orderType === ORDER_TYPE.MARKET) {
@@ -1328,7 +1348,7 @@ export class FireflyClient {
       price: toBigNumber(params.price),
       quantity: toBigNumber(params.quantity),
       leverage: toBigNumber(params.leverage || 1),
-      maker: this.getPublicAddress().toLocaleLowerCase(),
+      maker: parentAccountAddress?parentAccountAddress:this.getPublicAddress().toLocaleLowerCase(),
       reduceOnly: params.reduceOnly || false,
       triggerPrice: toBigNumber(0),
       expiration: bigNumber(

@@ -65,5 +65,6 @@ export enum SuccessMessages {
   adjustMarginRemove = "{amount} USDC margin Removed from position.",
   withdrawMargin = "{amount} USDC withdrawn.",
   approveUSDC = "{amount} USDC approved.",
-  depositToBank = "{amount} USDC deposited to Margin Bank."
+  depositToBank = "{amount} USDC deposited to Margin Bank.",
+  setLocalOperators = "This {address} is successfully {status} as a subaccount"
 }

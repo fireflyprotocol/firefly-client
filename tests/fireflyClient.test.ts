@@ -34,7 +34,7 @@ let client: FireflyClient;
 
 describe("FireflyClient", () => {
   //* set environment from here
-  const network = Networks.TESTNET_BOBA;
+  const network = Networks.TESTNET_ARBITRUM;
   const symbol = "BTC-PERP";
   let defaultLeverage = 4;
   let buyPrice = 18000;
@@ -88,6 +88,10 @@ describe("FireflyClient", () => {
   });
 
   describe("Market", () => {
+    it.only("set local operators",async()=>{
+      const resp=await client.setLocalOperator("0x0E584A380d1DCf83B9954073339c09144650204B",true);
+      expect(resp.ok).to.be.equal(true);
+    })
     it(`should add ${symbol} market`, async () => {
       expect(client.addMarket(symbol)).to.be.equal(true);
     });
