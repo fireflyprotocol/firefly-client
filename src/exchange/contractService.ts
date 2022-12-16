@@ -39,7 +39,7 @@ export const adjustLeverageContractCall = async (
   }, interpolate(SuccessMessages.adjustLeverage, {leverage}));
 };
 
-export const setLocalOperators=async (
+export const setSubAccount=async (
   perpContract:any,
   publicAddress:address,
   status:boolean,
@@ -50,11 +50,11 @@ export const setLocalOperators=async (
   const contract = mapContract(networkName, FactoryName.perpetual, perpContract).connect(wallet);
 
   if (networkName == NETWORK_NAME.arbitrum) {
-    gasLimit = (+await contract.estimateGas.setLocalOperator(publicAddress,status)) + EXTRA_FEES;    
+    gasLimit = (+await contract.estimateGas.setSubAccount(publicAddress,status)) + EXTRA_FEES;    
   }
 
   return TransformToResponseSchema(async () => {
-    const tx = await contract.setLocalOperator(publicAddress, status, {
+    const tx = await contract.setSubAccount(publicAddress, status, {
       gasLimit,
     });
     if (wallet instanceof Wallet) {
@@ -62,7 +62,7 @@ export const setLocalOperators=async (
     }
 
     return tx;
-  }, interpolate(SuccessMessages.setLocalOperators, {address:publicAddress,status:status?"added":"removed"}));
+  }, interpolate(SuccessMessages.setSubAccounts, {address:publicAddress,status:status?"added":"removed"}));
 
 }
 

@@ -12,6 +12,7 @@ import {
   ORDER_TYPE,
   Web3,
   bnStrToBaseNumber,
+  MARKET_SYMBOLS,
 } from "@firefly-exchange/library";
 
 import {
@@ -86,12 +87,12 @@ describe("FireflyClient", () => {
   it("should return public address of account", async () => {
     expect(client.getPublicAddress()).to.be.equal(testAcctPubAddr);
   });
+  it("set sub account",async()=>{
+    const resp=await client.setSubAccount("0x0E584A380d1DCf83B9954073339c09144650204B",MARKET_SYMBOLS.BTC,true);
+    expect(resp.ok).to.be.equal(true);
+  })
 
   describe("Market", () => {
-    it.only("set local operators",async()=>{
-      const resp=await client.setLocalOperator("0x0E584A380d1DCf83B9954073339c09144650204B",true);
-      expect(resp.ok).to.be.equal(true);
-    })
     it(`should add ${symbol} market`, async () => {
       expect(client.addMarket(symbol)).to.be.equal(true);
     });

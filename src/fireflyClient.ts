@@ -81,7 +81,7 @@ import {
   approvalFromUSDCContractCall,
   depositToMarginBankContractCall,
   withdrawFromMarginBankContractCall,
-  setLocalOperators
+  setSubAccount
 } from "./exchange/contractService";
 import { ResponseSchema } from "./exchange/contractErrorHandling.service";
 // @ts-ignore
@@ -291,13 +291,13 @@ export class FireflyClient {
     });
   };
 
-  setLocalOperator=async (publicAddress:address,status:boolean)=>{
+  setSubAccount=async (publicAddress:address,market:string,status:boolean)=>{
     const perpContract = this.getContract(
       this._perpetual,
       undefined,
-      "BTC-PERP"
+      market
     );
-    const resp = await setLocalOperators(
+    const resp = await setSubAccount(
       perpContract,
       publicAddress,
       status,
