@@ -1187,7 +1187,7 @@ export class FireflyClient {
     this.apiService.setAuthToken(userAuthToken);
     // for socket
     this.sockets.setAuthToken(userAuthToken);
-
+    this.webSockets?.setAuthToken(userAuthToken);
     // TODO: remove this when all endpoints on frontend are integrated from client library
     return userAuthToken;
   };

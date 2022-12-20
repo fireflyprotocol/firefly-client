@@ -114,6 +114,8 @@ import {
   
     subscribeUserUpdateByToken(): boolean {
       if (!this.socketInstance) return false;
+
+      console.log("Token: " + this.token)
       this.socketInstance.send(
         JSON.stringify([
           "SUBSCRIBE",
@@ -145,6 +147,7 @@ import {
     }
   
     setAuthToken = (token: string) => {
+      console.log("Token in init1: " + token)
       this.token = token;
     };
   
