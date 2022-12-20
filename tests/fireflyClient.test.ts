@@ -12,8 +12,7 @@ import {
 import {
   FireflyClient, GetMarketRecentTradesResponse,
   GetPositionResponse,
-  Networks, PlaceOrderResponse, UserSubscriptionAck,
-  GetUserTradesResponse,
+  Networks, PlaceOrderResponse, GetUserTradesResponse,
   GetAccountDataResponse
 } from "../index";
 

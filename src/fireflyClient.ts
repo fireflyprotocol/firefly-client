@@ -27,6 +27,7 @@ import {
   mapContract,
   FactoryName,
   getFactory,
+  toBigNumberStr,
 } from "@firefly-exchange/library";
 // @ts-ignore
 import { Biconomy } from "@biconomy/mexa";
@@ -456,7 +457,7 @@ export class FireflyClient {
     //verify the user address via chainalysis
     const verficationStatus = await this.verifyDeposit(amount);
     if(verficationStatus.response.data.verificationStatus && 
-      verficationStatus.response.data.verificationStatus.toLocaleLowerCase()!== VerificationStatus.Success){
+      verficationStatus.response.data.verificationStatus.toLowerCase() != VerificationStatus.Success){
         verficationStatus.ok = false;
         verficationStatus.status = 5001;
         verficationStatus.response.message= APIErrorMessages.restrictedUser;
