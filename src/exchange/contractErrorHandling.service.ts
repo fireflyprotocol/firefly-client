@@ -67,3 +67,14 @@ export enum SuccessMessages {
   approveUSDC = "{amount} USDC approved.",
   depositToBank = "{amount} USDC deposited to Margin Bank."
 }
+
+export enum VerificationStatus{
+  Success = "success",
+  Restricted = "restricted",
+  Blocked = "blocked"
+}
+
+export enum APIErrorMessages {
+  // eslint-disable-next-line max-len
+  restrictedUser = "Your address has been identified as ‘high risk’ by Chainalysis. You will not be allowed to make further deposits or add to your positions. You may, however, close any open positions and withdraw your funds. When you have closed all positions and withdrawn all of your funds, your user address will be blacklisted on the exchange",
+}
