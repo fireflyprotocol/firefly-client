@@ -666,10 +666,10 @@
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
 
-"@firefly-exchange/library@1.0.61":
-  version "1.0.61"
-  resolved "https://registry.yarnpkg.com/@firefly-exchange/library/-/library-1.0.61.tgz#39291959dfc8230c8b10cf9433ebc1820bf681ae"
-  integrity sha512-WaknpvZVTIqqdwWUyUTImbUsoueu2HHNq5IbTKXKvf5wUmMH6dajG/AkQBWwD2cHnEDygwd/HbaC9vsHcjJdhg==
+"@firefly-exchange/library@1.1.2":
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/@firefly-exchange/library/-/library-1.1.2.tgz#45923562fa9ea9f821abee57f508ab5362b46896"
+  integrity sha512-fD29kkEe1kWqii7A6F/QkvP+yrwo69YfxX8cljp15gHyzzvSwMDvLIj0Dzwlw/NGH7ewn2WdrcDJUI9bQBKhyw==
   dependencies:
     bignumber "^1.1.0"
     bignumber.js "^9.0.2"
@@ -7693,6 +7693,11 @@ ws@^5.1.1:
   integrity sha512-jZArVERrMsKUatIdnLzqvcfydI85dvd/Fp1u/VOpfdDWQ4c9qWXe+VIeAbQ5FrDwciAkr+lzofXLz3Kuf26AOA==
   dependencies:
     async-limiter "~1.0.0"
+
+ws@^8.11.0:
+  version "8.11.0"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-8.11.0.tgz#6a0d36b8edfd9f96d8b25683db2f8d7de6e8e143"
+  integrity sha512-HPG3wQd9sNQoT9xHyNCXoDUa+Xw/VevmY9FoHyQ+g+rrMn4j6FB4np7Z0OhdTgjx6MgQLK7jwSy1YecU1+4Asg==
 
 ws@~8.2.3:
   version "8.2.3"

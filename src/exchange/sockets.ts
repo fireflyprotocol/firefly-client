@@ -83,7 +83,7 @@ export class Sockets {
     this.token = token;
   };
 
-  subscribeUserUpdateByToken(callback?: any): boolean {
+  subscribeUserUpdateByToken(callback?: UserSubscriptionAck): boolean {
     if (!this.socketInstance) return false;
     this.socketInstance.emit(
       "SUBSCRIBE",
@@ -100,7 +100,7 @@ export class Sockets {
     return true;
   }
 
-  unsubscribeUserUpdateByToken(callback?: any): boolean {
+  unsubscribeUserUpdateByToken(callback?: UserSubscriptionAck): boolean {
     if (!this.socketInstance) return false;
     this.socketInstance.emit(
       "UNSUBSCRIBE",

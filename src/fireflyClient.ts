@@ -2,8 +2,31 @@
 import { Contract, ethers, providers, Signer, Wallet } from "ethers";
 
 import {
-  address, ADJUST_MARGIN, bigNumber, bnStrToBaseNumber, bnToString, contracts_exchange, DAPIKlineResponse, MARGIN_TYPE, MarketSymbol, Network, OnboardingSigner, Order,
-  OrderSigner, ORDER_SIDE, ORDER_STATUS, ORDER_TYPE, SignedOrder, SigningMethod, TIME_IN_FORCE, toBigNumber, toBigNumberStr, Web3
+  bigNumber,
+  toBigNumber,
+  ORDER_SIDE,
+  ORDER_TYPE,
+  TIME_IN_FORCE,
+  SigningMethod,
+  MarketSymbol,
+  address,
+  DAPIKlineResponse,
+  ORDER_STATUS,
+  SignedOrder,
+  Order,
+  OrderSigner,
+  contracts_exchange_boba,
+  contracts_exchange_arbitrum,
+  bnStrToBaseNumber,
+  MARGIN_TYPE,
+  bnToString,
+  Web3,
+  ADJUST_MARGIN,
+  OnboardingSigner,
+  NETWORK_NAME,
+  mapContract,
+  FactoryName,
+  getFactory,
 } from "@firefly-exchange/library";
 // @ts-ignore
 import { Biconomy } from "@biconomy/mexa";
@@ -20,10 +43,11 @@ import {
   PlaceOrderResponse, PostOrderRequest, StatusResponse, TickerData, verifyDepositResponse
 } from "./interfaces/routes";
 
-import { ARBITRUM_NETWROK, BICONOMY_API_KEY, EXTRA_FEES, Networks } from "./constants";
 import { APIService } from "./exchange/apiService";
 import { SERVICE_URLS } from "./exchange/apiUrls";
 import { APIErrorMessages, ResponseSchema, VerificationStatus } from "./exchange/contractErrorHandling.service";
+import { Sockets } from "./exchange/sockets";
+import { ARBITRUM_NETWROK, BICONOMY_API_KEY, ExtendedNetwork, EXTRA_FEES, Networks } from "./constants";
 import {
   adjustLeverageContractCall,
   adjustMarginContractCall,
@@ -31,7 +55,6 @@ import {
   depositToMarginBankContractCall,
   withdrawFromMarginBankContractCall
 } from "./exchange/contractService";
-import { Sockets } from "./exchange/sockets";
 // @ts-ignore
 import { generateRandomNumber } from "../utils/utils";
 import {
@@ -40,9 +63,10 @@ import {
   depositToMarginBankBiconomyCall,
   withdrawFromMarginBankBiconomyCall
 } from "./exchange/biconomyService";
+import { WebSockets } from "./exchange/WebSocket";
 
 export class FireflyClient {
-  protected readonly network: Network;
+  protected readonly network: ExtendedNetwork;
 
   private web3: Web3;
 
@@ -53,6 +77,7 @@ export class FireflyClient {
   private apiService: APIService;
 
   public sockets: Sockets;
+  public webSockets: WebSockets | undefined;
 
   public marketSymbols: string[] = []; // to save array market symbols [DOT-PERP, SOL-PERP]
 
@@ -72,7 +97,7 @@ export class FireflyClient {
 
   private useBiconomy = false;
 
-  private isArbitrumNetwork = false;
+  private networkName = "" //arbitrum | boba
 
   private maxBlockGasLimit = 0;
 
@@ -100,7 +125,7 @@ export class FireflyClient {
    */
   constructor(
     _isTermAccepted: boolean,
-    _network: Network,
+    _network: ExtendedNetwork,
     _acctPvtKey?: string,
     _useBiconomy: boolean = false
   ) {
@@ -111,6 +136,10 @@ export class FireflyClient {
     this.apiService = new APIService(this.network.apiGateway);
 
     this.sockets = new Sockets(this.network.socketURL);
+
+    if(this.network.webSocketURL){
+      this.webSockets = new WebSockets(this.network.webSocketURL);
+    }
 
     this.isTermAccepted = _isTermAccepted;
 
@@ -208,7 +237,7 @@ export class FireflyClient {
     }
 
     // check if Network is arbitrum
-    this.isArbitrumNetwork = this.network.url.includes(ARBITRUM_NETWROK)
+    this.networkName = this.network.url.includes(ARBITRUM_NETWROK) ? NETWORK_NAME.arbitrum : NETWORK_NAME.bobabeam
   };
 
   /**
@@ -295,9 +324,11 @@ export class FireflyClient {
    */
   getMarginBankBalance = async (contract?: address): Promise<number> => {
     const marginBankContract = this.getContract(this._marginBank, contract);
-    const balance = await (marginBankContract as contracts_exchange.MarginBank)
-      .connect(this.getWallet())
-      .getAccountBankBalance(this.getPublicAddress());
+    const mbContract = mapContract(this.networkName, FactoryName.marginBank, marginBankContract)
+
+    const balance = await (mbContract)
+    .connect(this.getWallet())
+    .getAccountBankBalance(this.getPublicAddress());
 
     const balanceNumber = bnStrToBaseNumber(bnToString(balance.toHexString()));
     return Math.floor(balanceNumber * 1000000) / 1000000; // making balance returned always in 6 precision
@@ -310,7 +341,7 @@ export class FireflyClient {
    * @returns Boolean true if user is funded, false otherwise
    */
   mintTestUSDC = async (contract?: address): Promise<boolean> => {
-    if (this.network === Networks.PRODUCTION) {
+    if (this.network === Networks.PRODUCTION_ARBITRUM || this.network === Networks.PRODUCTION_BOBA) {
       throw Error(`Function does not work on PRODUCTION`);
     }
 
@@ -319,7 +350,7 @@ export class FireflyClient {
     const tokenContract = (contractAdd as Contract).connect(this.getWallet())
     let gasLimit = this.maxBlockGasLimit
 
-    if (this.isArbitrumNetwork) {
+    if (this.networkName == NETWORK_NAME.arbitrum) {
       gasLimit = (+await tokenContract.estimateGas.approve(this.getPublicAddress(), amountString)) + EXTRA_FEES;    
     }
 
@@ -386,7 +417,7 @@ export class FireflyClient {
         this.MarginTokenPrecision,
         this.getWallet(),
         this.maxBlockGasLimit,
-        this.isArbitrumNetwork,
+        this.networkName,
         this.biconomy,
         this.getPublicAddress
       );
@@ -399,7 +430,7 @@ export class FireflyClient {
         this.MarginTokenPrecision,
         this.getWallet(),
         this.maxBlockGasLimit,
-        this.isArbitrumNetwork,
+        this.networkName,
         this.getPublicAddress
       );
     }
@@ -439,7 +470,7 @@ export class FireflyClient {
       this.MarginTokenPrecision,
       this.getWallet(),
       this.maxBlockGasLimit,
-      this.isArbitrumNetwork
+      this.networkName
     );
   };
 
@@ -461,6 +492,7 @@ export class FireflyClient {
         marginBankContract,
         this.MarginTokenPrecision,
         this.biconomy,
+        this.networkName,
         this.getMarginBankBalance,
         this.getPublicAddress,
         amount
@@ -472,7 +504,7 @@ export class FireflyClient {
         this.MarginTokenPrecision,
         this.getWallet(),
         this.maxBlockGasLimit,
-        this.isArbitrumNetwork,
+        this.networkName,
         this.getMarginBankBalance,
         this.getPublicAddress,
         amount
@@ -739,7 +771,7 @@ export class FireflyClient {
           this.getWallet(),
           leverage,
           this.maxBlockGasLimit,
-          this.isArbitrumNetwork,
+          this.networkName,
           this.getPublicAddress
         );
       }
@@ -820,7 +852,7 @@ export class FireflyClient {
         this.getWallet(),
         amount,
         this.maxBlockGasLimit,
-        this.isArbitrumNetwork,
+        this.networkName,
         this.getPublicAddress
       );
     }
@@ -1194,29 +1226,33 @@ export class FireflyClient {
     market?: MarketSymbol
   ):
     | Contract
-    | contracts_exchange.MarginBank
-    | contracts_exchange.IsolatedTrader
-    | contracts_exchange.Perpetual
-    | contracts_exchange.DummyUSDC => {
+    | contracts_exchange_arbitrum.MarginBank | contracts_exchange_boba.MarginBank
+    | contracts_exchange_arbitrum.IsolatedTrader | contracts_exchange_boba.IsolatedTrader
+    | contracts_exchange_arbitrum.Perpetual | contracts_exchange_boba.Perpetual
+    | contracts_exchange_arbitrum.DummyUSDC | contracts_exchange_boba.DummyUSDC => {
 
     contract = this.getContractAddressByName(contractName, contract, market);
     switch (contractName) {
       case this._perpetual:
-        const perpFactory = new contracts_exchange.Perpetual__factory();
+        const Perpetual__factory = getFactory(this.networkName, FactoryName.perpetual)
+        const perpFactory = new Perpetual__factory();
         const perp = perpFactory.attach(contract);
-        return perp as any as contracts_exchange.Perpetual;
+        return mapContract(this.networkName, FactoryName.perpetual, perp)
       case this._usdcToken:
-        const dummyFactory = new contracts_exchange.DummyUSDC__factory();
+        const DummyUSDC__factory = getFactory(this.networkName, FactoryName.dummyUsdc)
+        const dummyFactory = new DummyUSDC__factory();
         const dummyUSDC = dummyFactory.attach(contract);
-        return dummyUSDC as any as contracts_exchange.DummyUSDC;
+        return mapContract(this.networkName, FactoryName.dummyUsdc, dummyUSDC)
       case this._marginBank:
-        const marginBankFactory = new contracts_exchange.MarginBank__factory();
+        const MarginBank__factory = getFactory(this.networkName, FactoryName.marginBank)
+        const marginBankFactory = new MarginBank__factory();
         const marginBank = marginBankFactory.attach(contract);
-        return marginBank as any as contracts_exchange.MarginBank;
+        return mapContract(this.networkName, FactoryName.marginBank, marginBank)
       case this._isolatedTrader:
-        const ordersFactory = new contracts_exchange.IsolatedTrader__factory();
+        const IsolatedTrader__factory = getFactory(this.networkName, FactoryName.isolatedTrader)
+        const ordersFactory = new IsolatedTrader__factory();
         const orders = ordersFactory.attach(contract);
-        return orders as any as contracts_exchange.IsolatedTrader;
+        return mapContract(this.networkName, FactoryName.isolatedTrader, orders)
       default:
         throw Error(`Unknown contract name received: ${contractName}`);
     }

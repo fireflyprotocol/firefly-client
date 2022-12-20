@@ -17,6 +17,11 @@ module.exports = {
   },
   resolve: {
     extensions: [".ts", ".js"],
+    fallback: {
+      "tls": false,
+      "fs": false,
+      "net": false
+    }
   },
   devtool: "source-map",
   plugins: [
