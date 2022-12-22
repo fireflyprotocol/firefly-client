@@ -1,8 +1,7 @@
 /* eslint-disable prettier/prettier */
-import { Contract, Wallet, providers, Signer, ethers } from "ethers";
+import { Contract, ethers, providers, Signer, Wallet } from "ethers";
 
 import {
-  toBigNumberStr,
   bigNumber,
   toBigNumber,
   ORDER_SIDE,
@@ -28,51 +27,26 @@ import {
   mapContract,
   FactoryName,
   getFactory,
+  toBigNumberStr,
 } from "@firefly-exchange/library";
 // @ts-ignore
 import { Biconomy } from "@biconomy/mexa";
 import HDWalletProvider from "@truffle/hdwallet-provider";
 import {
-  GetOrderResponse,
-  GetOrderRequest,
-  OrderSignatureRequest,
+  AdjustLeverageResponse, AuthorizeHashResponse, CancelOrderResponse, ExchangeInfo, FundGasResponse, GetAccountDataResponse, GetCandleStickRequest, GetFundingHistoryRequest, GetFundingRateResponse, GetMarketRecentTradesRequest,
+  GetMarketRecentTradesResponse, GetOrderbookRequest,
+  GetOrderBookResponse, GetOrderRequest, GetOrderResponse, GetPositionRequest,
+  GetPositionResponse, GetTransactionHistoryRequest, GetTransferHistoryRequest, GetUserFundingHistoryResponse, GetUserTradesRequest,
+  GetUserTradesResponse, GetUserTransactionHistoryResponse, GetUserTransferHistoryResponse, MarketData,
+  MarketMeta, MasterInfo, OrderCancellationRequest, OrderCancelSignatureRequest, OrderSignatureRequest,
   OrderSignatureResponse,
   PlaceOrderRequest,
-  PlaceOrderResponse,
-  GetPositionRequest,
-  GetPositionResponse,
-  OrderCancelSignatureRequest,
-  OrderCancellationRequest,
-  GetOrderbookRequest,
-  GetOrderBookResponse,
-  PostOrderRequest,
-  GetUserTradesRequest,
-  GetUserTradesResponse,
-  GetAccountDataResponse,
-  GetTransactionHistoryRequest,
-  GetUserTransactionHistoryResponse,
-  GetMarketRecentTradesRequest,
-  GetMarketRecentTradesResponse,
-  GetCandleStickRequest,
-  ExchangeInfo,
-  MarketData,
-  MarketMeta,
-  StatusResponse,
-  AuthorizeHashResponse,
-  AdjustLeverageResponse,
-  CancelOrderResponse,
-  FundGasResponse,
-  TickerData,
-  MasterInfo,
-  GetFundingHistoryRequest,
-  GetUserFundingHistoryResponse,
-  GetUserTransferHistoryResponse,
-  GetFundingRateResponse,
-  GetTransferHistoryRequest,
+  PlaceOrderResponse, PostOrderRequest, StatusResponse, TickerData, verifyDepositResponse
 } from "./interfaces/routes";
 
 import { APIService } from "./exchange/apiService";
 import { SERVICE_URLS } from "./exchange/apiUrls";
+import { APIErrorMessages, ResponseSchema, VerificationStatus } from "./exchange/contractErrorHandling.service";
 import { Sockets } from "./exchange/sockets";
 import { ARBITRUM_NETWROK, BICONOMY_API_KEY, ExtendedNetwork, EXTRA_FEES, Networks } from "./constants";
 import {
@@ -83,15 +57,14 @@ import {
   withdrawFromMarginBankContractCall,
   setSubAccount
 } from "./exchange/contractService";
-import { ResponseSchema } from "./exchange/contractErrorHandling.service";
 // @ts-ignore
+import { generateRandomNumber } from "../utils/utils";
 import {
   adjustLeverageBiconomyCall,
   adjustMarginBiconomyCall,
   depositToMarginBankBiconomyCall,
-  withdrawFromMarginBankBiconomyCall,
+  withdrawFromMarginBankBiconomyCall
 } from "./exchange/biconomyService";
-import { generateRandomNumber } from "../utils/utils";
 import { WebSockets } from "./exchange/WebSocket";
 
 export class FireflyClient {
@@ -432,7 +405,7 @@ export class FireflyClient {
    * Returns boba balance in user's account
    * @returns Number representing boba balance in account
    */
-  getBobaBalance = async (): Promise<number> => {
+  getChainNativeBalance = async (): Promise<number> => {
     return bnStrToBaseNumber(
       bnToString((await this.getWallet().getBalance()).toHexString())
     );
@@ -499,6 +472,15 @@ export class FireflyClient {
     const tokenContract = this.getContract(this._usdcToken, usdcContract);
     const marginBankContract = this.getContract(this._marginBank, mbContract);
 
+    //verify the user address via chainalysis
+    const verficationStatus = await this.verifyDeposit(amount);
+    if(verficationStatus.response.data.verificationStatus && 
+      verficationStatus.response.data.verificationStatus.toLowerCase() != VerificationStatus.Success){
+        verficationStatus.ok = false;
+        verficationStatus.status = 5001;
+        verficationStatus.response.message= APIErrorMessages.restrictedUser;
+        return this.apiService.transformAPItoResponseSchema(verficationStatus);
+   }
     // approve usdc contract to allow margin bank to take funds out for user's behalf
     return approvalFromUSDCContractCall(
       tokenContract,
@@ -971,6 +953,21 @@ export class FireflyClient {
   };
 
   /**
+     * Gets verification status of user account
+     * @param amount deposit amount
+     * @returns verification status of user
+     */
+  verifyDeposit = async (amount: number) => {
+    const response = await this.apiService.get<verifyDepositResponse>(
+      SERVICE_URLS.USER.VERIFY_DEPOSIT,
+      { depositAmount : amount
+      },
+      { isAuthenticationRequired: true }
+    );
+    return response;
+  };
+
+  /**
    * Gets user transaction history
    * @param params GetTransactionHistoryRequest
    * @returns GetUserTransactionHistoryResponse
@@ -1207,7 +1204,7 @@ export class FireflyClient {
     this.apiService.setAuthToken(userAuthToken);
     // for socket
     this.sockets.setAuthToken(userAuthToken);
-
+    this.webSockets?.setAuthToken(userAuthToken);
     // TODO: remove this when all endpoints on frontend are integrated from client library
     return userAuthToken;
   };

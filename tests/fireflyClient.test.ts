@@ -16,13 +16,10 @@ import {
 } from "@firefly-exchange/library";
 
 import {
-  FireflyClient,
-  PlaceOrderResponse,
-  GetMarketRecentTradesResponse,
+  FireflyClient, GetMarketRecentTradesResponse,
   GetPositionResponse,
-  GetUserTradesResponse,
-  GetAccountDataResponse,
-  Networks,
+  Networks, PlaceOrderResponse, GetUserTradesResponse,
+  GetAccountDataResponse
 } from "../index";
 
 chai.use(chaiAsPromised);
@@ -158,7 +155,7 @@ describe("FireflyClient", () => {
       await clientTemp.init();
       // When
       await clientTemp.fundGas(); // should fund 0.01 boba
-      const response = await clientTemp.getBobaBalance();
+      const response = await clientTemp.getChainNativeBalance();
       expect(new BigNumber(response).gte(new BigNumber(0))).to.eq(true);
     });
   });
@@ -685,6 +682,11 @@ describe("FireflyClient", () => {
 
   it(`should return funding rate of ${symbol}`, async () => {
     const response = await client.getMarketFundingRate(symbol);
+    expect(response.ok).to.be.equal(true);
+  });
+
+  it(`should return verification status`, async () => {
+    const response = await client.verifyDeposit(100);
     expect(response.ok).to.be.equal(true);
   });
 

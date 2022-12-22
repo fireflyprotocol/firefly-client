@@ -1,5 +1,6 @@
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosInstance } from "axios";
 import { getValue, isEmpty } from "@firefly-exchange/library";
+import { ResponseSchema } from "./contractErrorHandling.service";
 
 export class APIService {
   private apiService: AxiosInstance;
@@ -122,5 +123,15 @@ export class APIService {
       ...mutatedResponse,
       data: !isEmpty(data) ? data : undefined,
     };
+  }
+
+  public transformAPItoResponseSchema(APIResponse: any): ResponseSchema {
+    const mutatedResponse = {
+      ok: APIResponse.ok,
+      data: APIResponse.response.data,
+      message: APIResponse.response.message,
+      code: APIResponse.status,
+    };
+    return mutatedResponse;
   }
 }

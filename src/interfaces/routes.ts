@@ -442,3 +442,6 @@ export interface UserSubscriptionAck {
   success: boolean;
   message: string;
 }
+export interface verifyDepositResponse{
+  verificationStatus: string;
+}
