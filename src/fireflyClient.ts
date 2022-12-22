@@ -126,7 +126,7 @@ export class FireflyClient {
 
   private useBiconomy = false;
 
-  private networkName = "" //arbitrum | boba
+  private networkName = NETWORK_NAME.bobabeam //arbitrum | boba
 
   private maxBlockGasLimit = 0;
 
@@ -1258,22 +1258,22 @@ export class FireflyClient {
     contract = this.getContractAddressByName(contractName, contract, market);
     switch (contractName) {
       case this._perpetual:
-        const Perpetual__factory = getFactory(this.networkName, FactoryName.perpetual)
+        const Perpetual__factory = getFactory(this.networkName, FactoryName.perpetual)!;
         const perpFactory = new Perpetual__factory();
         const perp = perpFactory.attach(contract);
         return mapContract(this.networkName, FactoryName.perpetual, perp)
       case this._usdcToken:
-        const DummyUSDC__factory = getFactory(this.networkName, FactoryName.dummyUsdc)
+        const DummyUSDC__factory = getFactory(this.networkName, FactoryName.dummyUsdc)!;
         const dummyFactory = new DummyUSDC__factory();
         const dummyUSDC = dummyFactory.attach(contract);
         return mapContract(this.networkName, FactoryName.dummyUsdc, dummyUSDC)
       case this._marginBank:
-        const MarginBank__factory = getFactory(this.networkName, FactoryName.marginBank)
+        const MarginBank__factory = getFactory(this.networkName, FactoryName.marginBank)!;
         const marginBankFactory = new MarginBank__factory();
         const marginBank = marginBankFactory.attach(contract);
         return mapContract(this.networkName, FactoryName.marginBank, marginBank)
       case this._isolatedTrader:
-        const IsolatedTrader__factory = getFactory(this.networkName, FactoryName.isolatedTrader)
+        const IsolatedTrader__factory = getFactory(this.networkName, FactoryName.isolatedTrader)!;
         const ordersFactory = new IsolatedTrader__factory();
         const orders = ordersFactory.attach(contract);
         return mapContract(this.networkName, FactoryName.isolatedTrader, orders)

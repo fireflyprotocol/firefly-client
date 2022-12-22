@@ -88,7 +88,7 @@ describe("FireflyClient", () => {
     expect(client.getPublicAddress()).to.be.equal(testAcctPubAddr);
   });
   it("set sub account",async()=>{
-    const resp=await client.setSubAccount("0x0E584A380d1DCf83B9954073339c09144650204B",MARKET_SYMBOLS.BTC,true);
+    const resp=await client.setSubAccount("0x0E584A380d1DCf83B9954073339c09144650204B",MARKET_SYMBOLS.ETH,true);
     expect(resp.ok).to.be.equal(true);
   })
 
@@ -285,7 +285,25 @@ describe("FireflyClient", () => {
         quantity: 0.1,
         side: ORDER_SIDE.SELL,
         leverage: defaultLeverage,
+        orderType: ORDER_TYPE.MARKET
+      });
+      const response = await client.placeSignedOrder({ ...signedOrder });
+      expect(response.ok).to.be.equal(true);
+    });
+
+    it("should place a MARKET BUY order on behalf of parent exchange", async () => {
+      //make sure to first whitelist the subaccount with the below parent account to run this test.
+      // To whitelist the subaccount use the above test {set sub account}
+      //and subaccount must be authenticated/initialized with the client.
+      const signedOrder = await client.createSignedOrder({
+        symbol,
+        price: 0,
+        quantity: 0.01,
+        side: ORDER_SIDE.BUY,
+        leverage: defaultLeverage,
         orderType: ORDER_TYPE.MARKET,
+        //parent account
+        maker: "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF"
       });
       const response = await client.placeSignedOrder({ ...signedOrder });
       expect(response.ok).to.be.equal(true);
