@@ -48,7 +48,7 @@ import { APIService } from "./exchange/apiService";
 import { SERVICE_URLS } from "./exchange/apiUrls";
 import { APIErrorMessages, ResponseSchema, VerificationStatus } from "./exchange/contractErrorHandling.service";
 import { Sockets } from "./exchange/sockets";
-import { ARBITRUM_NETWROK, BICONOMY_API_KEY, error, ExtendedNetwork, EXTRA_FEES, Networks } from "./constants";
+import { ARBITRUM_NETWROK, BICONOMY_API_KEY, ExtendedNetwork, EXTRA_FEES, Networks } from "./constants";
 import {
   adjustLeverageContractCall,
   adjustMarginContractCall,
