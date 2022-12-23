@@ -5,8 +5,14 @@ import chaiAsPromised from "chai-as-promised";
 import { setTimeout } from "timers/promises";
 
 import {
-  BigNumber, bnStrToBaseNumber, MinifiedCandleStick, ORDER_SIDE, ORDER_STATUS, ORDER_TYPE,
-  Web3
+  ORDER_STATUS,
+  ORDER_SIDE,
+  MinifiedCandleStick,
+  BigNumber,
+  ORDER_TYPE,
+  Web3,
+  bnStrToBaseNumber,
+  MARKET_SYMBOLS,
 } from "@firefly-exchange/library";
 
 import {
@@ -26,7 +32,7 @@ let client: FireflyClient;
 
 describe("FireflyClient", () => {
   //* set environment from here
-  const network = Networks.TESTNET_BOBA;
+  const network = Networks.TESTNET_ARBITRUM;
   const symbol = "BTC-PERP";
   let defaultLeverage = 4;
   let buyPrice = 18000;
@@ -78,6 +84,10 @@ describe("FireflyClient", () => {
   it("should return public address of account", async () => {
     expect(client.getPublicAddress()).to.be.equal(testAcctPubAddr);
   });
+  it("set sub account",async()=>{
+    const resp=await client.setSubAccount("0x0E584A380d1DCf83B9954073339c09144650204B",MARKET_SYMBOLS.ETH,true);
+    expect(resp.ok).to.be.equal(true);
+  })
 
   describe("Market", () => {
     it(`should add ${symbol} market`, async () => {
@@ -272,7 +282,25 @@ describe("FireflyClient", () => {
         quantity: 0.1,
         side: ORDER_SIDE.SELL,
         leverage: defaultLeverage,
+        orderType: ORDER_TYPE.MARKET
+      });
+      const response = await client.placeSignedOrder({ ...signedOrder });
+      expect(response.ok).to.be.equal(true);
+    });
+
+    it("should place a MARKET BUY order on behalf of parent exchange", async () => {
+      //make sure to first whitelist the subaccount with the below parent account to run this test.
+      // To whitelist the subaccount use the above test {set sub account}
+      //and subaccount must be authenticated/initialized with the client.
+      const signedOrder = await client.createSignedOrder({
+        symbol,
+        price: 0,
+        quantity: 0.01,
+        side: ORDER_SIDE.BUY,
+        leverage: defaultLeverage,
         orderType: ORDER_TYPE.MARKET,
+        //parent account
+        maker: "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF"
       });
       const response = await client.placeSignedOrder({ ...signedOrder });
       expect(response.ok).to.be.equal(true);

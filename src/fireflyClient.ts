@@ -54,7 +54,8 @@ import {
   adjustMarginContractCall,
   approvalFromUSDCContractCall,
   depositToMarginBankContractCall,
-  withdrawFromMarginBankContractCall
+  withdrawFromMarginBankContractCall,
+  setSubAccount
 } from "./exchange/contractService";
 // @ts-ignore
 import { generateRandomNumber } from "../utils/utils";
@@ -98,7 +99,7 @@ export class FireflyClient {
 
   private useBiconomy = false;
 
-  private networkName = "" //arbitrum | boba
+  private networkName = NETWORK_NAME.bobabeam //arbitrum | boba
 
   private maxBlockGasLimit = 0;
 
@@ -262,6 +263,23 @@ export class FireflyClient {
       });
     });
   };
+
+  setSubAccount=async (publicAddress:address,market:string,status:boolean)=>{
+    const perpContract = this.getContract(
+      this._perpetual,
+      undefined,
+      market
+    );
+    const resp = await setSubAccount(
+      perpContract,
+      publicAddress,
+      status,
+      this.getWallet(),
+      this.maxBlockGasLimit,
+      this.networkName
+    );
+    return resp
+  }
 
   /**
    * Allows caller to add a market, internally creates order signer for the provided market
@@ -548,7 +566,7 @@ export class FireflyClient {
   createSignedOrder = async (
     params: OrderSignatureRequest
   ): Promise<OrderSignatureResponse> => {
-    const order = this.createOrderToSign(params);
+    const order = this.createOrderToSign(params,params.maker);
 
     const signer = this.orderSigners.get(params.symbol);
     if (!signer) {
@@ -559,7 +577,8 @@ export class FireflyClient {
 
     const orderSignature = await (signer as OrderSigner).signOrder(
       order,
-      this.getSigningMethod()
+      this.getSigningMethod(),
+      this.getPublicAddress()
     );
 
     const signedOrder: SignedOrder = {
@@ -578,6 +597,7 @@ export class FireflyClient {
       expiration: order.expiration.toNumber(),
       orderSignature: signedOrder.typedSignature,
       orderType: params.orderType,
+      maker:params.maker?params.maker:this.getPublicAddress().toLocaleLowerCase()
     };
   };
 
@@ -591,7 +611,7 @@ export class FireflyClient {
       SERVICE_URLS.ORDERS.ORDERS,
       {
         symbol: params.symbol,
-        userAddress: this.getPublicAddress().toLocaleLowerCase(),
+        userAddress: params.maker,
         orderType: params.orderType,
         price: toBigNumberStr(params.price),
         quantity: toBigNumberStr(params.quantity),
@@ -1245,22 +1265,22 @@ export class FireflyClient {
     contract = this.getContractAddressByName(contractName, contract, market);
     switch (contractName) {
       case this._perpetual:
-        const Perpetual__factory = getFactory(this.networkName, FactoryName.perpetual)
+        const Perpetual__factory = getFactory(this.networkName, FactoryName.perpetual)!;
         const perpFactory = new Perpetual__factory();
         const perp = perpFactory.attach(contract);
         return mapContract(this.networkName, FactoryName.perpetual, perp)
       case this._usdcToken:
-        const DummyUSDC__factory = getFactory(this.networkName, FactoryName.dummyUsdc)
+        const DummyUSDC__factory = getFactory(this.networkName, FactoryName.dummyUsdc)!;
         const dummyFactory = new DummyUSDC__factory();
         const dummyUSDC = dummyFactory.attach(contract);
         return mapContract(this.networkName, FactoryName.dummyUsdc, dummyUSDC)
       case this._marginBank:
-        const MarginBank__factory = getFactory(this.networkName, FactoryName.marginBank)
+        const MarginBank__factory = getFactory(this.networkName, FactoryName.marginBank)!;
         const marginBankFactory = new MarginBank__factory();
         const marginBank = marginBankFactory.attach(contract);
         return mapContract(this.networkName, FactoryName.marginBank, marginBank)
       case this._isolatedTrader:
-        const IsolatedTrader__factory = getFactory(this.networkName, FactoryName.isolatedTrader)
+        const IsolatedTrader__factory = getFactory(this.networkName, FactoryName.isolatedTrader)!;
         const ordersFactory = new IsolatedTrader__factory();
         const orders = ordersFactory.attach(contract);
         return mapContract(this.networkName, FactoryName.isolatedTrader, orders)
@@ -1314,7 +1334,7 @@ export class FireflyClient {
    * @param params OrderSignatureRequest
    * @returns Order
    */
-  private createOrderToSign = (params: OrderSignatureRequest): Order => {
+  private createOrderToSign = (params: OrderSignatureRequest,parentAccountAddress?:address): Order => {
     const expiration = new Date();
     // MARKET ORDER - set expiration of 1 minute
     if (params.orderType === ORDER_TYPE.MARKET) {
@@ -1335,7 +1355,7 @@ export class FireflyClient {
       price: toBigNumber(params.price),
       quantity: toBigNumber(params.quantity),
       leverage: toBigNumber(params.leverage || 1),
-      maker: this.getPublicAddress().toLocaleLowerCase(),
+      maker: parentAccountAddress?parentAccountAddress:this.getPublicAddress().toLocaleLowerCase(),
       reduceOnly: params.reduceOnly || false,
       triggerPrice: toBigNumber(0),
       expiration: bigNumber(

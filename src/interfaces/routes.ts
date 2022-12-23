@@ -52,6 +52,7 @@ export interface OrderSignatureRequest extends RequiredOrderFields {
   reduceOnly?: boolean; // is order to be reduce only true/false, default its false
   salt?: number; // random number for uniqueness of order. Generated randomly if not provided
   expiration?: number; // time at which order will expire. Will be set to 1 month if not provided
+  maker?:address; //address of the parent account on behalf user wants to place the order
 }
 
 export interface OrderSignatureResponse extends RequiredOrderFields {
@@ -60,6 +61,7 @@ export interface OrderSignatureResponse extends RequiredOrderFields {
   salt: number;
   expiration: number;
   orderSignature: string;
+  maker:address;
 }
 
 export interface PlaceOrderRequest extends OrderSignatureResponse {

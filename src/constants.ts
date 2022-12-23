@@ -10,8 +10,8 @@ export const Networks = {
     onboardingUrl: "https://dev.firefly.exchange",
   },
   TESTNET_ARBITRUM: {
-    url: "https://rinkeby.arbitrum.io/rpc",
-    chainId: 421611,
+    url: "https://arbitrum-goerli.infura.io/v3/62bcda18381b45eab5435e1342da21a6",
+    chainId: 421613,
     apiGateway: "https://dapi-testnet.firefly.exchange",
     socketURL: "wss://dapi-testnet.firefly.exchange",
     webSocketURL: "",
