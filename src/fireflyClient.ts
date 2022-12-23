@@ -48,7 +48,7 @@ import { APIService } from "./exchange/apiService";
 import { SERVICE_URLS } from "./exchange/apiUrls";
 import { APIErrorMessages, ResponseSchema, VerificationStatus } from "./exchange/contractErrorHandling.service";
 import { Sockets } from "./exchange/sockets";
-import { ARBITRUM_NETWROK, BICONOMY_API_KEY, ExtendedNetwork, EXTRA_FEES, Networks } from "./constants";
+import { ARBITRUM_NETWROK, BICONOMY_API_KEY, error, ExtendedNetwork, EXTRA_FEES, Networks } from "./constants";
 import {
   adjustLeverageContractCall,
   adjustMarginContractCall,
@@ -455,13 +455,22 @@ export class FireflyClient {
     const marginBankContract = this.getContract(this._marginBank, mbContract);
 
     //verify the user address via chainalysis
-    const verficationStatus = await this.verifyDeposit(amount);
-    if(verficationStatus.response.data.verificationStatus && 
-      verficationStatus.response.data.verificationStatus.toLowerCase() != VerificationStatus.Success){
-        verficationStatus.ok = false;
-        verficationStatus.status = 5001;
-        verficationStatus.response.message= APIErrorMessages.restrictedUser;
-        return this.apiService.transformAPItoResponseSchema(verficationStatus);
+    const apiResponse = await this.verifyDeposit(amount);
+    if(apiResponse.status > 300){
+      const response = {
+        ok: apiResponse.ok,
+        data: apiResponse.response.data,
+        message: apiResponse.response.message,
+        code: apiResponse.status,
+      };
+      return response;
+    }
+    if(apiResponse.response.data.verificationStatus && 
+      apiResponse.response.data.verificationStatus.toLowerCase() != VerificationStatus.Success){
+        apiResponse.ok = false;
+        apiResponse.status = 5001;
+        apiResponse.response.message= APIErrorMessages.restrictedUser;
+        return this.apiService.transformAPItoResponseSchema(apiResponse);
    }
     // approve usdc contract to allow margin bank to take funds out for user's behalf
     return approvalFromUSDCContractCall(
@@ -944,6 +953,7 @@ export class FireflyClient {
       },
       { isAuthenticationRequired: true }
     );
+    
     return response;
   };
 
