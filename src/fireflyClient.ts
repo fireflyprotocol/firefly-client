@@ -48,7 +48,7 @@ import { APIService } from "./exchange/apiService";
 import { SERVICE_URLS } from "./exchange/apiUrls";
 import { APIErrorMessages, ResponseSchema, VerificationStatus } from "./exchange/contractErrorHandling.service";
 import { Sockets } from "./exchange/sockets";
-import { ARBITRUM_NETWROK, BICONOMY_API_KEY, ExtendedNetwork, EXTRA_FEES, Networks } from "./constants";
+import { ARBITRUM_NETWROK, BICONOMY_API_KEY, error, ExtendedNetwork, EXTRA_FEES, Networks } from "./constants";
 import {
   adjustLeverageContractCall,
   adjustMarginContractCall,
@@ -456,6 +456,15 @@ export class FireflyClient {
 
     //verify the user address via chainalysis
     const verficationStatus = await this.verifyDeposit(amount);
+    if(verficationStatus.status > 300){
+      const response = {
+        ok: verficationStatus.ok,
+        data: verficationStatus.response.data,
+        message: verficationStatus.response.message,
+        code: verficationStatus.status,
+      };
+      return response;
+    }
     if(verficationStatus.response.data.verificationStatus && 
       verficationStatus.response.data.verificationStatus.toLowerCase() != VerificationStatus.Success){
         verficationStatus.ok = false;
@@ -944,6 +953,7 @@ export class FireflyClient {
       },
       { isAuthenticationRequired: true }
     );
+    
     return response;
   };
 
