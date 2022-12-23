@@ -455,22 +455,22 @@ export class FireflyClient {
     const marginBankContract = this.getContract(this._marginBank, mbContract);
 
     //verify the user address via chainalysis
-    const verficationStatus = await this.verifyDeposit(amount);
-    if(verficationStatus.status > 300){
+    const apiResponse = await this.verifyDeposit(amount);
+    if(apiResponse.status > 300){
       const response = {
-        ok: verficationStatus.ok,
-        data: verficationStatus.response.data,
-        message: verficationStatus.response.message,
-        code: verficationStatus.status,
+        ok: apiResponse.ok,
+        data: apiResponse.response.data,
+        message: apiResponse.response.message,
+        code: apiResponse.status,
       };
       return response;
     }
-    if(verficationStatus.response.data.verificationStatus && 
-      verficationStatus.response.data.verificationStatus.toLowerCase() != VerificationStatus.Success){
-        verficationStatus.ok = false;
-        verficationStatus.status = 5001;
-        verficationStatus.response.message= APIErrorMessages.restrictedUser;
-        return this.apiService.transformAPItoResponseSchema(verficationStatus);
+    if(apiResponse.response.data.verificationStatus && 
+      apiResponse.response.data.verificationStatus.toLowerCase() != VerificationStatus.Success){
+        apiResponse.ok = false;
+        apiResponse.status = 5001;
+        apiResponse.response.message= APIErrorMessages.restrictedUser;
+        return this.apiService.transformAPItoResponseSchema(apiResponse);
    }
     // approve usdc contract to allow margin bank to take funds out for user's behalf
     return approvalFromUSDCContractCall(
