@@ -16,8 +16,6 @@ import {
 } from "../interfaces/routes";
 
 // @ts-ignore
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-// @ts-ignore
 const WebSocket = require("ws");
 
 const callbackListeners: Record<string, any> = {};

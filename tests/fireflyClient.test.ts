@@ -32,7 +32,7 @@ let client: FireflyClient;
 
 describe("FireflyClient", () => {
   //* set environment from here
-  const network = Networks.TESTNET_ARBITRUM;
+  const network = Networks.TESTNET_BOBA;
   const symbol = "BTC-PERP";
   let defaultLeverage = 4;
   let buyPrice = 18000;
