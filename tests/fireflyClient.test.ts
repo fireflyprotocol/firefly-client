@@ -16,23 +16,20 @@ import {
 } from "@firefly-exchange/library";
 
 import {
-  FireflyClient, GetMarketRecentTradesResponse,
+  FireflyClient,
+  GetMarketRecentTradesResponse,
   GetPositionResponse,
-  Networks, PlaceOrderResponse, GetUserTradesResponse,
-  GetAccountDataResponse
+  Networks,
+  PlaceOrderResponse,
+  GetUserTradesResponse,
+  GetAccountDataResponse,
 } from "../index";
 
 chai.use(chaiAsPromised);
 
-// const testAcctKey =
-//   "4d6c9531e0042cc8f7cf13d8c3cf77bfe239a8fed95e198d498ee1ec0b1a7e83";
-// const testAcctPubAddr = "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF";
-
-// const testAcctKey = "d07cd412c7cb42196648ffb8ea05ae3a11b345a7acb352f5b6a91bc7d6fa9f2d";
-// const testAcctPubAddr = "0x90aDADD7C242A060d096409fb5cad9Bb8ACbC148";
-
-const testAcctKey = "7540d48032c731b3a17947b63a04763492d84aef854246d355a703adc9b54ce9";
-const testAcctPubAddr = "0xDa53d33E49F1f4689C3B9e1EB6E265244C77B92B";
+const testAcctKey =
+  "4d6c9531e0042cc8f7cf13d8c3cf77bfe239a8fed95e198d498ee1ec0b1a7e83";
+const testAcctPubAddr = "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF";
 
 let client: FireflyClient;
 
@@ -90,10 +87,14 @@ describe("FireflyClient", () => {
   it("should return public address of account", async () => {
     expect(client.getPublicAddress()).to.be.equal(testAcctPubAddr);
   });
-  it("set sub account",async()=>{
-    const resp=await client.setSubAccount("0xDa53d33E49F1f4689C3B9e1EB6E265244C77B92B",MARKET_SYMBOLS.ETH,true);
+  it("set sub account", async () => {
+    const resp = await client.setSubAccount(
+      "0xDa53d33E49F1f4689C3B9e1EB6E265244C77B92B",
+      MARKET_SYMBOLS.ETH,
+      true
+    );
     expect(resp.ok).to.be.equal(true);
-  })
+  });
 
   describe("Market", () => {
     it(`should add ${symbol} market`, async () => {
@@ -212,18 +213,24 @@ describe("FireflyClient", () => {
       expect(lev).to.equal(4);
     });
 
-    it.only("set and get leverage on behalf of parent account", async () => {
+    it("set and get leverage on behalf of parent account", async () => {
       // When
       const newLeverage = 5;
-      const res = await client.adjustLeverage(symbol, newLeverage,undefined,"0x90aDADD7C242A060d096409fb5cad9Bb8ACbC148".toLowerCase()); // set leverage will do contract call as the account using is new
-      const lev = await client.getUserDefaultLeverage(symbol,"0x90aDADD7C242A060d096409fb5cad9Bb8ACbC148".toLowerCase()); // get leverage
+      const res = await client.adjustLeverage(
+        symbol,
+        newLeverage,
+        undefined,
+        "0x90aDADD7C242A060d096409fb5cad9Bb8ACbC148".toLowerCase()
+      ); // set leverage will do contract call as the account using is new
+      const lev = await client.getUserDefaultLeverage(
+        symbol,
+        "0x90aDADD7C242A060d096409fb5cad9Bb8ACbC148".toLowerCase()
+      ); // get leverage
       // Then
       expect(res.ok).to.eq(true);
       expect(lev).to.equal(newLeverage);
     });
   });
-
-
 
   describe("Create/Place/Post Orders", () => {
     beforeEach(async () => {
@@ -300,16 +307,16 @@ describe("FireflyClient", () => {
         quantity: 0.1,
         side: ORDER_SIDE.SELL,
         leverage: defaultLeverage,
-        orderType: ORDER_TYPE.MARKET
+        orderType: ORDER_TYPE.MARKET,
       });
       const response = await client.placeSignedOrder({ ...signedOrder });
       expect(response.ok).to.be.equal(true);
     });
 
     it("should place a MARKET BUY order on behalf of parent exchange", async () => {
-      //make sure to first whitelist the subaccount with the below parent account to run this test.
+      // make sure to first whitelist the subaccount with the below parent account to run this test.
       // To whitelist the subaccount use the above test {set sub account}
-      //and subaccount must be authenticated/initialized with the client.
+      // and subaccount must be authenticated/initialized with the client.
       const signedOrder = await client.createSignedOrder({
         symbol,
         price: 0,
@@ -320,12 +327,10 @@ describe("FireflyClient", () => {
         reduceOnly: false,
         salt: 121323,
         expiration: 1674196912,
-        //parent account
-        maker: "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF"
+        // parent account
+        maker: "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF",
       });
-      console.log(signedOrder);
       const response = await client.placeSignedOrder({ ...signedOrder });
-      console.log(response);
       expect(response.ok).to.be.equal(true);
     });
 
@@ -384,7 +389,7 @@ describe("FireflyClient", () => {
         side: ORDER_SIDE.SELL,
         leverage: defaultLeverage,
         orderType: ORDER_TYPE.LIMIT,
-        maker:"0xFEa83f912CF21d884CDfb66640CfAB6029D940aF"
+        maker: "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF",
       });
       const response = await client.placeSignedOrder({
         ...signedOrder,
@@ -393,16 +398,17 @@ describe("FireflyClient", () => {
       const cancelSignature = await client.createOrderCancellationSignature({
         symbol,
         hashes: [response.response.data.hash],
-        parentAddress: "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF".toLowerCase()
+        parentAddress:
+          "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF".toLowerCase(),
       });
 
       const cancellationResponse = await client.placeCancelOrder({
         symbol,
         hashes: [response.response.data.hash],
         signature: cancelSignature,
-        parentAddress: "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF".toLowerCase()
+        parentAddress:
+          "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF".toLowerCase(),
       });
-      console.log(cancellationResponse);
 
       expect(cancellationResponse.ok).to.be.equal(true);
     });
@@ -469,10 +475,9 @@ describe("FireflyClient", () => {
       const data = await client.getUserOrders({
         statuses: [ORDER_STATUS.OPEN],
         symbol,
-        parentAccountAddress:"0xFEa83f912CF21d884CDfb66640CfAB6029D940aF".toLowerCase()
+        parentAccountAddress:
+          "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF".toLowerCase(),
       });
-      console.log(data);
-      console.log("count: ",data.response.data.length)
       expect(data.ok).to.be.equals(true);
       expect(data.response.data.length).to.be.gte(0);
     });
@@ -580,7 +585,7 @@ describe("FireflyClient", () => {
     it("should get user's Position on behalf of parent account", async () => {
       const response = await client.getUserPosition({
         symbol,
-        parentAddress: "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF"
+        parentAddress: "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF",
       });
 
       const position = response.data as any as GetPositionResponse;
@@ -627,9 +632,8 @@ describe("FireflyClient", () => {
     it("should get user's Trades on behalf of parent account", async () => {
       const response = await client.getUserTrades({
         symbol,
-        parentAddress:"0xFEa83f912CF21d884CDfb66640CfAB6029D940aF"
+        parentAddress: "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF",
       });
-      console.log(response);
       expect(response.ok).to.be.equal(true);
     });
   });
@@ -661,7 +665,9 @@ describe("FireflyClient", () => {
     });
 
     it("should get User Account Data on behalf of parent account", async () => {
-      const response = await client.getUserAccountData("0xFEa83f912CF21d884CDfb66640CfAB6029D940aF");
+      const response = await client.getUserAccountData(
+        "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF"
+      );
       expect(response.ok).to.be.equal(true);
     });
 
@@ -685,7 +691,7 @@ describe("FireflyClient", () => {
     it("should get Funding History records for user on behalf of parent account", async () => {
       const response = await client.getUserFundingHistory({
         symbol,
-        parentAddress: "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF"
+        parentAddress: "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF",
       });
       expect(response.ok).to.be.equal(true);
     });
