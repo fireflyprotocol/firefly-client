@@ -20,6 +20,7 @@ export interface GetFundingHistoryRequest {
   symbol?: MarketSymbol; // will fetch orders of provided market
   pageSize?: number; // will get only provided number of orders must be <= 50
   cursor?: number; // will fetch particular page records. A single page contains 50 records.
+  parentAddress?:string;
 }
 
 export interface GetTransferHistoryRequest {
@@ -35,9 +36,12 @@ export interface GetOrderRequest extends GetTransactionHistoryRequest {
   orderType?: ORDER_TYPE[]; //order type LIMIT / MARKET
   pageSize?: number;
   pageNumber?: number;
+  parentAccountAddress?:string;
 }
 
-export interface GetPositionRequest extends GetTransactionHistoryRequest {}
+export interface GetPositionRequest extends GetTransactionHistoryRequest {
+  parentAddress?:string;
+}
 
 export interface RequiredOrderFields {
   symbol: MarketSymbol; // market for which to create order
@@ -117,6 +121,7 @@ export interface PlaceOrderResponse extends OrderResponse {
 export interface OrderCancelSignatureRequest {
   symbol: MarketSymbol;
   hashes: string[];
+  parentAddress?: string;
 }
 
 export interface OrderCancellationRequest extends OrderCancelSignatureRequest {
@@ -189,6 +194,7 @@ export interface GetUserTradesRequest {
   pageSize?: number;
   pageNumber?: number;
   type?: ORDER_TYPE;
+  parentAddress?:string;
 }
 
 export interface GetUserTradesResponse {

@@ -713,6 +713,7 @@ export class FireflyClient {
         symbol: params.symbol,
         orderHashes: params.hashes,
         cancelSignature: params.signature,
+        parentAddress: params.parentAddress
       },
       { isAuthenticationRequired: true }
     );
@@ -768,9 +769,10 @@ export class FireflyClient {
   adjustLeverage = async (
     symbol: MarketSymbol,
     leverage: number,
-    perpetualAddress?: address
+    perpetualAddress?: address,
+    parentAddress?:string
   ): Promise<ResponseSchema> => {
-    const userPosition = await this.getUserPosition({ symbol });
+    const userPosition = await this.getUserPosition({ symbol,parentAddress });
     if (!userPosition.data) {
       throw Error(`User positions data doesn't exist`);
     }
@@ -802,7 +804,7 @@ export class FireflyClient {
           leverage,
           this.maxBlockGasLimit,
           this.networkName,
-          this.getPublicAddress
+          parentAddress?()=>{return parentAddress}:this.getPublicAddress
         );
       }
 
@@ -816,6 +818,7 @@ export class FireflyClient {
     } = await this.updateLeverage({
       symbol,
       leverage,
+      parentAddress
     });
     const response: ResponseSchema = { ok, data, code: errorCode, message };
     return response;
@@ -826,8 +829,8 @@ export class FireflyClient {
    * @param symbol market symbol get information about
    * @returns user default leverage
    */
-  getUserDefaultLeverage = async (symbol: MarketSymbol) => {
-    const accData = await this.getUserAccountData();
+  getUserDefaultLeverage = async (symbol: MarketSymbol,parentAddress?:string) => {
+    const accData = await this.getUserAccountData(parentAddress);
     if (!accData.data) {
       throw Error(`Account data does not exist`);
     }
@@ -952,10 +955,10 @@ export class FireflyClient {
    * Gets user Account Data
    * @returns GetAccountDataResponse
    */
-  getUserAccountData = async () => {
+  getUserAccountData = async (parentAddress?:string) => {
     const response = await this.apiService.get<GetAccountDataResponse>(
       SERVICE_URLS.USER.ACCOUNT,
-      {},
+      {parentAddress},
       { isAuthenticationRequired: true }
     );
     return response;
@@ -1388,12 +1391,13 @@ export class FireflyClient {
   private updateLeverage = async (params: {
     symbol: MarketSymbol;
     leverage: number;
+    parentAddress?:string;
   }) => {
     const response = await this.apiService.post<AdjustLeverageResponse>(
       SERVICE_URLS.USER.ADJUST_LEVERGAE,
       {
         symbol: params.symbol,
-        address: this.getPublicAddress(),
+        address: params.parentAddress?params.parentAddress:this.getPublicAddress(),
         leverage: toBigNumberStr(params.leverage),
         marginType: MARGIN_TYPE.ISOLATED,
       },
