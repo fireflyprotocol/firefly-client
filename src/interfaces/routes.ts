@@ -432,6 +432,13 @@ export interface AuthorizeHashResponse {
   token: string;
 }
 
+export interface adjustLeverageRequest{
+  symbol: MarketSymbol,
+  leverage: number,
+  perpetualAddress?: address,
+  parentAddress?:string
+}
+
 export interface AdjustLeverageResponse {
   symbol: string;
   address: string;

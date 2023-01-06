@@ -33,6 +33,7 @@ import {
 import { Biconomy } from "@biconomy/mexa";
 import HDWalletProvider from "@truffle/hdwallet-provider";
 import {
+  adjustLeverageRequest,
   AdjustLeverageResponse, AuthorizeHashResponse, CancelOrderResponse, ExchangeInfo, FundGasResponse, GetAccountDataResponse, GetCandleStickRequest, GetFundingHistoryRequest, GetFundingRateResponse, GetMarketRecentTradesRequest,
   GetMarketRecentTradesResponse, GetOrderbookRequest,
   GetOrderBookResponse, GetOrderRequest, GetOrderResponse, GetPositionRequest,
@@ -767,12 +768,9 @@ export class FireflyClient {
    * @returns ResponseSchema
    */
   adjustLeverage = async (
-    symbol: MarketSymbol,
-    leverage: number,
-    perpetualAddress?: address,
-    parentAddress?:string
+    params:adjustLeverageRequest
   ): Promise<ResponseSchema> => {
-    const userPosition = await this.getUserPosition({ symbol,parentAddress });
+    const userPosition = await this.getUserPosition({ symbol:params.symbol,parentAddress:params.parentAddress });
     if (!userPosition.data) {
       throw Error(`User positions data doesn't exist`);
     }
@@ -784,27 +782,27 @@ export class FireflyClient {
       // TODO [BFLY-603]: this should be returned as array from dapi, remove this typecasting when done
       const perpContract = this.getContract(
         this._perpetual,
-        perpetualAddress,
-        symbol
+        params.perpetualAddress,
+        params.symbol
       );
 
       let resp;
       if (this.useBiconomy) {
         resp = await adjustLeverageBiconomyCall(
           perpContract,
-          leverage,
+          params.leverage,
           this.biconomy,
-          this.getPublicAddress
+          params.parentAddress?()=>{ return params.parentAddress! }:this.getPublicAddress
         );
       } 
       else {
         resp = await adjustLeverageContractCall(
           perpContract,
           this.getWallet(),
-          leverage,
+          params.leverage,
           this.maxBlockGasLimit,
           this.networkName,
-          parentAddress?()=>{return parentAddress}:this.getPublicAddress
+          params.parentAddress?()=>{ return params.parentAddress! }:this.getPublicAddress
         );
       }
 
@@ -816,9 +814,9 @@ export class FireflyClient {
       data,
       response: { errorCode, message },
     } = await this.updateLeverage({
-      symbol,
-      leverage,
-      parentAddress
+      symbol:params.symbol,
+      leverage:params.leverage,
+      parentAddress:params.parentAddress
     });
     const response: ResponseSchema = { ok, data, code: errorCode, message };
     return response;
@@ -1388,11 +1386,7 @@ export class FireflyClient {
    * Posts signed Auth Hash to dAPI and gets token in return if signature is valid
    * @returns GetAuthHashResponse which contains auth hash to be signed
    */
-  private updateLeverage = async (params: {
-    symbol: MarketSymbol;
-    leverage: number;
-    parentAddress?:string;
-  }) => {
+  private updateLeverage = async (params: adjustLeverageRequest) => {
     const response = await this.apiService.post<AdjustLeverageResponse>(
       SERVICE_URLS.USER.ADJUST_LEVERGAE,
       {

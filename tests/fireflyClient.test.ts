@@ -206,7 +206,7 @@ describe("FireflyClient", () => {
       await clientTemp.init();
       // When
       const newLeverage = 4;
-      const res = await clientTemp.adjustLeverage(symbol, newLeverage); // set leverage will do contract call as the account using is new
+      const res = await clientTemp.adjustLeverage({symbol, leverage:newLeverage}); // set leverage will do contract call as the account using is new
       const lev = await clientTemp.getUserDefaultLeverage(symbol); // get leverage
       // Then
       expect(res.ok).to.eq(true);
@@ -214,13 +214,16 @@ describe("FireflyClient", () => {
     });
 
     it("set and get leverage on behalf of parent account", async () => {
+      // make sure to first whitelist the subaccount with the below parent account to run this test.
+      // To whitelist the subaccount use the above test {set sub account}
+      // and subaccount must be authenticated/initialized with the client.
       // When
       const newLeverage = 5;
-      const res = await client.adjustLeverage(
-        symbol,
-        newLeverage,
-        undefined,
-        "0x90aDADD7C242A060d096409fb5cad9Bb8ACbC148".toLowerCase()
+      const res = await client.adjustLeverage({
+        symbol:symbol,
+        leverage:newLeverage,
+        parentAddress:"0xFEa83f912CF21d884CDfb66640CfAB6029D940aF".toLowerCase()
+      }
       ); // set leverage will do contract call as the account using is new
       const lev = await client.getUserDefaultLeverage(
         symbol,
@@ -325,7 +328,6 @@ describe("FireflyClient", () => {
         leverage: defaultLeverage,
         orderType: ORDER_TYPE.MARKET,
         reduceOnly: false,
-        salt: 121323,
         expiration: 1674196912,
         // parent account
         maker: "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF",
@@ -382,6 +384,9 @@ describe("FireflyClient", () => {
     });
 
     it("should cancel the open order on behalf of parent account", async () => {
+      // make sure to first whitelist the subaccount with the below parent account to run this test.
+      // To whitelist the subaccount use the above test {set sub account}
+      // and subaccount must be authenticated/initialized with the client.
       const signedOrder = await client.createSignedOrder({
         symbol,
         price: sellPrice,
@@ -472,6 +477,9 @@ describe("FireflyClient", () => {
     });
 
     it("should get all open orders on behalf of parent account", async () => {
+      // make sure to first whitelist the subaccount with the below parent account to run this test.
+      // To whitelist the subaccount use the above test {set sub account}
+      // and subaccount must be authenticated/initialized with the client.
       const data = await client.getUserOrders({
         statuses: [ORDER_STATUS.OPEN],
         symbol,
@@ -583,6 +591,9 @@ describe("FireflyClient", () => {
     });
 
     it("should get user's Position on behalf of parent account", async () => {
+      // make sure to first whitelist the subaccount with the below parent account to run this test.
+      // To whitelist the subaccount use the above test {set sub account}
+      // and subaccount must be authenticated/initialized with the client.
       const response = await client.getUserPosition({
         symbol,
         parentAddress: "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF",
@@ -630,6 +641,9 @@ describe("FireflyClient", () => {
     });
 
     it("should get user's Trades on behalf of parent account", async () => {
+      // make sure to first whitelist the subaccount with the below parent account to run this test.
+      // To whitelist the subaccount use the above test {set sub account}
+      // and subaccount must be authenticated/initialized with the client.
       const response = await client.getUserTrades({
         symbol,
         parentAddress: "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF",
@@ -665,6 +679,9 @@ describe("FireflyClient", () => {
     });
 
     it("should get User Account Data on behalf of parent account", async () => {
+      // make sure to first whitelist the subaccount with the below parent account to run this test.
+      // To whitelist the subaccount use the above test {set sub account}
+      // and subaccount must be authenticated/initialized with the client.
       const response = await client.getUserAccountData(
         "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF"
       );
@@ -689,6 +706,9 @@ describe("FireflyClient", () => {
     });
 
     it("should get Funding History records for user on behalf of parent account", async () => {
+      // make sure to first whitelist the subaccount with the below parent account to run this test.
+      // To whitelist the subaccount use the above test {set sub account}
+      // and subaccount must be authenticated/initialized with the client.
       const response = await client.getUserFundingHistory({
         symbol,
         parentAddress: "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF",
