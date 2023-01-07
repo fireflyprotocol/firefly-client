@@ -87,7 +87,7 @@ describe("FireflyClient", () => {
   it("should return public address of account", async () => {
     expect(client.getPublicAddress()).to.be.equal(testAcctPubAddr);
   });
-  it("set sub account", async () => {
+  it("should set sub account", async () => {
     const resp = await client.setSubAccount(
       "0xDa53d33E49F1f4689C3B9e1EB6E265244C77B92B",
       MARKET_SYMBOLS.ETH,
@@ -206,7 +206,10 @@ describe("FireflyClient", () => {
       await clientTemp.init();
       // When
       const newLeverage = 4;
-      const res = await clientTemp.adjustLeverage({symbol, leverage:newLeverage}); // set leverage will do contract call as the account using is new
+      const res = await clientTemp.adjustLeverage({
+        symbol,
+        leverage: newLeverage,
+      }); // set leverage will do contract call as the account using is new
       const lev = await clientTemp.getUserDefaultLeverage(symbol); // get leverage
       // Then
       expect(res.ok).to.eq(true);
@@ -220,11 +223,11 @@ describe("FireflyClient", () => {
       // When
       const newLeverage = 5;
       const res = await client.adjustLeverage({
-        symbol:symbol,
-        leverage:newLeverage,
-        parentAddress:"0xFEa83f912CF21d884CDfb66640CfAB6029D940aF".toLowerCase()
-      }
-      ); // set leverage will do contract call as the account using is new
+        symbol,
+        leverage: newLeverage,
+        parentAddress:
+          "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF".toLowerCase(),
+      }); // set leverage will do contract call as the account using is new
       const lev = await client.getUserDefaultLeverage(
         symbol,
         "0x90aDADD7C242A060d096409fb5cad9Bb8ACbC148".toLowerCase()
@@ -464,12 +467,14 @@ describe("FireflyClient", () => {
       const response = await client.cancelAllOpenOrders(symbol);
       expect(response.ok).to.be.equal(true);
     });
- 
+
     it("should cancel all open orders on behalf of parent account", async () => {
-      const response = await client.cancelAllOpenOrders(symbol,"0xFEa83f912CF21d884CDfb66640CfAB6029D940aF");
+      const response = await client.cancelAllOpenOrders(
+        symbol,
+        "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF"
+      );
       expect(response.ok).to.be.equal(true);
     });
-
   });
 
   describe("Get User Orders", () => {
