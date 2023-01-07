@@ -464,6 +464,12 @@ describe("FireflyClient", () => {
       const response = await client.cancelAllOpenOrders(symbol);
       expect(response.ok).to.be.equal(true);
     });
+ 
+    it("should cancel all open orders on behalf of parent account", async () => {
+      const response = await client.cancelAllOpenOrders(symbol,"0xFEa83f912CF21d884CDfb66640CfAB6029D940aF");
+      expect(response.ok).to.be.equal(true);
+    });
+
   });
 
   describe("Get User Orders", () => {

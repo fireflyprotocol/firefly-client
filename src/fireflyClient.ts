@@ -743,7 +743,7 @@ export class FireflyClient {
    * @param symbol DOT-PERP, market symbol
    * @returns cancellation response
    */
-  cancelAllOpenOrders = async (symbol: MarketSymbol) => {
+  cancelAllOpenOrders = async (symbol: MarketSymbol,parentAddress?:string) => {
     const openOrders = await this.getUserOrders({
       symbol,
       statuses: [
@@ -751,11 +751,12 @@ export class FireflyClient {
         ORDER_STATUS.PARTIAL_FILLED,
         ORDER_STATUS.PENDING,
       ],
+      parentAccountAddress:parentAddress
     });
 
     const hashes = openOrders.data?.map((order) => order.hash) as string[];
 
-    const response = await this.postCancelOrder({ hashes, symbol });
+    const response = await this.postCancelOrder({ hashes, symbol , parentAddress });
 
     return response;
   };
