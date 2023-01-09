@@ -16,10 +16,13 @@ import {
 } from "@firefly-exchange/library";
 
 import {
-  FireflyClient, GetMarketRecentTradesResponse,
+  FireflyClient,
+  GetMarketRecentTradesResponse,
   GetPositionResponse,
-  Networks, PlaceOrderResponse, GetUserTradesResponse,
-  GetAccountDataResponse
+  Networks,
+  PlaceOrderResponse,
+  GetUserTradesResponse,
+  GetAccountDataResponse,
 } from "../index";
 
 chai.use(chaiAsPromised);
@@ -32,9 +35,9 @@ let client: FireflyClient;
 
 describe("FireflyClient", () => {
   //* set environment from here
-  const network = Networks.TESTNET_BOBA;
-  const symbol = "BTC-PERP";
-  let defaultLeverage = 4;
+  const network = Networks.TESTNET_ARBITRUM;
+  const symbol = "ETH-PERP";
+  let defaultLeverage = 3;
   let buyPrice = 18000;
   let sellPrice = 20000;
 
@@ -84,10 +87,14 @@ describe("FireflyClient", () => {
   it("should return public address of account", async () => {
     expect(client.getPublicAddress()).to.be.equal(testAcctPubAddr);
   });
-  it("set sub account",async()=>{
-    const resp=await client.setSubAccount("0x0E584A380d1DCf83B9954073339c09144650204B",MARKET_SYMBOLS.ETH,true);
+  it("should set sub account", async () => {
+    const resp = await client.setSubAccount(
+      "0xDa53d33E49F1f4689C3B9e1EB6E265244C77B92B",
+      MARKET_SYMBOLS.ETH,
+      true
+    );
     expect(resp.ok).to.be.equal(true);
-  })
+  });
 
   describe("Market", () => {
     it(`should add ${symbol} market`, async () => {
@@ -199,11 +206,35 @@ describe("FireflyClient", () => {
       await clientTemp.init();
       // When
       const newLeverage = 4;
-      const res = await clientTemp.adjustLeverage(symbol, newLeverage); // set leverage will do contract call as the account using is new
+      const res = await clientTemp.adjustLeverage({
+        symbol,
+        leverage: newLeverage,
+      }); // set leverage will do contract call as the account using is new
       const lev = await clientTemp.getUserDefaultLeverage(symbol); // get leverage
       // Then
       expect(res.ok).to.eq(true);
       expect(lev).to.equal(4);
+    });
+
+    it("set and get leverage on behalf of parent account", async () => {
+      // make sure to first whitelist the subaccount with the below parent account to run this test.
+      // To whitelist the subaccount use the above test {set sub account}
+      // and subaccount must be authenticated/initialized with the client.
+      // When
+      const newLeverage = 5;
+      const res = await client.adjustLeverage({
+        symbol,
+        leverage: newLeverage,
+        parentAddress:
+          "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF".toLowerCase(),
+      }); // set leverage will do contract call as the account using is new
+      const lev = await client.getUserDefaultLeverage(
+        symbol,
+        "0x90aDADD7C242A060d096409fb5cad9Bb8ACbC148".toLowerCase()
+      ); // get leverage
+      // Then
+      expect(res.ok).to.eq(true);
+      expect(lev).to.equal(newLeverage);
     });
   });
 
@@ -282,16 +313,16 @@ describe("FireflyClient", () => {
         quantity: 0.1,
         side: ORDER_SIDE.SELL,
         leverage: defaultLeverage,
-        orderType: ORDER_TYPE.MARKET
+        orderType: ORDER_TYPE.MARKET,
       });
       const response = await client.placeSignedOrder({ ...signedOrder });
       expect(response.ok).to.be.equal(true);
     });
 
     it("should place a MARKET BUY order on behalf of parent exchange", async () => {
-      //make sure to first whitelist the subaccount with the below parent account to run this test.
+      // make sure to first whitelist the subaccount with the below parent account to run this test.
       // To whitelist the subaccount use the above test {set sub account}
-      //and subaccount must be authenticated/initialized with the client.
+      // and subaccount must be authenticated/initialized with the client.
       const signedOrder = await client.createSignedOrder({
         symbol,
         price: 0,
@@ -299,8 +330,10 @@ describe("FireflyClient", () => {
         side: ORDER_SIDE.BUY,
         leverage: defaultLeverage,
         orderType: ORDER_TYPE.MARKET,
-        //parent account
-        maker: "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF"
+        reduceOnly: false,
+        expiration: 1674196912,
+        // parent account
+        maker: "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF",
       });
       const response = await client.placeSignedOrder({ ...signedOrder });
       expect(response.ok).to.be.equal(true);
@@ -353,6 +386,41 @@ describe("FireflyClient", () => {
       expect(cancellationResponse.ok).to.be.equal(true);
     });
 
+    it("should cancel the open order on behalf of parent account", async () => {
+      // make sure to first whitelist the subaccount with the below parent account to run this test.
+      // To whitelist the subaccount use the above test {set sub account}
+      // and subaccount must be authenticated/initialized with the client.
+      const signedOrder = await client.createSignedOrder({
+        symbol,
+        price: sellPrice,
+        quantity: 0.01,
+        side: ORDER_SIDE.SELL,
+        leverage: defaultLeverage,
+        orderType: ORDER_TYPE.LIMIT,
+        maker: "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF",
+      });
+      const response = await client.placeSignedOrder({
+        ...signedOrder,
+        clientId: "test cancel order",
+      });
+      const cancelSignature = await client.createOrderCancellationSignature({
+        symbol,
+        hashes: [response.response.data.hash],
+        parentAddress:
+          "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF".toLowerCase(),
+      });
+
+      const cancellationResponse = await client.placeCancelOrder({
+        symbol,
+        hashes: [response.response.data.hash],
+        signature: cancelSignature,
+        parentAddress:
+          "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF".toLowerCase(),
+      });
+
+      expect(cancellationResponse.ok).to.be.equal(true);
+    });
+
     it("should get Invalid Order Signature error", async () => {
       const signedOrder = await client.createSignedOrder({
         symbol,
@@ -399,6 +467,14 @@ describe("FireflyClient", () => {
       const response = await client.cancelAllOpenOrders(symbol);
       expect(response.ok).to.be.equal(true);
     });
+
+    it("should cancel all open orders on behalf of parent account", async () => {
+      const response = await client.cancelAllOpenOrders(
+        symbol,
+        "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF"
+      );
+      expect(response.ok).to.be.equal(true);
+    });
   });
 
   describe("Get User Orders", () => {
@@ -406,6 +482,20 @@ describe("FireflyClient", () => {
       const data = await client.getUserOrders({
         statuses: [ORDER_STATUS.OPEN],
         symbol,
+      });
+      expect(data.ok).to.be.equals(true);
+      expect(data.response.data.length).to.be.gte(0);
+    });
+
+    it("should get all open orders on behalf of parent account", async () => {
+      // make sure to first whitelist the subaccount with the below parent account to run this test.
+      // To whitelist the subaccount use the above test {set sub account}
+      // and subaccount must be authenticated/initialized with the client.
+      const data = await client.getUserOrders({
+        statuses: [ORDER_STATUS.OPEN],
+        symbol,
+        parentAccountAddress:
+          "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF".toLowerCase(),
       });
       expect(data.ok).to.be.equals(true);
       expect(data.response.data.length).to.be.gte(0);
@@ -511,6 +601,21 @@ describe("FireflyClient", () => {
       }
     });
 
+    it("should get user's Position on behalf of parent account", async () => {
+      // make sure to first whitelist the subaccount with the below parent account to run this test.
+      // To whitelist the subaccount use the above test {set sub account}
+      // and subaccount must be authenticated/initialized with the client.
+      const response = await client.getUserPosition({
+        symbol,
+        parentAddress: "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF",
+      });
+
+      const position = response.data as any as GetPositionResponse;
+      if (Object.keys(position).length > 0) {
+        expect(response.response.data.symbol).to.be.equal(symbol);
+      }
+    });
+
     it("should get all open positions for the user across all markets", async () => {
       const response = await client.getUserPosition({});
       expect(response.ok).to.be.equal(true);
@@ -545,6 +650,17 @@ describe("FireflyClient", () => {
       });
       expect(response.ok).to.be.equal(true);
     });
+
+    it("should get user's Trades on behalf of parent account", async () => {
+      // make sure to first whitelist the subaccount with the below parent account to run this test.
+      // To whitelist the subaccount use the above test {set sub account}
+      // and subaccount must be authenticated/initialized with the client.
+      const response = await client.getUserTrades({
+        symbol,
+        parentAddress: "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF",
+      });
+      expect(response.ok).to.be.equal(true);
+    });
   });
 
   describe("Get Market Orderbook", () => {
@@ -573,6 +689,16 @@ describe("FireflyClient", () => {
       expect(response.ok).to.be.equal(true);
     });
 
+    it("should get User Account Data on behalf of parent account", async () => {
+      // make sure to first whitelist the subaccount with the below parent account to run this test.
+      // To whitelist the subaccount use the above test {set sub account}
+      // and subaccount must be authenticated/initialized with the client.
+      const response = await client.getUserAccountData(
+        "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF"
+      );
+      expect(response.ok).to.be.equal(true);
+    });
+
     it("should get Transaction History records for user", async () => {
       const response = await client.getUserTransactionHistory({
         symbol,
@@ -586,6 +712,17 @@ describe("FireflyClient", () => {
       const response = await client.getUserFundingHistory({
         pageSize: 2,
         cursor: 1,
+      });
+      expect(response.ok).to.be.equal(true);
+    });
+
+    it("should get Funding History records for user on behalf of parent account", async () => {
+      // make sure to first whitelist the subaccount with the below parent account to run this test.
+      // To whitelist the subaccount use the above test {set sub account}
+      // and subaccount must be authenticated/initialized with the client.
+      const response = await client.getUserFundingHistory({
+        symbol,
+        parentAddress: "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF",
       });
       expect(response.ok).to.be.equal(true);
     });
