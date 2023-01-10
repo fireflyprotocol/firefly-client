@@ -1,5 +1,7 @@
 # Firefly Client Library
-
+![GitHub package.json version (branch)](https://img.shields.io/github/package-json/v/fireflyprotocol/firefly-client/main)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/fireflyprotocol/firefly-client/publish_to_npm.yml)
+![GitHub](https://img.shields.io/github/license/fireflyprotocol/firefly-client)
 [<img alt="Firefly logo" src="res/banner.png" />](#)
 
 
