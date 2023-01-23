@@ -6,7 +6,7 @@ export const Networks = {
     chainId: 78602,
     apiGateway: "https://dapi-dev.firefly.exchange",
     socketURL: "wss://dapi-dev.firefly.exchange",
-    webSocketURL: "wss://k8s-albdapi-775184c5a7-538590878.us-east-1.elb.amazonaws.com:2063",
+    webSocketURL: "wss://dapi-dev.firefly.exchange:2087",
     onboardingUrl: "https://dev.firefly.exchange",
   },
   TESTNET_ARBITRUM: {
@@ -22,7 +22,7 @@ export const Networks = {
     chainId: 1294,
     apiGateway: "https://dapi.firefly.exchange",
     socketURL: "wss://dapi.firefly.exchange",
-    webSocketURL: "",
+    webSocketURL: "wss://dapi.firefly.exchange:2087",
     onboardingUrl: "https://trade.firefly.exchange",
   },
   PRODUCTION_ARBITRUM: {
@@ -30,7 +30,7 @@ export const Networks = {
     chainId: 42161,
     apiGateway: "https://dapi-arb.firefly.exchange",
     socketURL: "wss://dapi-arb.firefly.exchange",
-    webSocketURL: "",
+    webSocketURL: "wss://dapi-arb.firefly.exchange:2087",
     onboardingUrl: "https://trade-arb.firefly.exchange",
   },
 };
