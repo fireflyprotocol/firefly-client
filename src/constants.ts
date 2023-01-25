@@ -26,7 +26,7 @@ export const Networks = {
     onboardingUrl: "https://trade.firefly.exchange",
   },
   PRODUCTION_ARBITRUM: {
-    url: "https://arb1.arbitrum.io/rpc/",
+    url: " https://dawn-restless-reel.arbitrum-mainnet.quiknode.pro/c9ddb4651569a68c44b99ee3fbc49a589441131c/",
     chainId: 42161,
     apiGateway: "https://dapi-arb.firefly.exchange",
     socketURL: "wss://dapi-arb.firefly.exchange",
