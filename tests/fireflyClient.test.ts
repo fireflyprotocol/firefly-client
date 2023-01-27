@@ -683,7 +683,7 @@ describe("FireflyClient", () => {
     });
   });
 
-  describe.only("User History and Account Related Routes", async () => {
+  describe("User History and Account Related Routes", async () => {
     it("should get User Account Data", async () => {
       const response = await client.getUserAccountData();
       expect(response.ok).to.be.equal(true);
