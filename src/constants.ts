@@ -30,7 +30,7 @@ export const Networks = {
     chainId: 42161,
     apiGateway: "https://dapi.api.arbitrum-prod.firefly.exchange",
     socketURL: "wss://dapi.api.arbitrum-prod.firefly.exchange",
-    webSocketURL: "wss://dapi.api.arbitrum-prod.firefly.exchange/dapi-server-notifier/",
+    webSocketURL: "wss://notifications.api.arbitrum-prod.firefly.exchange/",
     onboardingUrl: "https://trade-arb.firefly.exchange",
   },
 };
