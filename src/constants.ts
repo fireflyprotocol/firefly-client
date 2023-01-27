@@ -12,9 +12,9 @@ export const Networks = {
   TESTNET_ARBITRUM: {
     url: "https://arbitrum-goerli.infura.io/v3/62bcda18381b45eab5435e1342da21a6",
     chainId: 421613,
-    apiGateway: "https://api.arbitrum-staging.firefly.exchange/dapi-server",
-    socketURL: "wss://dapi-testnet.firefly.exchange",
-    webSocketURL: "wss://api.arbitrum-staging.firefly.exchange/dapi-server-notifier/",
+    apiGateway: "https://dapi.api.arbitrum-staging.firefly.exchange",
+    socketURL: "wss://dapi.api.arbitrum-staging.firefly.exchange",
+    webSocketURL: "wss://notifications.api.arbitrum-staging.firefly.exchange/",
     onboardingUrl: "https://testnet.firefly.exchange",
   },
   PRODUCTION_BOBA: {
@@ -28,9 +28,9 @@ export const Networks = {
   PRODUCTION_ARBITRUM: {
     url: "https://dawn-restless-reel.arbitrum-mainnet.quiknode.pro/c9ddb4651569a68c44b99ee3fbc49a589441131c/",
     chainId: 42161,
-    apiGateway: "https://dapi-arb.firefly.exchange",
-    socketURL: "wss://dapi-arb.firefly.exchange",
-    webSocketURL: "wss://dapi-arb.firefly.exchange:2087",
+    apiGateway: "https://dapi.api.arbitrum-prod.firefly.exchange",
+    socketURL: "wss://dapi.api.arbitrum-prod.firefly.exchange",
+    webSocketURL: "wss://notifications.api.arbitrum-prod.firefly.exchange/",
     onboardingUrl: "https://trade-arb.firefly.exchange",
   },
 };
