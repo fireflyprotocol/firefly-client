@@ -761,7 +761,7 @@ describe("FireflyClient", () => {
     expect(response.ok).to.be.equal(true);
   });
 
-  it.only("should get candle stick data", async () => {
+  it("should get candle stick data", async () => {
     const response = await client.getMarketCandleStickData({
       symbol,
       interval: "1m",
