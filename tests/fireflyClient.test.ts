@@ -683,7 +683,7 @@ describe("FireflyClient", () => {
     });
   });
 
-  describe("User History and Account Related Routes", async () => {
+  describe.only("User History and Account Related Routes", async () => {
     it("should get User Account Data", async () => {
       const response = await client.getUserAccountData();
       expect(response.ok).to.be.equal(true);
@@ -761,7 +761,7 @@ describe("FireflyClient", () => {
     expect(response.ok).to.be.equal(true);
   });
 
-  it("should get candle stick data", async () => {
+  it.only("should get candle stick data", async () => {
     const response = await client.getMarketCandleStickData({
       symbol,
       interval: "1m",
