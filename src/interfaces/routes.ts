@@ -36,7 +36,7 @@ export interface GetOrderRequest extends GetTransactionHistoryRequest {
   orderType?: ORDER_TYPE[]; //order type LIMIT / MARKET
   pageSize?: number;
   pageNumber?: number;
-  parentAccountAddress?:string;
+  parentAddress?:string;
 }
 
 export interface GetPositionRequest extends GetTransactionHistoryRequest {

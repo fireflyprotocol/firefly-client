@@ -494,7 +494,7 @@ describe("FireflyClient", () => {
       const data = await client.getUserOrders({
         statuses: [ORDER_STATUS.OPEN],
         symbol,
-        parentAccountAddress:
+        parentAddress:
           "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF".toLowerCase(),
       });
       expect(data.ok).to.be.equals(true);
