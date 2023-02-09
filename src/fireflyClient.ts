@@ -751,7 +751,7 @@ export class FireflyClient {
         ORDER_STATUS.PARTIAL_FILLED,
         ORDER_STATUS.PENDING,
       ],
-      parentAccountAddress:parentAddress
+      parentAddress
     });
 
     const hashes = openOrders.data?.map((order) => order.hash) as string[];
@@ -1336,7 +1336,7 @@ export class FireflyClient {
    * @param params OrderSignatureRequest
    * @returns Order
    */
-  private createOrderToSign = (params: OrderSignatureRequest,parentAccountAddress?:address): Order => {
+  private createOrderToSign = (params: OrderSignatureRequest,parentAddress?:address): Order => {
     const expiration = new Date();
     // MARKET ORDER - set expiration of 1 minute
     if (params.orderType === ORDER_TYPE.MARKET) {
@@ -1357,7 +1357,7 @@ export class FireflyClient {
       price: toBigNumber(params.price),
       quantity: toBigNumber(params.quantity),
       leverage: toBigNumber(params.leverage || 1),
-      maker: parentAccountAddress?parentAccountAddress:this.getPublicAddress().toLocaleLowerCase(),
+      maker: parentAddress?parentAddress:this.getPublicAddress().toLocaleLowerCase(),
       reduceOnly: params.reduceOnly || false,
       triggerPrice: toBigNumber(0),
       expiration: bigNumber(
