@@ -1,16 +1,21 @@
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosInstance } from "axios";
 import { getValue, isEmpty } from "@firefly-exchange/library";
 import { ResponseSchema } from "./contractErrorHandling.service";
+import { version as currentVersion } from "../../package.json";
 
 export class APIService {
   private apiService: AxiosInstance;
 
   private token: string | undefined = undefined;
+  private walletAddress: string | undefined = undefined;
 
   constructor(url: string) {
     this.apiService = axios.create({
       baseURL: url,
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-bluefin-client-version": currentVersion,
+      },
       validateStatus: () => true,
     });
   }
@@ -90,12 +95,16 @@ export class APIService {
   setAuthToken = async (token: string) => {
     this.token = token;
   };
+  setWalletAddress = async (address: string) => {
+    this.walletAddress = address;
+  };
   //= ==============================================================//
   //                    PRIVATE HELPER FUNCTIONS
   //= ==============================================================//
 
   private transformRequest = (data: any, headers?: any) => {
     headers.Authorization = `Bearer ${this.token}`;
+    headers["x-wallet-address"] = this.walletAddress;
     return JSON.stringify(data);
   };
 
