@@ -7,6 +7,7 @@ export class APIService {
   private apiService: AxiosInstance;
 
   private token: string | undefined = undefined;
+
   private walletAddress: string | undefined = undefined;
 
   constructor(url: string) {
@@ -95,6 +96,7 @@ export class APIService {
   setAuthToken = async (token: string) => {
     this.token = token;
   };
+
   setWalletAddress = async (address: string) => {
     this.walletAddress = address;
   };
@@ -104,7 +106,7 @@ export class APIService {
 
   private transformRequest = (data: any, headers?: any) => {
     headers.Authorization = `Bearer ${this.token}`;
-    headers["x-wallet-address"] = this.walletAddress;
+    headers["x-wallet-address"] = this.walletAddress || "";
     return JSON.stringify(data);
   };
 

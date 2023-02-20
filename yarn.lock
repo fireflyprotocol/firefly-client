@@ -666,10 +666,10 @@
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
 
-"@firefly-exchange/library@^1.2.4":
-  version "1.2.4"
-  resolved "https://registry.yarnpkg.com/@firefly-exchange/library/-/library-1.2.4.tgz#3edf6df4cad3007d49ffc9fe0f84a2c464ac7ce5"
-  integrity sha512-xzWFGDqLjplC+yNlY/eWwc42EvTJUPHd67Nf5KumcyXJJHGyALamBxER/G6De1y+H7YqLr7ETlREiQ4aRUImkQ==
+"@firefly-exchange/library@^1.2.7":
+  version "1.2.7"
+  resolved "https://registry.yarnpkg.com/@firefly-exchange/library/-/library-1.2.7.tgz#c1371b3bb68b66cfd51f53b25f3e3fc33f49ec0a"
+  integrity sha512-qIHVrXWblQ/o/c+G/5I7fJQTO/pxv87nIDr35Ws090Za6UtM0S7V9qycC1w4lpyEpJL+CL7UqNae/Wn2t9GmYQ==
   dependencies:
     "@typescript-eslint/eslint-plugin" "^5.47.1"
     "@typescript-eslint/parser" "^5.47.1"
@@ -3657,9 +3657,9 @@ fake-merkle-patricia-tree@^1.0.1:
     checkpoint-store "^1.1.0"
 
 fast-copy@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/fast-copy/-/fast-copy-3.0.0.tgz#875ebf33b13948ae012b6e51d33da5e6e7571ab8"
-  integrity sha512-4HzS+9pQ5Yxtv13Lhs1Z1unMXamBdn5nA4bEi1abYpDNSpSp7ODYQ1KPMF6nTatfEzgH6/zPvXKU1zvHiUjWlA==
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/fast-copy/-/fast-copy-3.0.1.tgz#9e89ef498b8c04c1cd76b33b8e14271658a732aa"
+  integrity sha512-Knr7NOtK3HWRYGtHoJrjkaWepqT8thIVGAwt0p0aUs1zqkAzXZV4vo9fFNwyb5fcqK1GKYFYxldQdIDVKhUAfA==
 
 fast-deep-equal@^3.1.1, fast-deep-equal@^3.1.3:
   version "3.1.3"
@@ -5817,9 +5817,9 @@ pino-abstract-transport@^1.0.0, pino-abstract-transport@v1.0.0:
     split2 "^4.0.0"
 
 pino-pretty@^9.1.1:
-  version "9.2.0"
-  resolved "https://registry.yarnpkg.com/pino-pretty/-/pino-pretty-9.2.0.tgz#4a6bcc677533f4053acd841bd9ccc9be9122c8af"
-  integrity sha512-7CeszmFqrUD08+JvtYcFXowNE7duFlE1XScmR41qTMbwQOhn7gijYYrRb5udH+z8xq4+A8vN8rQNYVPCTfzmGw==
+  version "9.3.0"
+  resolved "https://registry.yarnpkg.com/pino-pretty/-/pino-pretty-9.3.0.tgz#ce26ba479451934d05dfad68a9b30511a5169d33"
+  integrity sha512-T3FIzVc2sQfDY6FSjhvAEOeA1sby0YKI4he4VsI+d8q3MyYnfsPT+7OI3W/99v0v3TfJN/nMJradEvJWjbjRaQ==
   dependencies:
     colorette "^2.0.7"
     dateformat "^4.6.3"

@@ -1,6 +1,6 @@
 {
   "name": "@firefly-exchange/firefly-client",
-  "version": "1.0.88",
+  "version": "1.0.98",
   "description": "The Firefly Client Library allows traders to sign, create, retrieve and listen to orders on Firefly Exchange.",
   "main": "dist/index.js",
   "scripts": {
@@ -47,7 +47,7 @@
   },
   "dependencies": {
     "@biconomy/mexa": "^2.0.38",
-    "@firefly-exchange/library": "^1.2.4",
+    "@firefly-exchange/library": "^1.2.7",
     "@truffle/hdwallet-provider": "^2.0.17",
     "axios": "^0.27.2",
     "chai": "^4.3.6",

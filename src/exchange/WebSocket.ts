@@ -13,6 +13,7 @@ import {
   GetUserTradesResponse,
   GetAccountDataResponse,
   MarketData,
+  TickerData,
 } from "../interfaces/routes";
 
 // @ts-ignore
@@ -181,6 +182,10 @@ export class WebSockets {
     cb: ({ isAlive }: { isAlive: boolean }) => void
   ) => {
     callbackListeners[SOCKET_EVENTS.ExchangeHealthKey] = cb;
+  };
+
+  onTickerUpdate = (cb: (tickerData: TickerData[]) => void) => {
+    callbackListeners[SOCKET_EVENTS.TickerUpdate] = cb;
   };
 
   // TODO: figure out what it does

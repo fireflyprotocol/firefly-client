@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-vars */
-import { io } from "socket.io-client";
+import { Socket, io } from "socket.io-client";
 import {
-  SocketInstance,
   MarketSymbol,
   SOCKET_EVENTS,
   MARKET_STATUS,
@@ -16,10 +15,11 @@ import {
   GetAccountDataResponse,
   MarketData,
   UserSubscriptionAck,
+  TickerData,
 } from "../interfaces/routes";
 
 export class Sockets {
-  private socketInstance!: SocketInstance;
+  private socketInstance!: Socket;
 
   private url: string;
 
@@ -152,6 +152,10 @@ export class Sockets {
     cb: ({ isAlive }: { isAlive: boolean }) => void
   ) => {
     this.socketInstance.on(SOCKET_EVENTS.ExchangeHealthKey, cb);
+  };
+
+  onTickerUpdate = (cb: (tickerData: TickerData[]) => void) => {
+    this.socketInstance.on(SOCKET_EVENTS.TickerUpdate, cb);
   };
 
   // TODO: figure out what it does

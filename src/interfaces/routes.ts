@@ -162,7 +162,8 @@ export interface GetPositionResponse {
   unrealizedProfit: string;
   unrealizedProfitPercent: string;
   midMarketPrice: string;
-  indexPrice: string;
+  oraclePrice?: string;
+  indexPrice?: string;
   updatedAt: number;
   createdAt: number;
 }
@@ -370,7 +371,8 @@ export interface MarketData {
   _24hrCloseTime: string;
   _24hrOpenTime: string;
   _24hrCount: string;
-  indexPrice: string;
+  oraclePrice?: string;
+  indexPrice?: string;
   midMarketPrice: string;
   _24hrFirstId: number;
   _24hrLastId: number;
@@ -421,7 +423,8 @@ export interface TickerData {
   price: string;
   priceDirection: number;
   _24hrVolume: string;
-  indexPrice: string;
+  oraclePrice?: string;
+  indexPrice?: string;
 }
 
 export interface StatusResponse {

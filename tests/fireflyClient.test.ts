@@ -23,6 +23,7 @@ import {
   PlaceOrderResponse,
   GetUserTradesResponse,
   GetAccountDataResponse,
+  TickerData,
 } from "../index";
 
 chai.use(chaiAsPromised);
@@ -943,6 +944,15 @@ describe("FireflyClient", () => {
       });
     });
 
+    it("should receive an event for ticker update", (done) => {
+      const callback = (tickerUpdate: TickerData[]) => {
+        expect(tickerUpdate.length).to.be.greaterThan(0);
+        done();
+      };
+
+      client.sockets.onTickerUpdate(callback);
+    });
+
     it("should receive an event when a trade is performed", (done) => {
       const callback = ({
         trades,
@@ -1101,6 +1111,15 @@ describe("FireflyClient", () => {
           orderType: ORDER_TYPE.LIMIT,
         });
       });
+    });
+
+    it("WebSocket Client: should receive an event for ticker update", (done) => {
+      const callback = (tickerUpdate: TickerData[]) => {
+        expect(tickerUpdate.length).to.be.greaterThan(0);
+        done();
+      };
+
+      client.webSockets?.onTickerUpdate(callback);
     });
 
     it("WebSocket Client: should receive an event when a trade is performed", (done) => {
