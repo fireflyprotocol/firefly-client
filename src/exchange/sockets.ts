@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-vars */
-import { io } from "socket.io-client";
+import { Socket, io } from "socket.io-client";
 import {
-  SocketInstance,
   MarketSymbol,
   SOCKET_EVENTS,
   MARKET_STATUS,
@@ -19,7 +18,7 @@ import {
 } from "../interfaces/routes";
 
 export class Sockets {
-  private socketInstance!: SocketInstance;
+  private socketInstance!: Socket;
 
   private url: string;
 
