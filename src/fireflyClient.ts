@@ -28,6 +28,7 @@ import {
   FactoryName,
   getFactory,
   toBigNumberStr,
+  isStopOrder,
 } from "@firefly-exchange/library";
 // @ts-ignore
 import { Biconomy } from "@biconomy/mexa";
@@ -648,6 +649,7 @@ export class FireflyClient {
       maker: params.maker
         ? params.maker
         : this.getPublicAddress().toLocaleLowerCase(),
+      triggerPrice: isStopOrder(params.orderType) ? params.triggerPrice : 0
     };
   };
 
@@ -711,7 +713,7 @@ export class FireflyClient {
       reduceOnly: params.reduceOnly,
       quantity: toBigNumber(params.quantity),
       price: toBigNumber(params.price),
-      triggerPrice: toBigNumber(0),
+      triggerPrice: isStopOrder(params.orderType) ? toBigNumber(params.triggerPrice || "0") : toBigNumber(0),
       leverage: toBigNumber(params.leverage),
       maker: this.getPublicAddress().toLocaleLowerCase(),
       expiration: bigNumber(params.expiration),
@@ -1449,7 +1451,7 @@ export class FireflyClient {
         ? parentAddress
         : this.getPublicAddress().toLocaleLowerCase(),
       reduceOnly: params.reduceOnly || false,
-      triggerPrice: toBigNumber(0),
+      triggerPrice: isStopOrder(params.orderType) ? toBigNumber(params.triggerPrice || "0") : toBigNumber(0),
       expiration: bigNumber(
         params.expiration || Math.floor(expiration.getTime() / 1000) // /1000 to convert time in seconds
       ),

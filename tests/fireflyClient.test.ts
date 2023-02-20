@@ -352,6 +352,36 @@ describe("FireflyClient", () => {
 
       expect(response.ok).to.be.equal(true);
     });
+
+    it("should post a BUY STOP LIMIT order on exchange",async () => {
+      const response = await client.postOrder({
+        symbol,
+        quantity: 0.1,
+        side: ORDER_SIDE.BUY,
+        leverage: defaultLeverage,
+        orderType: ORDER_TYPE.STOP_LIMIT,
+        clientId: "Test stop limit order",
+        price: buyPrice + 4,
+        triggerPrice: buyPrice + 2
+      });
+
+      expect(response.ok).to.be.equal(true);
+    })
+
+    it("should post a SELL STOP LIMIT order on exchange",async () => {
+      const response = await client.postOrder({
+        symbol,
+        quantity: 0.1,
+        side: ORDER_SIDE.SELL,
+        leverage: defaultLeverage,
+        orderType: ORDER_TYPE.STOP_LIMIT,
+        clientId: "Test stop limit order",
+        price: sellPrice - 4,
+        triggerPrice: sellPrice - 2
+      });
+
+      expect(response.ok).to.be.equal(true);
+    })
   });
 
   describe("Cancel Orders", () => {
@@ -475,12 +505,61 @@ describe("FireflyClient", () => {
       );
       expect(response.ok).to.be.equal(true);
     });
+
+    it("should cancel STOP LIMIT order on exchange", async () => {
+      const response = await client.postOrder({
+        symbol,
+        quantity: 0.1,
+        side: ORDER_SIDE.SELL,
+        leverage: defaultLeverage,
+        orderType: ORDER_TYPE.STOP_LIMIT,
+        price: sellPrice - 4,
+        triggerPrice: sellPrice - 2
+      });
+      expect(response.ok).to.be.equal(true);
+
+      const cancelResponse = await client.postCancelOrder({
+        symbol,
+        hashes: [response?.data?.hash as string],
+      });
+
+      expect(cancelResponse.ok).to.be.equal(true);
+    });
+
+    it("should cancel STOP MARKET order on exchange", async () => {
+      const response = await client.postOrder({
+        symbol,
+        quantity: 0.1,
+        side: ORDER_SIDE.SELL,
+        leverage: defaultLeverage,
+        orderType: ORDER_TYPE.STOP_MARKET,
+        price: sellPrice - 4,
+        triggerPrice: sellPrice - 2
+      });
+      expect(response.ok).to.be.equal(true);
+
+      const cancelResponse = await client.postCancelOrder({
+        symbol,
+        hashes: [response?.data?.hash as string],
+      });
+
+      expect(cancelResponse.ok).to.be.equal(true);
+    });
   });
 
   describe("Get User Orders", () => {
     it("should get all open orders", async () => {
       const data = await client.getUserOrders({
         statuses: [ORDER_STATUS.OPEN],
+        symbol,
+      });
+      expect(data.ok).to.be.equals(true);
+      expect(data.response.data.length).to.be.gte(0);
+    });
+
+    it("should get all stand by stop orders", async () => {
+      const data = await client.getUserOrders({
+        statuses: [ORDER_STATUS.STAND_BY, ORDER_STATUS.STAND_BY_PENDING],
         symbol,
       });
       expect(data.ok).to.be.equals(true);
