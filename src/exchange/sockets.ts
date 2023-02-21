@@ -154,7 +154,7 @@ export class Sockets {
     this.socketInstance.on(SOCKET_EVENTS.ExchangeHealthKey, cb);
   };
 
-  onTickerChange = (cb: (tickerData: TickerData[]) => void) => {
+  onTickerUpdate = (cb: (tickerData: TickerData[]) => void) => {
     this.socketInstance.on(SOCKET_EVENTS.TickerUpdate, cb);
   };
 

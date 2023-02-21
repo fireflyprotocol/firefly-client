@@ -871,7 +871,7 @@ describe("FireflyClient", () => {
         done();
       };
 
-      client.sockets.onTickerChange(callback);
+      client.sockets.onTickerUpdate(callback);
     });
 
     it("should receive an event when a trade is performed", (done) => {
@@ -1040,7 +1040,7 @@ describe("FireflyClient", () => {
         done();
       };
 
-      client.webSockets?.onTickerChange(callback);
+      client.webSockets?.onTickerUpdate(callback);
     });
 
     it("WebSocket Client: should receive an event when a trade is performed", (done) => {

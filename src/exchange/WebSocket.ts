@@ -184,7 +184,7 @@ export class WebSockets {
     callbackListeners[SOCKET_EVENTS.ExchangeHealthKey] = cb;
   };
 
-  onTickerChange = (cb: (tickerData: TickerData[]) => void) => {
+  onTickerUpdate = (cb: (tickerData: TickerData[]) => void) => {
     callbackListeners[SOCKET_EVENTS.TickerUpdate] = cb;
   };
 
