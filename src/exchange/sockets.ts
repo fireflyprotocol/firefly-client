@@ -15,6 +15,7 @@ import {
   GetAccountDataResponse,
   MarketData,
   UserSubscriptionAck,
+  TickerData,
 } from "../interfaces/routes";
 
 export class Sockets {
@@ -151,6 +152,10 @@ export class Sockets {
     cb: ({ isAlive }: { isAlive: boolean }) => void
   ) => {
     this.socketInstance.on(SOCKET_EVENTS.ExchangeHealthKey, cb);
+  };
+
+  onTickerUpdate = (cb: (tickerData: TickerData[]) => void) => {
+    this.socketInstance.on(SOCKET_EVENTS.TickerUpdate, cb);
   };
 
   // TODO: figure out what it does
