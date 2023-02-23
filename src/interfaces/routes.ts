@@ -1,13 +1,13 @@
 import {
-  MarketSymbol,
-  ORDER_STATUS,
-  ORDER_SIDE,
-  TIME_IN_FORCE,
-  MARGIN_TYPE,
-  ORDER_TYPE,
   address,
   CANCEL_REASON,
   Interval,
+  MARGIN_TYPE,
+  MarketSymbol,
+  ORDER_SIDE,
+  ORDER_STATUS,
+  ORDER_TYPE,
+  TIME_IN_FORCE,
 } from "@firefly-exchange/library";
 
 export interface GetTransactionHistoryRequest {
@@ -20,27 +20,27 @@ export interface GetFundingHistoryRequest {
   symbol?: MarketSymbol; // will fetch orders of provided market
   pageSize?: number; // will get only provided number of orders must be <= 50
   cursor?: number; // will fetch particular page records. A single page contains 50 records.
-  parentAddress?:string;
+  parentAddress?: string;
 }
 
 export interface GetTransferHistoryRequest {
   pageSize?: number; // will get only provided number of orders must be <= 50
   cursor?: number; // will fetch particular page records. A single page contains 50 records.
-  action?: string; //Deposit / Withdraw
+  action?: string; // Deposit / Withdraw
 }
 export interface GetOrderRequest extends GetTransactionHistoryRequest {
   symbol?: MarketSymbol;
   orderId?: number;
   orderHashes?: string[];
   statuses: ORDER_STATUS[]; // status of orders to be fetched
-  orderType?: ORDER_TYPE[]; //order type LIMIT / MARKET
+  orderType?: ORDER_TYPE[]; // order type LIMIT / MARKET
   pageSize?: number;
   pageNumber?: number;
-  parentAddress?:string;
+  parentAddress?: string;
 }
 
 export interface GetPositionRequest extends GetTransactionHistoryRequest {
-  parentAddress?:string;
+  parentAddress?: string;
 }
 
 export interface RequiredOrderFields {
@@ -56,7 +56,7 @@ export interface OrderSignatureRequest extends RequiredOrderFields {
   reduceOnly?: boolean; // is order to be reduce only true/false, default its false
   salt?: number; // random number for uniqueness of order. Generated randomly if not provided
   expiration?: number; // time at which order will expire. Will be set to 1 month if not provided
-  maker?:address; //address of the parent account on behalf user wants to place the order
+  maker?: address; // address of the parent account on behalf user wants to place the order
 }
 
 export interface OrderSignatureResponse extends RequiredOrderFields {
@@ -65,7 +65,7 @@ export interface OrderSignatureResponse extends RequiredOrderFields {
   salt: number;
   expiration: number;
   orderSignature: string;
-  maker:address;
+  maker: address;
 }
 
 export interface PlaceOrderRequest extends OrderSignatureResponse {
@@ -161,7 +161,7 @@ export interface GetPositionResponse {
   unrealizedProfit: string;
   unrealizedProfitPercent: string;
   midMarketPrice: string;
-  indexPrice: string;
+  oraclePrice: string;
   updatedAt: number;
   createdAt: number;
 }
@@ -194,7 +194,7 @@ export interface GetUserTradesRequest {
   pageSize?: number;
   pageNumber?: number;
   type?: ORDER_TYPE;
-  parentAddress?:string;
+  parentAddress?: string;
 }
 
 export interface GetUserTradesResponse {
@@ -256,13 +256,6 @@ export interface GetUserTransactionHistoryResponse {
   orderHash: string;
   traderType: string;
 }
-
-export interface GetUserTransferHistoryResponse {
-  data: UserTransferHistoryResponse[];
-  nextCursor: number;
-  isMoreDataAvailable: boolean;
-}
-
 export interface UserTransferHistoryResponse {
   id: number;
   status: string;
@@ -276,6 +269,12 @@ export interface UserTransferHistoryResponse {
   updatedAt: number;
 }
 
+export interface GetUserTransferHistoryResponse {
+  data: UserTransferHistoryResponse[];
+  nextCursor: number;
+  isMoreDataAvailable: boolean;
+}
+
 export interface GetFundingRateResponse {
   symbol: MarketSymbol;
   createdAt: number;
@@ -283,11 +282,6 @@ export interface GetFundingRateResponse {
   fundingRate: string;
 }
 
-export interface GetUserFundingHistoryResponse {
-  data: UserFundingHistoryResponse[];
-  nextCursor: number;
-  isMoreDataAvailable: boolean;
-}
 export interface UserFundingHistoryResponse {
   id: number;
   symbol: MarketSymbol;
@@ -301,7 +295,13 @@ export interface UserFundingHistoryResponse {
   oraclePrice: string;
   side: ORDER_SIDE;
   blockNumber: number;
-  isPositionPositive: boolean
+  isPositionPositive: boolean;
+}
+
+export interface GetUserFundingHistoryResponse {
+  data: UserFundingHistoryResponse[];
+  nextCursor: number;
+  isMoreDataAvailable: boolean;
 }
 
 export interface GetMarketRecentTradesRequest {
@@ -362,14 +362,14 @@ export interface MarketData {
   lastPrice: string;
   _24hrHighPrice: string;
   _24hrLowPrice: string;
-  _24hrVolume: string; 
+  _24hrVolume: string;
   _24hrQuoteVolume: string;
   _24hrClosePrice: string;
   _24hrOpenPrice: string;
   _24hrCloseTime: string;
   _24hrOpenTime: string;
   _24hrCount: string;
-  indexPrice: string;
+  oraclePrice: string;
   midMarketPrice: string;
   _24hrFirstId: number;
   _24hrLastId: number;
@@ -398,19 +398,17 @@ export interface MarketMeta {
   perpetualAddress: address;
 }
 
-export interface MasterInfo {
-  _24hrTrades: string;
-  _24hrVolume: string;
-  data: MasterInfoData[];
-}
-
 export interface MasterInfoData {
   symbol: string;
   meta: MarketMeta;
   exchangeInfo: ExchangeInfo;
   marketData: MarketData;
 }
-
+export interface MasterInfo {
+  _24hrTrades: string;
+  _24hrVolume: string;
+  data: MasterInfoData[];
+}
 export interface TickerData {
   symbol: MarketSymbol;
   _24hrPriceChange: string;
@@ -420,7 +418,7 @@ export interface TickerData {
   price: string;
   priceDirection: number;
   _24hrVolume: string;
-  indexPrice: string;
+  oraclePrice: string;
 }
 
 export interface StatusResponse {
@@ -432,11 +430,11 @@ export interface AuthorizeHashResponse {
   token: string;
 }
 
-export interface adjustLeverageRequest{
-  symbol: MarketSymbol,
-  leverage: number,
-  perpetualAddress?: address,
-  parentAddress?:string
+export interface adjustLeverageRequest {
+  symbol: MarketSymbol;
+  leverage: number;
+  perpetualAddress?: address;
+  parentAddress?: string;
 }
 
 export interface AdjustLeverageResponse {
@@ -455,6 +453,6 @@ export interface UserSubscriptionAck {
   success: boolean;
   message: string;
 }
-export interface verifyDepositResponse{
+export interface verifyDepositResponse {
   verificationStatus: string;
 }
