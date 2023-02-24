@@ -1275,7 +1275,7 @@ export class FireflyClient {
     }
     // for api
     this.apiService.setAuthToken(userAuthToken);
-    this.apiService.setWalletAddress(this.getPublicAddress());
+    // this.apiService.setWalletAddress(this.getPublicAddress());
     // for socket
     this.sockets.setAuthToken(userAuthToken);
     this.webSockets?.setAuthToken(userAuthToken);
