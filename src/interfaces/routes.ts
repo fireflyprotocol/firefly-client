@@ -357,7 +357,7 @@ export interface ExchangeInfo {
 }
 
 export interface MarketData {
-  ssymbol: MarketSymbol;
+  symbol: MarketSymbol;
   lastQty: string;
   lastTime: string;
   lastPrice: string;
