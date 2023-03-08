@@ -666,6 +666,7 @@ export class FireflyClient {
         userAddress: params.maker,
         orderType: params.orderType,
         price: toBigNumberStr(params.price),
+        triggerPrice: toBigNumberStr(params.triggerPrice || "0"),
         quantity: toBigNumberStr(params.quantity),
         leverage: toBigNumberStr(params.leverage),
         side: params.side,

@@ -94,6 +94,7 @@ interface OrderResponse {
   userAddress: address;
   side: ORDER_SIDE;
   price: string;
+  triggerPrice: string;
   quantity: string;
   leverage: string;
   reduceOnly: boolean;
