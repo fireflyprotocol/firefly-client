@@ -41,6 +41,8 @@ describe("FireflyClient", () => {
   let defaultLeverage = 3;
   let buyPrice = 18000;
   let sellPrice = 20000;
+  let marketPrice = 0;
+  let indexPrice = 1600;
 
   before(async () => {
     client = new FireflyClient(true, network, testAcctKey, false);
@@ -62,13 +64,15 @@ describe("FireflyClient", () => {
     // market data
     const marketData = await client.getMarketData(symbol);
     if (marketData.data && bnStrToBaseNumber(marketData.data.marketPrice) > 0) {
-      const marketPrice = bnStrToBaseNumber(marketData.data.marketPrice);
+      marketPrice = bnStrToBaseNumber(marketData.data.marketPrice);
+      indexPrice = bnStrToBaseNumber(marketData.data.indexPrice || "0")
       const percentChange = 3 / 100; // 3%
       buyPrice = Number((marketPrice - marketPrice * percentChange).toFixed(0));
       sellPrice = Number(
         (marketPrice + marketPrice * percentChange).toFixed(0)
       );
       console.log(`- market price: ${marketPrice}`);
+      console.log(`- index price: ${indexPrice}`);
     }
   });
 
@@ -362,8 +366,8 @@ describe("FireflyClient", () => {
         leverage: defaultLeverage,
         orderType: ORDER_TYPE.STOP_LIMIT,
         clientId: "Test stop limit order",
-        price: buyPrice + 4,
-        triggerPrice: buyPrice + 2
+        price: indexPrice + 4,
+        triggerPrice: indexPrice + 2
       });
 
       expect(response.ok).to.be.equal(true);
@@ -377,8 +381,8 @@ describe("FireflyClient", () => {
         leverage: defaultLeverage,
         orderType: ORDER_TYPE.STOP_LIMIT,
         clientId: "Test stop limit order",
-        price: sellPrice - 4,
-        triggerPrice: sellPrice - 2
+        price: indexPrice - 4,
+        triggerPrice: indexPrice - 2
       });
 
       expect(response.ok).to.be.equal(true);
@@ -514,8 +518,8 @@ describe("FireflyClient", () => {
         side: ORDER_SIDE.SELL,
         leverage: defaultLeverage,
         orderType: ORDER_TYPE.STOP_LIMIT,
-        price: sellPrice - 4,
-        triggerPrice: sellPrice - 2
+        price: indexPrice - 4,
+        triggerPrice: indexPrice - 2
       });
       expect(response.ok).to.be.equal(true);
 
@@ -534,8 +538,8 @@ describe("FireflyClient", () => {
         side: ORDER_SIDE.SELL,
         leverage: defaultLeverage,
         orderType: ORDER_TYPE.STOP_MARKET,
-        price: sellPrice - 4,
-        triggerPrice: sellPrice - 2
+        price: indexPrice - 4,
+        triggerPrice: indexPrice - 2
       });
       expect(response.ok).to.be.equal(true);
 
