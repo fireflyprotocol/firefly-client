@@ -30,16 +30,12 @@ import {
   toBigNumberStr,
   isStopOrder,
 } from "@firefly-exchange/library";
-// @ts-ignore
-import { Biconomy } from "@biconomy/mexa";
-import HDWalletProvider from "@truffle/hdwallet-provider";
 import {
   adjustLeverageRequest,
   AdjustLeverageResponse,
   AuthorizeHashResponse,
   CancelOrderResponse,
   ExchangeInfo,
-  FundGasResponse,
   GetAccountDataResponse,
   GetCandleStickRequest,
   GetFundingHistoryRequest,
@@ -84,7 +80,6 @@ import {
 import { Sockets } from "./exchange/sockets";
 import {
   ARBITRUM_NETWROK,
-  BICONOMY_API_KEY,
   ExtendedNetwork,
   EXTRA_FEES,
   Networks,
@@ -99,12 +94,6 @@ import {
 } from "./exchange/contractService";
 // @ts-ignore
 import { generateRandomNumber } from "../utils/utils";
-import {
-  adjustLeverageBiconomyCall,
-  adjustMarginBiconomyCall,
-  depositToMarginBankBiconomyCall,
-  withdrawFromMarginBankBiconomyCall,
-} from "./exchange/biconomyService";
 import { WebSockets } from "./exchange/WebSocket";
 
 export class FireflyClient {
@@ -131,15 +120,11 @@ export class FireflyClient {
 
   private signingMethod: SigningMethod = SigningMethod.MetaMaskLatest; // to save signing method when integrating on UI
 
-  private biconomy: Biconomy | undefined;
-
   private contractAddresses: any;
 
   private isTermAccepted = false;
 
-  private useBiconomy = false;
-
-  private networkName = NETWORK_NAME.bobabeam; //arbitrum | boba
+  private networkName = NETWORK_NAME.arbitrum; //arbitrum | boba
 
   private maxBlockGasLimit = 0;
 
@@ -163,13 +148,11 @@ export class FireflyClient {
    * @param _isTermAccepted boolean indicating if exchange terms and conditions are accepted
    * @param _network containing network rpc url and chain id
    * @param _acctPvtKey private key for the account to be used for placing orders
-   * @param _useBiconomy boolean if true biconomy(Gasless transactions) will be used for contract interaction. Only use it in production.
    */
   constructor(
     _isTermAccepted: boolean,
     _network: ExtendedNetwork,
-    _acctPvtKey?: string,
-    _useBiconomy: boolean = false
+    _acctPvtKey?: string
   ) {
     this.network = _network;
 
@@ -184,8 +167,6 @@ export class FireflyClient {
     }
 
     this.isTermAccepted = _isTermAccepted;
-
-    this.useBiconomy = _useBiconomy;
 
     if (_acctPvtKey) {
       this.initializeWithPrivateKey(_acctPvtKey);
@@ -226,7 +207,7 @@ export class FireflyClient {
   };
 
   /**
-   * initializes contract addresses, biconomy & onboards user
+   * initializes contract addresses & onboards user
    */
   init = async (userOnboarding: boolean = true) => {
     // get contract addresses
@@ -245,65 +226,10 @@ export class FireflyClient {
     // fetch gas limit
     this.maxBlockGasLimit = (await this.web3.eth.getBlock("latest")).gasLimit;
 
-    // initialize biconomy
-    if (this.useBiconomy) {
-      let provider: any;
-
-      if (this.web3Provider) {
-        provider = this.web3Provider;
-      } else {
-        provider = new HDWalletProvider({
-          privateKeys: [(this.getWallet() as Wallet).privateKey],
-          providerOrUrl: this.network.url,
-        });
-      }
-
-      this.marketSymbols = (await this.getMarketSymbols()).response.data;
-
-      const biconomyAddresses = this.marketSymbols.map((symbol) => {
-        return this.getContractAddressByName(
-          this._perpetual,
-          undefined,
-          symbol
-        );
-      });
-
-      biconomyAddresses.push(this.getContractAddressByName(this._marginBank));
-      biconomyAddresses.push(this.getContractAddressByName(this._usdcToken));
-
-      this.biconomy = await this.initBiconomy(
-        provider,
-        BICONOMY_API_KEY,
-        biconomyAddresses
-      );
-    }
-
     // check if Network is arbitrum
     this.networkName = this.network.url.includes(ARBITRUM_NETWROK)
       ? NETWORK_NAME.arbitrum
       : NETWORK_NAME.bobabeam;
-  };
-
-  /**
-   * Initialize Biconomy
-   */
-  initBiconomy = async (provider: any, apiKey: string, contracts: string[]) => {
-    const biconomy = new Biconomy(provider, {
-      walletProvider: provider,
-      apiKey,
-      debug: false,
-      contractAddresses: contracts,
-    });
-
-    return new Promise((resolve) => {
-      biconomy.onEvent(biconomy.READY, async () => {
-        resolve(biconomy);
-      });
-
-      biconomy.onEvent(biconomy.ERROR, async (data: any) => {
-        throw Error(data?.message);
-      });
-    });
   };
 
   setSubAccount = async (
@@ -401,14 +327,13 @@ export class FireflyClient {
 
   /**
    * Faucet function, mints 10K USDC to wallet - Only works on Testnet
-   * Assumes that the user wallet has Boba/Moonbase Tokens on Testnet
+   * Assumes that the user wallet has native gas Tokens on Testnet
    * @param contract (optional) address of USDC contract
    * @returns Boolean true if user is funded, false otherwise
    */
   mintTestUSDC = async (contract?: address): Promise<boolean> => {
     if (
-      this.network === Networks.PRODUCTION_ARBITRUM ||
-      this.network === Networks.PRODUCTION_BOBA
+      this.network === Networks.PRODUCTION_ARBITRUM
     ) {
       throw Error(`Function does not work on PRODUCTION`);
     }
@@ -437,21 +362,8 @@ export class FireflyClient {
   };
 
   /**
-   * Funds gas tokens to user's account
-   * @returns Fund gas response
-   */
-  fundGas = async () => {
-    const response = await this.apiService.post<FundGasResponse>(
-      SERVICE_URLS.USER.FUND_GAS,
-      {},
-      { isAuthenticationRequired: true }
-    );
-    return response;
-  };
-
-  /**
-   * Returns boba balance in user's account
-   * @returns Number representing boba balance in account
+   * Returns Native token balance in user's account
+   * @returns Number representing native token balance in account
    */
   getChainNativeBalance = async (): Promise<number> => {
     return bnStrToBaseNumber(
@@ -475,33 +387,16 @@ export class FireflyClient {
     const tokenContract = this.getContract(this._usdcToken, usdcContract);
     const marginBankContract = this.getContract(this._marginBank, mbContract);
 
-    let resp;
-    if (this.useBiconomy) {
-      resp = await depositToMarginBankBiconomyCall(
-        tokenContract,
-        marginBankContract,
-        amount,
-        this.MarginTokenPrecision,
-        this.getWallet(),
-        this.maxBlockGasLimit,
-        this.networkName,
-        this.biconomy,
-        this.getPublicAddress
-      );
-    } else {
-      resp = await depositToMarginBankContractCall(
-        tokenContract,
-        marginBankContract,
-        amount,
-        this.MarginTokenPrecision,
-        this.getWallet(),
-        this.maxBlockGasLimit,
-        this.networkName,
-        this.getPublicAddress
-      );
-    }
-
-    return resp;
+    return await depositToMarginBankContractCall(
+      tokenContract,
+      marginBankContract,
+      amount,
+      this.MarginTokenPrecision,
+      this.getWallet(),
+      this.maxBlockGasLimit,
+      this.networkName,
+      this.getPublicAddress
+    );
   };
 
   /**
@@ -564,31 +459,16 @@ export class FireflyClient {
     mbContract?: address
   ): Promise<ResponseSchema> => {
     const marginBankContract = this.getContract(this._marginBank, mbContract);
-    let resp;
-    if (this.useBiconomy) {
-      resp = await withdrawFromMarginBankBiconomyCall(
-        marginBankContract,
-        this.MarginTokenPrecision,
-        this.biconomy,
-        this.networkName,
-        this.getMarginBankBalance,
-        this.getPublicAddress,
-        amount
-      );
-    } else {
-      resp = await withdrawFromMarginBankContractCall(
-        marginBankContract,
-        this.MarginTokenPrecision,
-        this.getWallet(),
-        this.maxBlockGasLimit,
-        this.networkName,
-        this.getMarginBankBalance,
-        this.getPublicAddress,
-        amount
-      );
-    }
-
-    return resp;
+    return await withdrawFromMarginBankContractCall(
+      marginBankContract,
+      this.MarginTokenPrecision,
+      this.getWallet(),
+      this.maxBlockGasLimit,
+      this.networkName,
+      this.getMarginBankBalance,
+      this.getPublicAddress,
+      amount
+    );
   };
 
   /**
@@ -849,34 +729,18 @@ export class FireflyClient {
         params.symbol
       );
 
-      let resp;
-      if (this.useBiconomy) {
-        resp = await adjustLeverageBiconomyCall(
-          perpContract,
-          params.leverage,
-          this.biconomy,
-          params.parentAddress
-            ? () => {
-                return params.parentAddress!;
-              }
-            : this.getPublicAddress
-        );
-      } else {
-        resp = await adjustLeverageContractCall(
-          perpContract,
-          this.getWallet(),
-          params.leverage,
-          this.maxBlockGasLimit,
-          this.networkName,
-          params.parentAddress
-            ? () => {
-                return params.parentAddress!;
-              }
-            : this.getPublicAddress
-        );
-      }
-
-      return resp;
+      return await adjustLeverageContractCall(
+        perpContract,
+        this.getWallet(),
+        params.leverage,
+        this.maxBlockGasLimit,
+        this.networkName,
+        params.parentAddress
+          ? () => {
+              return params.parentAddress!;
+            }
+          : this.getPublicAddress
+      );
     }
     // call API to update leverage
     const {
@@ -905,6 +769,7 @@ export class FireflyClient {
     if (!accData.data) {
       throw Error(`Account data does not exist`);
     }
+
     const accDataByMarket = accData.data.accountDataByMarket.filter((data) => {
       return data.symbol === symbol;
     });
@@ -939,27 +804,16 @@ export class FireflyClient {
       perpetualAddress,
       symbol
     );
-    let resp;
-    if (this.useBiconomy) {
-      resp = await adjustMarginBiconomyCall(
-        operationType,
-        perpContract,
-        amount,
-        this.biconomy,
-        this.getPublicAddress
-      );
-    } else {
-      resp = await adjustMarginContractCall(
-        operationType,
-        perpContract,
-        this.getWallet(),
-        amount,
-        this.maxBlockGasLimit,
-        this.networkName,
-        this.getPublicAddress
-      );
-    }
-    return resp;
+
+    return await adjustMarginContractCall(
+      operationType,
+      perpContract,
+      this.getWallet(),
+      amount,
+      this.maxBlockGasLimit,
+      this.networkName,
+      this.getPublicAddress
+    );
   };
 
   /**

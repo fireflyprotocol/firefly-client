@@ -10,13 +10,13 @@ async function main() {
     "a182091b4d5a090b65d604e36f68629a692e3bf2aa864bd3f037854034cdd676";
 
   // using predefined network
-  const client = new FireflyClient(true, Networks.TESTNET_BOBA, dummyAccountKey); //passing isTermAccepted = true for compliance and authorizarion
+  const client = new FireflyClient(true, Networks.TESTNET_ARBITRUM, dummyAccountKey); //passing isTermAccepted = true for compliance and authorizarion
   // prints client address
   console.log(client.getPublicAddress());
 
   // using custom network
   const custNetwork: ExtendedNetwork = {
-    url: "https://bobabase.boba.network/",
+    url: "https://arb1.network/",
     chainId: 1297,
     apiGateway: "https://dapi-testnet.firefly.exchange",
     socketURL: "wss://dapi-testnet.firefly.exchange",
