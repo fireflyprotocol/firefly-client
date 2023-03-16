@@ -49,6 +49,7 @@ export interface RequiredOrderFields {
   quantity: number; // quantity/size of order
   side: ORDER_SIDE; // BUY/SELL
   orderType: ORDER_TYPE; // MARKET/LIMIT
+  triggerPrice?: number; //optional, send triggerPrice for stop orders
 }
 
 export interface OrderSignatureRequest extends RequiredOrderFields {
@@ -93,6 +94,7 @@ interface OrderResponse {
   userAddress: address;
   side: ORDER_SIDE;
   price: string;
+  triggerPrice: string;
   quantity: string;
   leverage: string;
   reduceOnly: boolean;
