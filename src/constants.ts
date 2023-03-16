@@ -19,11 +19,11 @@ export const Networks = {
   },
 };
 
-export const DEFAULT_PRECISION = 2
-export const ARBITRUM_NETWROK = "arbitrum"
-export const EXTRA_FEES = 10000
+export const DEFAULT_PRECISION = 2;
+export const ARBITRUM_NETWROK = "arbitrum";
+export const EXTRA_FEES = 10000;
 
 //adding this here as it's temporary support for socket.io
 export interface ExtendedNetwork extends Network {
-  webSocketURL: string
+  webSocketURL: string;
 }

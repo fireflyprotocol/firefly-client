@@ -332,9 +332,7 @@ export class FireflyClient {
    * @returns Boolean true if user is funded, false otherwise
    */
   mintTestUSDC = async (contract?: address): Promise<boolean> => {
-    if (
-      this.network === Networks.PRODUCTION_ARBITRUM
-    ) {
+    if (this.network === Networks.PRODUCTION_ARBITRUM) {
       throw Error(`Function does not work on PRODUCTION`);
     }
 
@@ -529,7 +527,7 @@ export class FireflyClient {
       maker: params.maker
         ? params.maker
         : this.getPublicAddress().toLocaleLowerCase(),
-      triggerPrice: isStopOrder(params.orderType) ? params.triggerPrice : 0
+      triggerPrice: isStopOrder(params.orderType) ? params.triggerPrice : 0,
     };
   };
 
@@ -539,6 +537,9 @@ export class FireflyClient {
    * @returns PlaceOrderResponse containing status and data. If status is not 201, order placement failed.
    */
   placeSignedOrder = async (params: PlaceOrderRequest) => {
+    if (this.network == Networks.PRODUCTION_ARBITRUM && isStopOrder(params.orderType)){
+      throw Error(`STOP orders not available on PRODUCTION`);
+    }
     const response = await this.apiService.post<PlaceOrderResponse>(
       SERVICE_URLS.ORDERS.ORDERS,
       {
@@ -594,7 +595,9 @@ export class FireflyClient {
       reduceOnly: params.reduceOnly,
       quantity: toBigNumber(params.quantity),
       price: toBigNumber(params.price),
-      triggerPrice: isStopOrder(params.orderType) ? toBigNumber(params.triggerPrice || "0") : toBigNumber(0),
+      triggerPrice: isStopOrder(params.orderType)
+        ? toBigNumber(params.triggerPrice || "0")
+        : toBigNumber(0),
       leverage: toBigNumber(params.leverage),
       maker: this.getPublicAddress().toLocaleLowerCase(),
       expiration: bigNumber(params.expiration),
@@ -1306,7 +1309,9 @@ export class FireflyClient {
         ? parentAddress
         : this.getPublicAddress().toLocaleLowerCase(),
       reduceOnly: params.reduceOnly || false,
-      triggerPrice: isStopOrder(params.orderType) ? toBigNumber(params.triggerPrice || "0") : toBigNumber(0),
+      triggerPrice: isStopOrder(params.orderType)
+        ? toBigNumber(params.triggerPrice || "0")
+        : toBigNumber(0),
       expiration: bigNumber(
         params.expiration || Math.floor(expiration.getTime() / 1000) // /1000 to convert time in seconds
       ),
