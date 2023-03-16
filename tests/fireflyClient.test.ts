@@ -11,7 +11,7 @@ import {
   BigNumber,
   ORDER_TYPE,
   Web3,
-  bnStrToBaseNumber
+  bnStrToBaseNumber,
 } from "@firefly-exchange/library";
 
 import {
@@ -31,7 +31,8 @@ const testAcctKey =
   "4d6c9531e0042cc8f7cf13d8c3cf77bfe239a8fed95e198d498ee1ec0b1a7e83";
 const testAcctPubAddr = "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF";
 
-const testSubAccKey = "7540d48032c731b3a17947b63a04763492d84aef854246d355a703adc9b54ce9";
+const testSubAccKey =
+  "7540d48032c731b3a17947b63a04763492d84aef854246d355a703adc9b54ce9";
 const testSubAccPubAddr = "0xDa53d33E49F1f4689C3B9e1EB6E265244C77B92B";
 
 let client: FireflyClient;
@@ -65,10 +66,9 @@ describe("FireflyClient", () => {
 
     // market data
     const marketData = await client.getMarketData(symbol);
-    console.log(marketData.data)
     if (marketData.data && bnStrToBaseNumber(marketData.data.marketPrice) > 0) {
       marketPrice = bnStrToBaseNumber(marketData.data.marketPrice);
-      indexPrice = bnStrToBaseNumber(marketData.data.indexPrice || "0")
+      indexPrice = bnStrToBaseNumber(marketData.data.indexPrice || "0");
       const percentChange = 3 / 100; // 3%
       buyPrice = Number((marketPrice - marketPrice * percentChange).toFixed(0));
       sellPrice = Number(
@@ -82,7 +82,7 @@ describe("FireflyClient", () => {
   beforeEach(async () => {
     client = new FireflyClient(true, network, testAcctKey);
     await client.init();
-    client.addMarket(symbol)
+    client.addMarket(symbol);
   });
 
   afterEach(() => {
@@ -96,30 +96,29 @@ describe("FireflyClient", () => {
   it("should return public address of account", async () => {
     expect(client.getPublicAddress()).to.be.equal(testAcctPubAddr);
   });
-  
 
   describe("Sub account Tests", () => {
     let clientSubAccount: FireflyClient;
     before(async () => {
       clientSubAccount = new FireflyClient(true, network, testSubAccKey);
       await clientSubAccount.init();
-      clientSubAccount.addMarket(symbol)
-  
+      clientSubAccount.addMarket(symbol);
+
       //adding sub acc
       const resp = await client.setSubAccount(
         testSubAccPubAddr.toLowerCase(),
         symbol,
         true
       );
-      if(!resp.ok){
-        throw Error(resp.message)
+      if (!resp.ok) {
+        throw Error(resp.message);
       }
-    })
+    });
     beforeEach(async () => {
       clientSubAccount = new FireflyClient(true, network, testSubAccKey);
       await clientSubAccount.init();
-      clientSubAccount.addMarket(symbol)
-    })
+      clientSubAccount.addMarket(symbol);
+    });
 
     it("set and get leverage on behalf of parent account", async () => {
       // make sure to first whitelist the subaccount with the below parent account to run this test.
@@ -155,8 +154,9 @@ describe("FireflyClient", () => {
         // parent account
         maker: testAcctPubAddr,
       });
-      const response = await clientSubAccount.placeSignedOrder({ ...signedOrder });
-      console.log(response.data)
+      const response = await clientSubAccount.placeSignedOrder({
+        ...signedOrder,
+      });
       expect(response.ok).to.be.equal(true);
     });
     it("should cancel the open order on behalf of parent account", async () => {
@@ -176,11 +176,12 @@ describe("FireflyClient", () => {
         ...signedOrder,
         clientId: "test cancel order",
       });
-      const cancelSignature = await clientSubAccount.createOrderCancellationSignature({
-        symbol,
-        hashes: [response.response.data.hash],
-        parentAddress: testAcctPubAddr.toLowerCase(),
-      });
+      const cancelSignature =
+        await clientSubAccount.createOrderCancellationSignature({
+          symbol,
+          hashes: [response.response.data.hash],
+          parentAddress: testAcctPubAddr.toLowerCase(),
+        });
 
       const cancellationResponse = await clientSubAccount.placeCancelOrder({
         symbol,
@@ -246,7 +247,7 @@ describe("FireflyClient", () => {
       });
       expect(response.ok).to.be.equal(true);
     });
-  })
+  });
 
   describe("Market", () => {
     it(`should add ${symbol} market`, async () => {
@@ -445,7 +446,7 @@ describe("FireflyClient", () => {
       expect(response.ok).to.be.equal(true);
     });
 
-    it("should post a BUY STOP LIMIT order on exchange",async () => {
+    it("should post a BUY STOP LIMIT order on exchange", async () => {
       const response = await client.postOrder({
         symbol,
         quantity: 0.1,
@@ -454,13 +455,13 @@ describe("FireflyClient", () => {
         orderType: ORDER_TYPE.STOP_LIMIT,
         clientId: "Test stop limit order",
         price: indexPrice + 4,
-        triggerPrice: indexPrice + 2
+        triggerPrice: indexPrice + 2,
       });
 
       expect(response.ok).to.be.equal(true);
-    })
+    });
 
-    it("should post a SELL STOP LIMIT order on exchange",async () => {
+    it("should post a SELL STOP LIMIT order on exchange", async () => {
       const response = await client.postOrder({
         symbol,
         quantity: 0.1,
@@ -469,11 +470,11 @@ describe("FireflyClient", () => {
         orderType: ORDER_TYPE.STOP_LIMIT,
         clientId: "Test stop limit order",
         price: indexPrice - 4,
-        triggerPrice: indexPrice - 2
+        triggerPrice: indexPrice - 2,
       });
 
       expect(response.ok).to.be.equal(true);
-    })
+    });
   });
 
   describe("Cancel Orders", () => {
@@ -571,7 +572,7 @@ describe("FireflyClient", () => {
         leverage: defaultLeverage,
         orderType: ORDER_TYPE.STOP_LIMIT,
         price: indexPrice - 4,
-        triggerPrice: indexPrice - 2
+        triggerPrice: indexPrice - 2,
       });
       expect(response.ok).to.be.equal(true);
 
@@ -591,7 +592,7 @@ describe("FireflyClient", () => {
         leverage: defaultLeverage,
         orderType: ORDER_TYPE.STOP_MARKET,
         price: indexPrice - 4,
-        triggerPrice: indexPrice - 2
+        triggerPrice: indexPrice - 2,
       });
       expect(response.ok).to.be.equal(true);
 
