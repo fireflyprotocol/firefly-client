@@ -375,12 +375,14 @@ export class FireflyClient {
    * @param amount the number of usdc to be transferred
    * @param usdcContract (optional) address of usdc contract
    * @param mbContract (address) address of Margin Bank contract
+   * @param publicAddress (optional) address of user's to be used for deposit
    * @returns ResponseSchema
    */
   depositToMarginBank = async (
     amount: number,
     usdcContract?: address,
-    mbContract?: address
+    mbContract?: address,
+    publicAddress?: address,
   ): Promise<ResponseSchema> => {
     const tokenContract = this.getContract(this._usdcToken, usdcContract);
     const marginBankContract = this.getContract(this._marginBank, mbContract);
@@ -393,7 +395,7 @@ export class FireflyClient {
       this.getWallet(),
       this.maxBlockGasLimit,
       this.networkName,
-      this.getPublicAddress
+      publicAddress === undefined ? this.getPublicAddress : () => publicAddress
     );
   };
 
