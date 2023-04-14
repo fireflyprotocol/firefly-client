@@ -5,6 +5,7 @@ export const Networks = {
     url: "https://arbitrum-goerli.infura.io/v3/62bcda18381b45eab5435e1342da21a6",
     chainId: 421613,
     apiGateway: "https://dapi.api.arbitrum-staging.firefly.exchange",
+    dmsURL: "https://api.arbitrum-staging.firefly.exchange/dead-man-switch",
     socketURL: "wss://dapi.api.arbitrum-staging.firefly.exchange",
     webSocketURL: "wss://notifications.api.arbitrum-staging.firefly.exchange/",
     onboardingUrl: "https://testnet.firefly.exchange",
@@ -14,6 +15,7 @@ export const Networks = {
     chainId: 42161,
     apiGateway: "https://dapi.api.arbitrum-prod.firefly.exchange",
     socketURL: "wss://dapi.api.arbitrum-prod.firefly.exchange",
+    dmsURL: "https://api.arbitrum-prod.firefly.exchange/dead-man-switch",
     webSocketURL: "wss://notifications.api.arbitrum-prod.firefly.exchange/",
     onboardingUrl: "https://trade-arb.firefly.exchange",
   },
@@ -26,4 +28,5 @@ export const EXTRA_FEES = 10000;
 //adding this here as it's temporary support for socket.io
 export interface ExtendedNetwork extends Network {
   webSocketURL: string;
+  dmsURL?: string;
 }

@@ -463,3 +463,23 @@ export interface UserSubscriptionAck {
 export interface verifyDepositResponse{
   verificationStatus: string;
 }
+export interface CountDown {
+  symbol: string;
+  countDown: number;
+}
+export interface PostTimerAttributes {
+  countDowns: CountDown[];
+  parentAddress?: string;
+}
+export interface PostTimerResponse {
+  acceptedToReset: string[];
+  failedReset: FailedCountDownResetResponse[];
+}
+export interface FailedCountDownResetResponse {
+  symbol: string;
+  reason: string;
+}
+export interface GetCountDownsResponse {
+  countDowns: CountDown[];
+  timestamp: number;
+}
