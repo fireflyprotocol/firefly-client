@@ -10,9 +10,10 @@ export class APIService {
 
   private walletAddress: string | undefined = undefined;
 
+  private baseUrl: string | undefined = undefined;
   constructor(url: string) {
+    this.baseUrl = url;
     this.apiService = axios.create({
-      baseURL: url,
       headers: {
         "Content-Type": "application/json",
         "x-bluefin-client-version": currentVersion,
@@ -24,8 +25,12 @@ export class APIService {
   async get<T>(
     url: string,
     queryParams?: object,
-    config?: AxiosRequestConfig & { isAuthenticationRequired?: boolean }
+    config?: AxiosRequestConfig & { isAuthenticationRequired?: boolean },
+    baseUrl?: string
   ) {
+    if(!baseUrl)
+      baseUrl = this.baseUrl
+    url = baseUrl + url
     const response = await this.apiService.get(url, {
       params: queryParams,
       ...config,
@@ -39,8 +44,13 @@ export class APIService {
   async post<T>(
     url: string,
     data: object,
-    config?: AxiosRequestConfig & { isAuthenticationRequired?: boolean }
+    config?: AxiosRequestConfig & { isAuthenticationRequired?: boolean },
+    baseUrl?: string
   ) {
+
+    if(!baseUrl)
+      baseUrl = this.baseUrl
+    url = baseUrl + url
     const response = await this.apiService.post(url, data, {
       ...config,
       transformRequest: config?.isAuthenticationRequired
@@ -53,8 +63,12 @@ export class APIService {
   async put<T>(
     url: string,
     data: object,
-    config?: AxiosRequestConfig & { isAuthenticationRequired?: boolean }
+    config?: AxiosRequestConfig & { isAuthenticationRequired?: boolean },
+    baseUrl?: string
   ) {
+    if(!baseUrl)
+      baseUrl = this.baseUrl
+    url = baseUrl + url
     const response = await this.apiService.put(url, data, {
       ...config,
       transformRequest: config?.isAuthenticationRequired
@@ -67,8 +81,12 @@ export class APIService {
   async patch<T>(
     url: string,
     data: object,
-    config?: AxiosRequestConfig & { isAuthenticationRequired?: boolean }
+    config?: AxiosRequestConfig & { isAuthenticationRequired?: boolean },
+    baseUrl?: string
   ) {
+    if(!baseUrl)
+      baseUrl = this.baseUrl
+    url = baseUrl + url
     const response = await this.apiService.patch(url, data, {
       ...config,
       transformRequest: config?.isAuthenticationRequired
@@ -81,8 +99,12 @@ export class APIService {
   async delete<T>(
     url: string,
     data: object,
-    config?: AxiosRequestConfig & { isAuthenticationRequired?: boolean }
+    config?: AxiosRequestConfig & { isAuthenticationRequired?: boolean },
+    baseUrl?: string
   ) {
+    if(!baseUrl)
+      baseUrl = this.baseUrl
+    url = baseUrl + url
     const response = await this.apiService.delete(url, {
       ...config,
       data,

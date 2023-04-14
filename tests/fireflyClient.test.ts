@@ -1250,4 +1250,90 @@ describe("FireflyClient", () => {
       });
     });
   });
+
+
+  describe("Cancel On Disconnect - DMS", () => {
+    beforeEach(async () => {
+      client.addMarket(symbol);
+    });
+
+    it("should return 1 market accepted for countdown reset", async () => {
+      // When
+      const response = await client.resetCancelOnDisconnectTimer({
+        countDowns: [
+          {
+            symbol,
+            countDown: 200000,
+          }
+        ]
+      })
+
+      //remove countdown
+      await client.resetCancelOnDisconnectTimer({
+        countDowns: [
+          {
+            symbol,
+            countDown: 0,
+          }
+        ]
+      })
+      // Then
+      expect(response.ok).to.be.equal(true);
+      expect(response.response.data.acceptedToReset.length).to.be.greaterThanOrEqual(1);
+    });
+
+    it("should get user's symbol's countdown", async () => {
+       // When
+       await client.resetCancelOnDisconnectTimer({
+        countDowns: [
+          {
+            symbol,
+            countDown: 200000,
+          }
+        ]
+      })
+      const response = await client.getCancelOnDisconnectTimer(symbol);
+      // Then
+       //remove countdown
+       await client.resetCancelOnDisconnectTimer({
+        countDowns: [
+          {
+            symbol,
+            countDown: 0,
+          }
+        ]
+      })
+      console.log(response)
+      expect(response.ok).to.be.equal(true);
+      expect(response.response.data.countDowns.length).to.be.greaterThanOrEqual(1);
+    });
+
+    it("should cancel user's symbol's countdown", async () => {
+      // When
+      await client.resetCancelOnDisconnectTimer({
+       countDowns: [
+         {
+           symbol,
+           countDown: 200000,
+         }
+       ]
+     })
+      //remove countdown
+      await client.resetCancelOnDisconnectTimer({
+        countDowns: [
+          {
+            symbol,
+            countDown: 0,
+          }
+        ]
+      })
+
+     const response = await client.getCancelOnDisconnectTimer(symbol);
+     // Then
+     console.log(response)
+     expect(response.ok).to.be.equal(true);
+     expect(response.response.data.countDowns.length).to.be.greaterThanOrEqual(0);
+   });
+
+  });
 });

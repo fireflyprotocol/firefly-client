@@ -24,7 +24,8 @@ export const SERVICE_URLS = {
     ADJUST_LEVERGAE: "/account/adjustLeverage",
     FUND_GAS: "/account/fundGas",
     TRANSFER_HISTORY: "/userTransferHistory",
-    FUNDING_HISTORY: "/userFundingHistory"
+    FUNDING_HISTORY: "/userFundingHistory",
+    CANCEL_ON_DISCONNECT: "/dms-countdown"
   },
   ORDERS: {
     ORDERS: "/orders",
