@@ -540,9 +540,6 @@ export class FireflyClient {
    * @returns PlaceOrderResponse containing status and data. If status is not 201, order placement failed.
    */
   placeSignedOrder = async (params: PlaceOrderRequest) => {
-    if (this.network == Networks.PRODUCTION_ARBITRUM && isStopOrder(params.orderType)){
-      throw Error(`STOP orders not available on PRODUCTION`);
-    }
     const response = await this.apiService.post<PlaceOrderResponse>(
       SERVICE_URLS.ORDERS.ORDERS,
       {
