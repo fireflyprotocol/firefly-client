@@ -98,6 +98,8 @@ import {
 // @ts-ignore
 import { generateRandomNumber } from "../utils/utils";
 import { WebSockets } from "./exchange/WebSocket";
+import { KMSWallet } from "./KMSWallet";
+import { KMS } from "@aws-sdk/client-kms";
 
 export class FireflyClient {
   protected readonly network: ExtendedNetwork;
@@ -112,6 +114,8 @@ export class FireflyClient {
 
   public sockets: Sockets;
   public webSockets: WebSockets | undefined;
+  public kmsWallet: KMSWallet | undefined;
+
 
   public marketSymbols: string[] = []; // to save array market symbols [DOT-PERP, SOL-PERP]
 
@@ -155,7 +159,8 @@ export class FireflyClient {
   constructor(
     _isTermAccepted: boolean,
     _network: ExtendedNetwork,
-    _acctPvtKey?: string
+    _acctPvtKey?: string,
+    _kmskeyAlias?: string
   ) {
     this.network = _network;
 
@@ -174,6 +179,24 @@ export class FireflyClient {
     if (_acctPvtKey) {
       this.initializeWithPrivateKey(_acctPvtKey);
     }
+    if (_kmskeyAlias){
+      this.initializeWithKMS(_kmskeyAlias);
+    }
+
+  }
+
+  initializeWithKMS=async (_kmsKeyAlias: string ) => {
+    try {
+      const kmsWallet = new KMSWallet(new KMS({region: 'ap-northeast-1'}), _kmsKeyAlias);
+      await kmsWallet.init();
+      this.kmsWallet = kmsWallet;
+      this.walletAddress=this.kmsWallet.ethAddr;
+    //  let liquidatorAddress = this.kmsWallet.ethAddr
+    } catch (err) {
+      console.log(err);
+     // throw Error("Failed to initialize KMS");
+    }
+
   }
 
   /**
@@ -504,6 +527,7 @@ export class FireflyClient {
         `Provided Market Symbol(${params.symbol}) is not added to client library`
       );
     }
+    
 
     const orderSignature = await (signer as OrderSigner).signOrder(
       order,
