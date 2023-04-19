@@ -1395,7 +1395,7 @@ export class FireflyClient {
       this.network.dmsURL
     );
     if (response.status == 503) {
-      response.response.message = "Cancel on Disconnect (dead-mans-switch) feature is currently unavailable";
+      throw Error(`Cancel on Disconnect (dead-mans-switch) feature is currently unavailable`);
     }
     return response;
   };
