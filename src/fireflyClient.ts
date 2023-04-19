@@ -527,7 +527,12 @@ export class FireflyClient {
         `Provided Market Symbol(${params.symbol}) is not added to client library`
       );
     }
-    
+    if (this.kmsWallet!==undefined){
+      const orderHash=signer.getOrderHash(order);
+      const orderSignature=await this.kmsWallet.sign(Buffer.from(orderHash));
+      console.log(orderSignature);
+  
+    }
 
     const orderSignature = await (signer as OrderSigner).signOrder(
       order,
