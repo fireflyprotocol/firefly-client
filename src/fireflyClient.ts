@@ -1361,9 +1361,6 @@ export class FireflyClient {
    * @returns PostTimerResponse containing accepted and failed countdowns. If status is not 201, request wasn't successful.
    */
   resetCancelOnDisconnectTimer = async (params: PostTimerAttributes) => {
-    if (this.network == Networks.PRODUCTION_ARBITRUM) {
-      throw Error(`Cancel On Disconnect not available on PRODUCTION`);
-    }
     const response = await this.apiService.post<PostTimerResponse>(
       SERVICE_URLS.USER.CANCEL_ON_DISCONNECT,
       params,
@@ -1382,9 +1379,6 @@ export class FireflyClient {
  * @returns GetCountDownsResponse
  */
   getCancelOnDisconnectTimer = async (symbol?: string, parentAddress?: string) => {
-    if (this.network == Networks.PRODUCTION_ARBITRUM) {
-      throw Error(`Cancel On Disconnect not available on PRODUCTION`);
-    }
     const response = await this.apiService.get<GetCountDownsResponse>(
       SERVICE_URLS.USER.CANCEL_ON_DISCONNECT,
       {
