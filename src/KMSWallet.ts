@@ -152,7 +152,7 @@ class KMSWallet {
       Message: msgHash,
       // 'ECDSA_SHA_256' is the one compatible with ECC_SECG_P256K1.
       SigningAlgorithm: "ECDSA_SHA_256",
-      MessageType: "RAW"
+      MessageType: "DIGEST"
     });
  
     return this.kms.send(cmd)
@@ -174,6 +174,8 @@ class KMSWallet {
 
     return tx.serialize().toString("hex");
   }
+
+
 
 
 
