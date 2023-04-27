@@ -192,12 +192,9 @@ export class FireflyClient {
 
   initializeWithKMS=async (awsKmsSigner: AwsKmsSigner): Promise<void> => {
     try {
-   //   const kmsSigner= new AwsKmsSigner({region: 'ap-northeast-1', keyId: _kmsKeyAlias})
       this.kmsSigner=awsKmsSigner;
       const address=await this.kmsSigner.getAddress();
       this.walletAddress=address;
-   
-
     } catch (err) {
       console.log(err);
      // throw Error("Failed to initialize KMS");
