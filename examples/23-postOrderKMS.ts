@@ -9,23 +9,19 @@ import { AwsKmsSigner } from "ethers-aws-kms-signer";
 
 async function main() {
 
-  const kmsKeyArn='arn:aws:kms:ap-northeast-1:648912772077:key/254a5c49-9a68-48ca-81f7-8715de8dca73'
-  const kmsSigner= new AwsKmsSigner({region: 'ap-northeast-1', keyId: kmsKeyArn})
 
+  //for keyId input the arn of the kms key that have to be used.
+  const kmsSigner= new AwsKmsSigner({region: 'ap-northeast-1', keyId: 'arn:aws:kms:ap-northxxxxx'});
 
-
-  const dummyAccountKey='';
-  const client = new FireflyClient(true, Networks.TESTNET_ARBITRUM, dummyAccountKey,kmsSigner); //passing isTermAccepted = true for compliance and authorizarion
+  const client = new FireflyClient(true, Networks.TESTNET_ARBITRUM, kmsSigner); //passing isTermAccepted = true for compliance and authorizarion
   await client.init();
   
-  console.log(MARKET_SYMBOLS.ETH);
-
   client.addMarket(MARKET_SYMBOLS.ETH);
   
 
- 
   const ethLeverage = await client.getUserDefaultLeverage(MARKET_SYMBOLS.ETH);
 
+  //KMS key provided will be used to sign this order and submit it to exchange
   const response = await client.postOrder({
     symbol: MARKET_SYMBOLS.ETH,
     price: 50,
