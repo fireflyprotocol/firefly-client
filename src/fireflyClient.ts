@@ -197,7 +197,7 @@ export class FireflyClient {
       this.walletAddress=address;
     } catch (err) {
       console.log(err);
-     // throw Error("Failed to initialize KMS");
+      throw Error("Failed to initialize KMS");
     }
 
   }
