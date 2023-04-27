@@ -544,12 +544,8 @@ export class FireflyClient {
           const signedMessage=await this.kmsSigner._signDigest(orderEthHash);
           
           // This just adds 01 at the end of the message if we pass 1
-          orderSignature=createTypedSignature(signedMessage,1);
-           
-      console.log("Order Signature Calculated from KMS")
-     
+          orderSignature=createTypedSignature(signedMessage,1);     
     }else{
-      console.log("Order Signature Calculated conventionally")
       orderSignature = await (signer as OrderSigner).signOrder(
       order,
       this.getSigningMethod(),
