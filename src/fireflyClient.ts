@@ -455,7 +455,7 @@ export class FireflyClient {
     if (
       apiResponse.response.data.verificationStatus &&
       apiResponse.response.data.verificationStatus.toLowerCase() !=
-        VerificationStatus.Success
+      VerificationStatus.Success
     ) {
       apiResponse.ok = false;
       apiResponse.status = 5001;
@@ -783,8 +783,8 @@ export class FireflyClient {
         this.networkName,
         params.parentAddress
           ? () => {
-              return params.parentAddress!;
-            }
+            return params.parentAddress!;
+          }
           : this.getPublicAddress
       );
     }
@@ -1418,35 +1418,36 @@ export class FireflyClient {
    * @returns PostTimerResponse containing accepted and failed countdowns. If status is not 201, request wasn't successful.
    */
   resetCancelOnDisconnectTimer = async (params: PostTimerAttributes) => {
-    if (this.network == Networks.PRODUCTION_ARBITRUM){
-      throw Error(`Cancel On Disconnect not available on PRODUCTION`);
-    }
     const response = await this.apiService.post<PostTimerResponse>(
       SERVICE_URLS.USER.CANCEL_ON_DISCONNECT,
       params,
       { isAuthenticationRequired: true },
-        this.network.dmsURL
+      this.network.dmsURL
     );
+    if (response.status == 503) {
+      throw Error(`Cancel on Disconnect (dead-mans-switch) feature is currently unavailable`);
+
+    }
     return response;
   };
 
-    /**
-   * Gets user Cancel on Disconnect timer
-   * @returns GetCountDownsResponse
-   */
-    getCancelOnDisconnectTimer = async (symbol?: string, parentAddress?: string) => {
-      if (this.network == Networks.PRODUCTION_ARBITRUM){
-        throw Error(`Cancel On Disconnect not available on PRODUCTION`);
-      }
-      const response = await this.apiService.get<GetCountDownsResponse>(
-        SERVICE_URLS.USER.CANCEL_ON_DISCONNECT,
-        { 
-          parentAddress,
-          symbol
-        },
-        { isAuthenticationRequired: true },
-        this.network.dmsURL
-      );
-      return response;
-    };
+  /**
+ * Gets user Cancel on Disconnect timer
+ * @returns GetCountDownsResponse
+ */
+  getCancelOnDisconnectTimer = async (symbol?: string, parentAddress?: string) => {
+    const response = await this.apiService.get<GetCountDownsResponse>(
+      SERVICE_URLS.USER.CANCEL_ON_DISCONNECT,
+      {
+        parentAddress,
+        symbol
+      },
+      { isAuthenticationRequired: true },
+      this.network.dmsURL
+    );
+    if (response.status == 503) {
+      throw Error(`Cancel on Disconnect (dead-mans-switch) feature is currently unavailable`);
+    }
+    return response;
+  };
 }
