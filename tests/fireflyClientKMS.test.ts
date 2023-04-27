@@ -26,17 +26,17 @@ describe("FireflyClient", () => {
   const symbol = "ETH-PERP";
   let defaultLeverage = 3;
   let buyPrice = 18000;
+  //@ts-ignore
   let sellPrice = 20000;
   let marketPrice = 0;
   let indexPrice = 1600;
   let testAcctPubAddr='0x6967C92D93809CdC5158AB0E84A9919c9D0e4096'.toLowerCase();
 
   before(async () => {
-    const kmsKeyArn='arn:aws:kms:ap-northeast-1:648912772077:key/254a5c49-9a68-48ca-81f7-8715de8dca73'
-    const kmsSigner= new AwsKmsSigner({region: 'ap-northeast-1', keyId: kmsKeyArn})
+    const kmsSigner= new AwsKmsSigner({region: 'ap-northeast-1', keyId: 'arn:aws:kms:ap-northxxxxxxx'})
   
   
-    client = new FireflyClient(true, network, '',kmsSigner);
+    client = new FireflyClient(true, network,kmsSigner);
     await client.init();
     // TODO! uncomment when done testing specifically on BTC-PERP
     // const allSymbols = await client.getMarketSymbols();
@@ -68,10 +68,9 @@ describe("FireflyClient", () => {
   });
 
   beforeEach(async () => {
-    const kmsKeyArn='arn:aws:kms:ap-northeast-1:648912772077:key/254a5c49-9a68-48ca-81f7-8715de8dca73'
-    const kmsSigner= new AwsKmsSigner({region: 'ap-northeast-1', keyId: kmsKeyArn})
+    const kmsSigner= new AwsKmsSigner({region: 'ap-northeast-1', keyId: 'arn:aws:kms:ap-northxxxxxxx'})
 
-    client = new FireflyClient(true, network, '',kmsSigner);
+    client = new FireflyClient(true, network,kmsSigner);
     await client.init();
     client.addMarket(symbol);
   });
