@@ -159,12 +159,13 @@ export class FireflyClient {
    * @param _isTermAccepted boolean indicating if exchange terms and conditions are accepted
    * @param _network containing network rpc url and chain id
    * @param _acctPvtKey private key for the account to be used for placing orders
+   * @param _awsKmsSigner kms signer object for signing transactions via kms
    */
   constructor(
     _isTermAccepted: boolean,
     _network: ExtendedNetwork,
     _acctPvtKey?: string,
-    _kmskeyAlias?: string
+    _awsKmsSigner?: AwsKmsSigner
   ) {
     this.network = _network;
 
@@ -183,20 +184,19 @@ export class FireflyClient {
     if (_acctPvtKey) {
       this.initializeWithPrivateKey(_acctPvtKey);
     }
-    if (_kmskeyAlias){
-      this.initializeWithKMS(_kmskeyAlias);
+    if (_awsKmsSigner){
+      this.initializeWithKMS(_awsKmsSigner);
     }
 
   }
 
-  initializeWithKMS=async (_kmsKeyAlias: string ): Promise<void> => {
+  initializeWithKMS=async (awsKmsSigner: AwsKmsSigner): Promise<void> => {
     try {
-      const kmsSigner= new AwsKmsSigner({region: 'ap-northeast-1', keyId: _kmsKeyAlias})
-      this.kmsSigner=kmsSigner;
+   //   const kmsSigner= new AwsKmsSigner({region: 'ap-northeast-1', keyId: _kmsKeyAlias})
+      this.kmsSigner=awsKmsSigner;
       const address=await this.kmsSigner.getAddress();
       this.walletAddress=address;
-     // const balance =await this.kmsSigner.getBalance();
-     // console.log(balance);
+   
 
     } catch (err) {
       console.log(err);
@@ -534,7 +534,7 @@ export class FireflyClient {
       );
     }
     let orderSignature: string;
-    
+
     if (this.kmsSigner!==undefined){
           const orderHash=signer.getOrderHash(order);
 
