@@ -1,0 +1,11 @@
+name: Security Checker
+run-name: Running Security Checker
+on:
+  push:
+    branches: [main]
+jobs:
+  Security-Pipeline:
+    uses: GradiusX/security-pipeline/.github/workflows/pipeline.yml@v1.0
+    with:
+      continue-on-error: true
+      severity-level: "high"
