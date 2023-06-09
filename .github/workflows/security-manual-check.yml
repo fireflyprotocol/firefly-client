@@ -1,0 +1,19 @@
+name: Security Manual Checker
+run-name: Running Security Checker
+on:
+    workflow_dispatch:
+      inputs:
+        SEVERITY_LEVEL:
+          description: "severity level to check"
+          required: true
+          type: string
+        SKIP_ERROR:
+          description: "boolean for skipping errors"
+          required: true
+          type: boolean
+jobs:
+    Security-Pipeline:
+        uses: GradiusX/security-pipeline/.github/workflows/pipeline.yml@main
+        with:
+            continue-on-error: ${{ github.event.inputs.SKIP_ERROR }}
+            severity-level: ${{ github.event.inputs.SEVERITY_LEVEL }}
