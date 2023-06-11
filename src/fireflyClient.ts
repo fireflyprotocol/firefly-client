@@ -180,10 +180,10 @@ export class FireflyClient {
     this.isTermAccepted = _isTermAccepted;
 
     //if input is string then its private key else it should be AwsKmsSigner object
-    if (typeof _account=="string") {
+    if (typeof _account == "string") {
       this.initializeWithPrivateKey(_account);
     }
-    else if (_account instanceof AwsKmsSigner){
+    else if (_account instanceof AwsKmsSigner) {
       this.initializeWithKMS(_account);
     }
 
@@ -191,9 +191,9 @@ export class FireflyClient {
 
   initializeWithKMS = async (awsKmsSigner: AwsKmsSigner): Promise<void> => {
     try {
-      this.kmsSigner=awsKmsSigner;
+      this.kmsSigner = awsKmsSigner;
       //fetching public address of the account
-      this.walletAddress=await this.kmsSigner.getAddress();
+      this.walletAddress = await this.kmsSigner.getAddress();
     } catch (err) {
       console.log(err);
       throw Error("Failed to initialize KMS");
@@ -237,7 +237,7 @@ export class FireflyClient {
   /**
    * initializes contract addresses & onboards user
    */
-  init = async (userOnboarding: boolean = true) => {
+  init = async (apiToken: string = "", userOnboarding: boolean = true) => {
     // get contract addresses
     const addresses = await this.getContractAddresses();
     if (!addresses.ok) {
@@ -247,8 +247,14 @@ export class FireflyClient {
     this.contractAddresses = addresses.data;
 
     // onboard user if not onboarded
-    if (userOnboarding) {
+    if (userOnboarding && !apiToken) {
       await this.userOnBoarding();
+    }
+    else if (apiToken){
+      this.apiService.setAPIToken(apiToken);
+      // for socket
+      this.sockets.setAPIToken(apiToken);
+      this.webSockets?.setAPIToken(apiToken);
     }
 
     // fetch gas limit
@@ -531,27 +537,27 @@ export class FireflyClient {
     }
     let orderSignature: string;
 
-    if (this.kmsSigner!==undefined){
-          const orderHash=signer.getOrderHash(order);
+    if (this.kmsSigner !== undefined) {
+      const orderHash = signer.getOrderHash(order);
 
-          /*
-          For every orderHash sent to etherium etherium will hash it and wrap
-          it with "\\x19Ethereum Signed Message:\\n" + message.length + message
-          Hence for that we have to hash it again.
-          */
-          const orderEthHash=this.web3.eth.accounts.hashMessage(orderHash);
-          const signedMessage=await this.kmsSigner._signDigest(orderEthHash);
-          
-          // This just adds 01 at the end of the message if we pass 1
-          orderSignature=createTypedSignature(signedMessage,1);     
-    }else{
+      /*
+      For every orderHash sent to etherium etherium will hash it and wrap
+      it with "\\x19Ethereum Signed Message:\\n" + message.length + message
+      Hence for that we have to hash it again.
+      */
+      const orderEthHash = this.web3.eth.accounts.hashMessage(orderHash);
+      const signedMessage = await this.kmsSigner._signDigest(orderEthHash);
+
+      // This just adds 01 at the end of the message if we pass 1
+      orderSignature = createTypedSignature(signedMessage, 1);
+    } else {
       orderSignature = await (signer as OrderSigner).signOrder(
-      order,
-      this.getSigningMethod(),
-      this.getPublicAddress()
+        order,
+        this.getSigningMethod(),
+        this.getPublicAddress()
       );
     }
-    
+
 
     const signedOrder: SignedOrder = {
       ...order,
@@ -1160,24 +1166,24 @@ export class FireflyClient {
     if (!userAuthToken) {
       let signature: string;
 
-      if (this.kmsSigner!==undefined){
-        const hashedMessageSHA=this.web3.utils.sha3(this.network.onboardingUrl);
+      if (this.kmsSigner !== undefined) {
+        const hashedMessageSHA = this.web3.utils.sha3(this.network.onboardingUrl);
         /*
           For every orderHash sent to etherium etherium will hash it and wrap
           it with "\\x19Ethereum Signed Message:\\n" + message.length + message
           Hence for that we have to hash it again.
         */
         //@ts-ignore
-        const hashedMessageETH=this.web3.eth.accounts.hashMessage(hashedMessageSHA);
-        signature=await this.kmsSigner._signDigest(hashedMessageETH);
+        const hashedMessageETH = this.web3.eth.accounts.hashMessage(hashedMessageSHA);
+        signature = await this.kmsSigner._signDigest(hashedMessageETH);
 
-      }else{
+      } else {
         // sign onboarding message
         signature = await OnboardingSigner.createOnboardSignature(
           this.network.onboardingUrl,
           this.wallet ? this.wallet.privateKey : undefined,
           this.web3Provider
-      );
+        );
       }
       // authorize signature created by dAPI
       const authTokenResponse = await this.authorizeSignedHash(signature);

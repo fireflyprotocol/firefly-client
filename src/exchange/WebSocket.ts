@@ -25,11 +25,14 @@ export class WebSockets {
 
   private token: string;
 
+  private apiToken: string;
+
   private url: string;
 
   constructor(url: string) {
     this.url = url;
     this.token = "";
+    this.apiToken = "";
   }
 
   createDynamicUrl(dynamicUrl: string, object: any) {
@@ -120,6 +123,7 @@ export class WebSockets {
         [
           {
             e: SOCKET_EVENTS.UserUpdatesRoom,
+            rt: this.apiToken? this.apiToken: "",
             t: this.token,
           },
         ],
@@ -148,6 +152,10 @@ export class WebSockets {
     this.token = token;
   };
 
+
+  setAPIToken = async (apiToken: string) => {
+    this.apiToken = apiToken;
+  };
   // Emitted when any price bin on the oderbook is updated.
   onOrderBookUpdate = (cb: ({ orderbook }: any) => void) => {
     callbackListeners[SOCKET_EVENTS.OrderbookUpdateKey] = cb;
