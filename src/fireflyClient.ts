@@ -244,7 +244,7 @@ export class FireflyClient {
       throw Error("Failed to fetch contract addresses");
     }
 
-    this.contractAddresses = addresses.data;
+     this.contractAddresses = addresses.data;
 
     // onboard user if not onboarded
     if (userOnboarding && !apiToken) {
@@ -865,6 +865,19 @@ export class FireflyClient {
       this.networkName,
       this.getPublicAddress
     );
+  };
+
+  /**
+   * Generate and receive readOnlyToken, this can only be accessed at the time of generation
+   * @returns readOnlyToken string
+   */
+   generateReadOnlyToken = async () => {
+    const response = await this.apiService.post<string>(
+      SERVICE_URLS.USER.GENERATE_READONLY_TOKEN,
+      {},
+      { isAuthenticationRequired: true }
+    );
+    return response;
   };
 
   /**
