@@ -157,7 +157,7 @@ export class WebSockets {
     this.apiToken = apiToken;
   };
   // Emitted when any price bin on the oderbook is updated.
-  onOrderBookUpdate = (cb: ({ orderbook }: any) => void) => {
+  onOrderBookUpdate = (cb: ({ symbol, orderbook }: any) => void) => {
     callbackListeners[SOCKET_EVENTS.OrderbookUpdateKey] = cb;
   };
 
