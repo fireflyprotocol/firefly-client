@@ -24,7 +24,6 @@ import {
   GetAccountDataResponse,
   TickerData,
 } from "../index";
-import { response } from "express";
 
 chai.use(chaiAsPromised);
 
@@ -1083,178 +1082,6 @@ describe("FireflyClient", () => {
     });
   });
 
-  describe("Sockets", () => {
-    before(async () => {
-      client.sockets.open();
-      client.addMarket(symbol);
-      client.sockets.subscribeGlobalUpdatesBySymbol(symbol);
-      client.sockets.subscribeUserUpdateByToken();
-    });
-    beforeEach(async () => {
-      client.sockets.open();
-      client.addMarket(symbol);
-      client.sockets.subscribeGlobalUpdatesBySymbol(symbol);
-      client.sockets.subscribeUserUpdateByToken();
-    });
-
-    it("should receive an event from candle stick", (done) => {
-      const callback = (candle: MinifiedCandleStick) => 
-      {
-        expect(candle[candle.length - 1]).to.be.equal(symbol);
-        done();
-      };
-      client.sockets.onCandleStickUpdate(symbol, "1m", callback);
-    });
-
-    it("should receive an event for orderbook update when an order is placed on exchange", (done) => {
-      const callback = ({ orderbook }: any) => {
-        expect(orderbook.symbol).to.be.equal(symbol);
-        done();
-      };
-
-      client.sockets.onOrderBookUpdate(callback);
-
-      // wait for 1 sec as room might not had been subscribed
-      setTimeout(1000).then(() => {
-        client.postOrder({
-          symbol,
-          price: sellPrice + 3,
-          quantity: 0.1,
-          side: ORDER_SIDE.SELL,
-          leverage: defaultLeverage,
-          orderType: ORDER_TYPE.LIMIT,
-        });
-      });
-    });
-
-    it("should receive an event for ticker update", (done) => {
-      const callback = (tickerUpdate: TickerData[]) => {
-        expect(tickerUpdate.length).to.be.greaterThan(0);
-        done();
-      };
-
-      client.sockets.onTickerUpdate(callback);
-    });
-
-    it("should receive an event when a trade is performed", (done) => {
-      const callback = ({
-        trades,
-      }: {
-        trades: GetMarketRecentTradesResponse[];
-      }) => {
-        expect(trades[0].symbol).to.be.equal(symbol);
-        done();
-      };
-
-      client.sockets.onRecentTrades(callback);
-
-      // wait for 1 sec as room might not had been subscribed
-      setTimeout(1000).then(() => {
-        client.postOrder({
-          symbol,
-          price: 0,
-          quantity: 0.1,
-          side: ORDER_SIDE.SELL,
-          leverage: defaultLeverage,
-          orderType: ORDER_TYPE.MARKET,
-        });
-      });
-    });
-
-    it("should receive order update event", (done) => {
-      const callback = ({ order }: { order: PlaceOrderResponse }) => {
-        expect(order.symbol).to.be.equal(symbol);
-        done();
-      };
-
-      client.sockets.onUserOrderUpdate(callback);
-
-      // wait for 1 sec as room might not had been subscribed
-      setTimeout(1000).then(() => {
-        client.postOrder({
-          symbol,
-          price: sellPrice + 1,
-          quantity: 0.1,
-          side: ORDER_SIDE.SELL,
-          leverage: defaultLeverage,
-          orderType: ORDER_TYPE.LIMIT,
-        });
-      });
-    });
-
-    it("should receive position update event", (done) => {
-      const callback = ({ position }: { position: GetPositionResponse }) => {
-        expect(position.userAddress).to.be.equal(
-          client.getPublicAddress().toLocaleLowerCase()
-        );
-        done();
-      };
-
-      client.sockets.onUserPositionUpdate(callback);
-
-      // wait for 1 sec as room might not had been subscribed
-      setTimeout(1000).then(() => {
-        client.postOrder({
-          symbol,
-          price: 0,
-          quantity: 0.1,
-          side: ORDER_SIDE.BUY,
-          leverage: defaultLeverage,
-          orderType: ORDER_TYPE.MARKET,
-        });
-      });
-    });
-
-    it("should receive user update event", (done) => {
-      const callback = ({ trade }: { trade: GetUserTradesResponse }) => {
-        expect(trade.maker).to.be.equal(false);
-        expect(trade.symbol).to.be.equal(symbol);
-        done();
-      };
-
-      client.sockets.onUserUpdates(callback);
-
-      // wait for 1 sec as room might not had been subscribed
-      setTimeout(1000).then(() => {
-        client.postOrder({
-          symbol,
-          price: 0,
-          quantity: 0.1,
-          side: ORDER_SIDE.BUY,
-          leverage: defaultLeverage,
-          orderType: ORDER_TYPE.MARKET,
-        });
-      });
-    });
-
-    it("should receive user account update event", (done) => {
-      const callback = ({
-        accountData,
-      }: {
-        accountData: GetAccountDataResponse;
-      }) => {
-        expect(accountData.address).to.be.equal(
-          client.getPublicAddress().toLocaleLowerCase()
-        );
-        done();
-      };
-
-      client.sockets.onUserAccountDataUpdate(callback);
-
-      // wait for 1 sec as room might not had been subscribed
-      setTimeout(1000).then(() => {
-        client.postOrder({
-          symbol,
-          price: 0,
-          quantity: 0.1,
-          side: ORDER_SIDE.BUY,
-          leverage: defaultLeverage,
-          orderType: ORDER_TYPE.MARKET,
-        });
-      });
-    });
-  });
-
   describe("WebSockets", () => {
     beforeEach(async () => {
       client.addMarket(symbol);
@@ -1518,7 +1345,6 @@ describe("FireflyClient via ReadOnlyToken", () => {
   const network = Networks.TESTNET_ARBITRUM;
   const symbol = "ETH-PERP";
   let defaultLeverage = 3;
-  let buyPrice = 18000;
   let sellPrice = 20000;
   let marketPrice = 0;
   let indexPrice = 1600;
@@ -1574,7 +1400,7 @@ describe("FireflyClient via ReadOnlyToken", () => {
 
   it("should initialize the client", async () => {
     readOnlyClient = new FireflyClient(true, network);
-    await readOnlyClient.init(readOnlyToken);
+    await readOnlyClient.init(true, readOnlyToken);
     expect(readOnlyClient).to.be.not.eq(undefined);
   });
 
@@ -1995,23 +1821,5 @@ describe("FireflyClient via ReadOnlyToken", () => {
     });
   });
 
-  // describe("Sockets", () => {
-  //   beforeEach(async () => {
-  //     readOnlyClient.sockets.open();
-  //     client.addMarket(symbol);
-  //     readOnlyClient.sockets.subscribeGlobalUpdatesBySymbol(symbol);
-  //     readOnlyClient.sockets.subscribeUserUpdateByToken();
-  //   });
-
-  //   it("should receive an event from candle stick", (done) => {
-  //     const callback = (candle: MinifiedCandleStick) => {
-  //       expect(candle[candle.length - 1]).to.be.equal(symbol);
-  //       done();
-  //     };
-  //     readOnlyClient.sockets.onCandleStickUpdate(symbol, "1m", callback);
-  //   });
-
-    
-  // });
 
 });

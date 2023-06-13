@@ -237,25 +237,27 @@ export class FireflyClient {
   /**
    * initializes contract addresses & onboards user
    */
-  init = async (apiToken: string = "", userOnboarding: boolean = true) => {
+  init = async (userOnboarding: boolean = true, apiToken: string = "",) => {
     // get contract addresses
     const addresses = await this.getContractAddresses();
     if (!addresses.ok) {
       throw Error("Failed to fetch contract addresses");
     }
 
-     this.contractAddresses = addresses.data;
+    this.contractAddresses = addresses.data;
 
-    // onboard user if not onboarded
-    if (userOnboarding && !apiToken) {
-      await this.userOnBoarding();
-    }
-    else if (apiToken){
+
+    if (apiToken) {
       this.apiService.setAPIToken(apiToken);
       // for socket
       this.sockets.setAPIToken(apiToken);
       this.webSockets?.setAPIToken(apiToken);
     }
+    // onboard user if not onboarded
+    else if (userOnboarding) {
+      await this.userOnBoarding();
+    }
+
 
     // fetch gas limit
     this.maxBlockGasLimit = (await this.web3.eth.getBlock("latest")).gasLimit;
@@ -871,7 +873,7 @@ export class FireflyClient {
    * Generate and receive readOnlyToken, this can only be accessed at the time of generation
    * @returns readOnlyToken string
    */
-   generateReadOnlyToken = async () => {
+  generateReadOnlyToken = async () => {
     const response = await this.apiService.post<string>(
       SERVICE_URLS.USER.GENERATE_READONLY_TOKEN,
       {},
