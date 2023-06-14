@@ -23,13 +23,14 @@ import {
   GetUserTradesResponse,
   GetAccountDataResponse,
   TickerData,
+  OrderSettlementUpdateResponse,
 } from "../index";
 
 chai.use(chaiAsPromised);
 
 const testAcctKey =
-  "4d6c9531e0042cc8f7cf13d8c3cf77bfe239a8fed95e198d498ee1ec0b1a7e83";
-const testAcctPubAddr = "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF";
+  "ea9f97a61514fc37951f704c8927d00540a97f9c1cb9c9eadaca8f26ea8b6741";
+const testAcctPubAddr = "0x5fF52a4bA1FF9f375D8f7e683c86DcB450F6c2Db";
 
 const testSubAccKey =
   "7540d48032c731b3a17947b63a04763492d84aef854246d355a703adc9b54ce9";
@@ -40,7 +41,7 @@ let client: FireflyClient;
 describe("FireflyClient", () => {
   //* set environment from here
   const network = Networks.TESTNET_ARBITRUM;
-  const symbol = "ETH-PERP";
+  const symbol = "BTC-PERP";
   let defaultLeverage = 3;
   let buyPrice = 18000;
   let sellPrice = 20000;
@@ -1009,6 +1010,28 @@ describe("FireflyClient", () => {
       });
     });
 
+    it("should receive an sent for settlement event when trade is performed", (done) => {
+      const callback = (update: OrderSettlementUpdateResponse) => {
+        console.log(update)
+        expect(update.symbol).to.be.equal(symbol);
+        done();
+      };
+
+      client.sockets.onUserOrderSettlementUpdate(callback);
+
+      // wait for 1 sec as room might not had been subscribed
+      setTimeout(1000).then(async () => {
+        client.postOrder({
+          symbol,
+          price: 0,
+          quantity: 0.001,
+          side: ORDER_SIDE.SELL,
+          leverage: defaultLeverage,
+          orderType: ORDER_TYPE.MARKET,
+        });
+      });
+    });
+
     it("should receive position update event", (done) => {
       const callback = ({ position }: { position: GetPositionResponse }) => {
         expect(position.userAddress).to.be.equal(
@@ -1174,6 +1197,27 @@ describe("FireflyClient", () => {
           side: ORDER_SIDE.BUY,
           leverage: defaultLeverage,
           orderType: ORDER_TYPE.LIMIT,
+        });
+      });
+    });
+
+    it("WebSocket Client: should receive an sent for settlement event when trade is performed", (done) => {
+      const callback = (update: OrderSettlementUpdateResponse) => {
+        expect(update.symbol).to.be.equal(symbol);
+        done();
+      };
+
+      client.webSockets?.onUserOrderSettlementUpdate(callback);
+
+      // wait for 1 sec as room might not had been subscribed
+      setTimeout(1000).then(async () => {
+        client.postOrder({
+          symbol,
+          price: 0,
+          quantity: 0.001,
+          side: ORDER_SIDE.SELL,
+          leverage: defaultLeverage,
+          orderType: ORDER_TYPE.MARKET,
         });
       });
     });
