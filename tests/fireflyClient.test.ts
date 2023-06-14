@@ -29,8 +29,8 @@ import {
 chai.use(chaiAsPromised);
 
 const testAcctKey =
-  "ea9f97a61514fc37951f704c8927d00540a97f9c1cb9c9eadaca8f26ea8b6741";
-const testAcctPubAddr = "0x5fF52a4bA1FF9f375D8f7e683c86DcB450F6c2Db";
+  "4d6c9531e0042cc8f7cf13d8c3cf77bfe239a8fed95e198d498ee1ec0b1a7e83";
+const testAcctPubAddr = "0xFEa83f912CF21d884CDfb66640CfAB6029D940aF";
 
 const testSubAccKey =
   "7540d48032c731b3a17947b63a04763492d84aef854246d355a703adc9b54ce9";
