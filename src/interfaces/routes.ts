@@ -120,6 +120,23 @@ export interface PlaceOrderResponse extends OrderResponse {
   postOnly?: boolean;
 }
 
+export interface OrderSettlementUpdateResponse {
+  orderHash: string;
+  userAddress: string;
+  symbol: string;
+  message: string;
+  quantitySentForSettlement: string;
+  orderQuantity: string;
+}
+
+export interface OrderRequeueUpdateResponse {
+  orderHash: string;
+  userAddress: string;
+  symbol: string;
+  message: string;
+  quantitySentForRequeue: string;
+}
+
 export interface OrderCancelSignatureRequest {
   symbol: MarketSymbol;
   hashes: string[];
