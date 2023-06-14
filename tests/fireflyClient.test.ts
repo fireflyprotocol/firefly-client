@@ -1012,7 +1012,6 @@ describe("FireflyClient", () => {
 
     it("should receive an sent for settlement event when trade is performed", (done) => {
       const callback = (update: OrderSettlementUpdateResponse) => {
-        console.log(update)
         expect(update.symbol).to.be.equal(symbol);
         done();
       };
