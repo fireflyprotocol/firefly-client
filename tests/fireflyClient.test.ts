@@ -23,7 +23,7 @@ import {
   GetUserTradesResponse,
   GetAccountDataResponse,
   TickerData,
-  OrderSettlementUpdateResponse,
+  OrderSentForSettlementUpdateResponse,
 } from "../index";
 
 chai.use(chaiAsPromised);
@@ -1011,12 +1011,13 @@ describe("FireflyClient", () => {
     });
 
     it("should receive an sent for settlement event when trade is performed", (done) => {
-      const callback = (update: OrderSettlementUpdateResponse) => {
+      const callback = (update: OrderSentForSettlementUpdateResponse) => {
+        console.log(update)
         expect(update.symbol).to.be.equal(symbol);
         done();
       };
 
-      client.sockets.onUserOrderSettlementUpdate(callback);
+      client.sockets.onUserOrderSentForSettlementUpdate(callback);
 
       // wait for 1 sec as room might not had been subscribed
       setTimeout(1000).then(async () => {
@@ -1201,12 +1202,12 @@ describe("FireflyClient", () => {
     });
 
     it("WebSocket Client: should receive an sent for settlement event when trade is performed", (done) => {
-      const callback = (update: OrderSettlementUpdateResponse) => {
+      const callback = (update: OrderSentForSettlementUpdateResponse) => {
         expect(update.symbol).to.be.equal(symbol);
         done();
       };
 
-      client.webSockets?.onUserOrderSettlementUpdate(callback);
+      client.webSockets?.onUserOrderSentForSettlementUpdate(callback);
 
       // wait for 1 sec as room might not had been subscribed
       setTimeout(1000).then(async () => {

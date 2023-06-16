@@ -16,7 +16,7 @@ import {
   MarketData,
   UserSubscriptionAck,
   TickerData,
-  OrderSettlementUpdateResponse,
+  OrderSentForSettlementUpdateResponse,
   OrderRequeueUpdateResponse,
 } from "../interfaces/routes";
 
@@ -173,7 +173,7 @@ export class Sockets {
     this.socketInstance.on(SOCKET_EVENTS.OrderUpdateKey, cb);
   };
 
-  onUserOrderSettlementUpdate = (cb: (update: OrderSettlementUpdateResponse) => void) => {
+  onUserOrderSentForSettlementUpdate = (cb: (update: OrderSentForSettlementUpdateResponse) => void) => {
     this.socketInstance.on(SOCKET_EVENTS.OrderSettlementUpdate, cb);
   };
 

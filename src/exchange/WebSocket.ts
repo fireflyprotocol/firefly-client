@@ -14,7 +14,7 @@ import {
   GetAccountDataResponse,
   MarketData,
   TickerData,
-  OrderSettlementUpdateResponse,
+  OrderSentForSettlementUpdateResponse,
   OrderRequeueUpdateResponse,
 } from "../interfaces/routes";
 
@@ -203,7 +203,7 @@ export class WebSockets {
     callbackListeners[SOCKET_EVENTS.OrderUpdateKey] = cb;
   };
 
-  onUserOrderSettlementUpdate = (cb: (update: OrderSettlementUpdateResponse) => void) => {
+  onUserOrderSentForSettlementUpdate = (cb: (update: OrderSentForSettlementUpdateResponse) => void) => {
     callbackListeners[SOCKET_EVENTS.OrderSettlementUpdate] = cb;
   };
 
