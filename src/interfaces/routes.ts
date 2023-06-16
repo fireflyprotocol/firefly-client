@@ -120,7 +120,7 @@ export interface PlaceOrderResponse extends OrderResponse {
   postOnly?: boolean;
 }
 
-export interface OrderSettlementUpdateResponse {
+export interface OrderSentForSettlementUpdateResponse {
   orderHash: string;
   userAddress: string;
   symbol: string;
