@@ -23,6 +23,7 @@ import {
   GetUserTradesResponse,
   GetAccountDataResponse,
   TickerData,
+  OrderSentForSettlementUpdateResponse,
 } from "../index";
 
 chai.use(chaiAsPromised);
@@ -40,7 +41,7 @@ let client: FireflyClient;
 describe("FireflyClient", () => {
   //* set environment from here
   const network = Networks.TESTNET_ARBITRUM;
-  const symbol = "ETH-PERP";
+  const symbol = "BTC-PERP";
   let defaultLeverage = 3;
   let buyPrice = 18000;
   let sellPrice = 20000;
@@ -1009,6 +1010,27 @@ describe("FireflyClient", () => {
       });
     });
 
+    it("should receive an sent for settlement event when trade is performed", (done) => {
+      const callback = (update: OrderSentForSettlementUpdateResponse) => {
+        expect(update.symbol).to.be.equal(symbol);
+        done();
+      };
+
+      client.sockets.onUserOrderSentForSettlementUpdate(callback);
+
+      // wait for 1 sec as room might not had been subscribed
+      setTimeout(1000).then(async () => {
+        client.postOrder({
+          symbol,
+          price: 0,
+          quantity: 0.001,
+          side: ORDER_SIDE.SELL,
+          leverage: defaultLeverage,
+          orderType: ORDER_TYPE.MARKET,
+        });
+      });
+    });
+
     it("should receive position update event", (done) => {
       const callback = ({ position }: { position: GetPositionResponse }) => {
         expect(position.userAddress).to.be.equal(
@@ -1174,6 +1196,27 @@ describe("FireflyClient", () => {
           side: ORDER_SIDE.BUY,
           leverage: defaultLeverage,
           orderType: ORDER_TYPE.LIMIT,
+        });
+      });
+    });
+
+    it("WebSocket Client: should receive an sent for settlement event when trade is performed", (done) => {
+      const callback = (update: OrderSentForSettlementUpdateResponse) => {
+        expect(update.symbol).to.be.equal(symbol);
+        done();
+      };
+
+      client.webSockets?.onUserOrderSentForSettlementUpdate(callback);
+
+      // wait for 1 sec as room might not had been subscribed
+      setTimeout(1000).then(async () => {
+        client.postOrder({
+          symbol,
+          price: 0,
+          quantity: 0.001,
+          side: ORDER_SIDE.SELL,
+          leverage: defaultLeverage,
+          orderType: ORDER_TYPE.MARKET,
         });
       });
     });

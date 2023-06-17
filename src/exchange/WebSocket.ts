@@ -14,6 +14,8 @@ import {
   GetAccountDataResponse,
   MarketData,
   TickerData,
+  OrderSentForSettlementUpdateResponse,
+  OrderRequeueUpdateResponse,
 } from "../interfaces/routes";
 
 // @ts-ignore
@@ -207,6 +209,14 @@ export class WebSockets {
     cb: ({ order }: { order: PlaceOrderResponse }) => void
   ) => {
     callbackListeners[SOCKET_EVENTS.OrderUpdateKey] = cb;
+  };
+
+  onUserOrderSentForSettlementUpdate = (cb: (update: OrderSentForSettlementUpdateResponse) => void) => {
+    callbackListeners[SOCKET_EVENTS.OrderSettlementUpdate] = cb;
+  };
+
+  onUserOrderRequeueUpdate = (cb: (update: OrderRequeueUpdateResponse) => void) => {
+    callbackListeners[SOCKET_EVENTS.OrderRequeueUpdate] = cb;
   };
 
   onUserPositionUpdate = (
