@@ -1389,6 +1389,7 @@ describe("FireflyClient via ReadOnlyToken", () => {
   const symbol = "ETH-PERP";
   let defaultLeverage = 3;
   let sellPrice = 20000;
+  let buyPrice = 18000;
   let marketPrice = 0;
   let indexPrice = 1600;
   let readOnlyToken = "";
