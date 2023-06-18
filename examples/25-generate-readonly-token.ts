@@ -1,5 +1,5 @@
 /**
- * Get symbols available on testnet
+ * GenerateReadOnlyToken API
  */
 
 /* eslint-disable no-console */
