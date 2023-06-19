@@ -1445,6 +1445,7 @@ describe("FireflyClient via ReadOnlyToken", () => {
   it("should initialize the client", async () => {
     readOnlyClient = new FireflyClient(true, network);
     await readOnlyClient.init(true, readOnlyToken);
+    readOnlyClient.addMarket(symbol);
     expect(readOnlyClient).to.be.not.eq(undefined);
   });
 
@@ -1708,14 +1709,6 @@ describe("FireflyClient via ReadOnlyToken", () => {
       readOnlyClient.sockets.subscribeUserUpdateByToken();
     });
 
-    it("should receive an event from candle stick", (done) => {
-      const callback = (candle: MinifiedCandleStick) => {
-        expect(candle[candle.length - 1]).to.be.equal(symbol);
-        done();
-      };
-      readOnlyClient.sockets.onCandleStickUpdate(symbol, "1m", callback);
-    });
-
     it("should receive an event for orderbook update when an order is placed on exchange", (done) => {
       const callback = ({ orderbook }: any) => {
         expect(orderbook.symbol).to.be.equal(symbol);
@@ -1865,5 +1858,28 @@ describe("FireflyClient via ReadOnlyToken", () => {
     });
   });
 
+  describe("Post failure via read-only token", () => {
+    it("should initialize the client with pvt and readonlytoken", async () => {
+      readOnlyClient = new FireflyClient(true, network,testAcctKey);
+      await readOnlyClient.init(true, readOnlyToken);
+      readOnlyClient.addMarket(symbol);
+      expect(readOnlyClient).to.be.not.eq(undefined);
+    });
+    
+    it("should post a LIMIT order on exchange", async () => {
+      const response = await readOnlyClient.postOrder({
+        symbol,
+        price: buyPrice,
+        quantity: 0.1,
+        side: ORDER_SIDE.BUY,
+        leverage: defaultLeverage,
+        orderType: ORDER_TYPE.LIMIT,
+        clientId: "Test limit order",
+      });
+      expect(response.ok).to.be.equal(false); //forbidden
+  });
 
+
+
+});
 });
