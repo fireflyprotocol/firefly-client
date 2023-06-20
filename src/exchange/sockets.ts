@@ -185,7 +185,7 @@ export class Sockets {
   };
 
   onUserOrderSentForSettlementUpdate = (cb: (update: OrderSentForSettlementUpdateResponse) => void) => {
-    this.socketInstance.on(SOCKET_EVENTS.OrderSettlementUpdate, cb);
+    this.socketInstance.on(SOCKET_EVENTS.OrderSentForSettlementUpdate, cb);
   };
 
   onUserOrderRequeueUpdate = (cb: (update: OrderRequeueUpdateResponse) => void) => {
