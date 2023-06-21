@@ -27,9 +27,12 @@ export class Sockets {
 
   private token: string;
 
+  private apiToken: string;
+
   constructor(url: string) {
     this.url = url;
     this.token = "";
+    this.apiToken = "";
   }
 
   createDynamicUrl(dynamicUrl: string, object: any) {
@@ -85,6 +88,12 @@ export class Sockets {
     this.token = token;
   };
 
+
+  setAPIToken = async (apiToken: string) => {
+    this.apiToken = apiToken;
+  };
+
+
   subscribeUserUpdateByToken(callback?: UserSubscriptionAck): boolean {
     if (!this.socketInstance) return false;
     this.socketInstance.emit(
@@ -92,7 +101,8 @@ export class Sockets {
       [
         {
           e: SOCKET_EVENTS.UserUpdatesRoom,
-          t: this.token,
+          rt: this.apiToken ? this.apiToken : "",
+          t: this.token ? this.token : "",
         },
       ],
       (data: UserSubscriptionAck) => {
@@ -102,6 +112,7 @@ export class Sockets {
     return true;
   }
 
+  
   unsubscribeUserUpdateByToken(callback?: UserSubscriptionAck): boolean {
     if (!this.socketInstance) return false;
     this.socketInstance.emit(
@@ -120,7 +131,7 @@ export class Sockets {
   }
 
   // Emitted when any price bin on the oderbook is updated.
-  onOrderBookUpdate = (cb: ({ orderbook }: any) => void) => {
+  onOrderBookUpdate = (cb: ({ symbol, orderbook }: any) => void) => {
     this.socketInstance.on(SOCKET_EVENTS.OrderbookUpdateKey, cb);
   };
 
@@ -174,7 +185,7 @@ export class Sockets {
   };
 
   onUserOrderSentForSettlementUpdate = (cb: (update: OrderSentForSettlementUpdateResponse) => void) => {
-    this.socketInstance.on(SOCKET_EVENTS.OrderSettlementUpdate, cb);
+    this.socketInstance.on(SOCKET_EVENTS.OrderSentForSettlementUpdate, cb);
   };
 
   onUserOrderRequeueUpdate = (cb: (update: OrderRequeueUpdateResponse) => void) => {

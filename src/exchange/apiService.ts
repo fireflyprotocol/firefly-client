@@ -8,6 +8,8 @@ export class APIService {
 
   private token: string | undefined = undefined;
 
+  private apiToken: string | undefined = undefined;
+
   private walletAddress: string | undefined = undefined;
 
   private baseUrl: string | undefined = undefined;
@@ -28,7 +30,7 @@ export class APIService {
     config?: AxiosRequestConfig & { isAuthenticationRequired?: boolean },
     baseUrl?: string
   ) {
-    if(!baseUrl)
+    if (!baseUrl)
       baseUrl = this.baseUrl
     url = baseUrl + url
     const response = await this.apiService.get(url, {
@@ -48,7 +50,7 @@ export class APIService {
     baseUrl?: string
   ) {
 
-    if(!baseUrl)
+    if (!baseUrl)
       baseUrl = this.baseUrl
     url = baseUrl + url
     const response = await this.apiService.post(url, data, {
@@ -66,7 +68,7 @@ export class APIService {
     config?: AxiosRequestConfig & { isAuthenticationRequired?: boolean },
     baseUrl?: string
   ) {
-    if(!baseUrl)
+    if (!baseUrl)
       baseUrl = this.baseUrl
     url = baseUrl + url
     const response = await this.apiService.put(url, data, {
@@ -84,7 +86,7 @@ export class APIService {
     config?: AxiosRequestConfig & { isAuthenticationRequired?: boolean },
     baseUrl?: string
   ) {
-    if(!baseUrl)
+    if (!baseUrl)
       baseUrl = this.baseUrl
     url = baseUrl + url
     const response = await this.apiService.patch(url, data, {
@@ -102,7 +104,7 @@ export class APIService {
     config?: AxiosRequestConfig & { isAuthenticationRequired?: boolean },
     baseUrl?: string
   ) {
-    if(!baseUrl)
+    if (!baseUrl)
       baseUrl = this.baseUrl
     url = baseUrl + url
     const response = await this.apiService.delete(url, {
@@ -119,6 +121,10 @@ export class APIService {
     this.token = token;
   };
 
+  setAPIToken = async (apiToken: string) => {
+    this.apiToken = apiToken;
+  };
+
   setWalletAddress = async (address: string) => {
     this.walletAddress = address;
   };
@@ -127,7 +133,14 @@ export class APIService {
   //= ==============================================================//
 
   private transformRequest = (data: any, headers?: any) => {
-    headers.Authorization = `Bearer ${this.token}`;
+    if (this.apiToken) {
+      headers["x-api-token"] = this.apiToken;
+
+    }
+    else {
+      headers.Authorization = `Bearer ${this.token}`;
+    }
+
     headers["x-wallet-address"] = this.walletAddress || "";
     return JSON.stringify(data);
   };
