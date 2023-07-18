@@ -1878,8 +1878,44 @@ describe("FireflyClient via ReadOnlyToken", () => {
       });
       expect(response.ok).to.be.equal(false); //forbidden
   });
+});
 
+describe("Post And Delete Order v2 routes", () => {
 
+  it("should post a LIMIT order on exchange with v2 route", async () => {
+    const response = await client.postOrderV2({
+      symbol,
+      price: buyPrice,
+      quantity: 0.1,
+      side: ORDER_SIDE.BUY,
+      leverage: defaultLeverage,
+      orderType: ORDER_TYPE.LIMIT,
+      clientId: "Test limit order",
+    });
+
+    expect(response.ok).to.be.equal(true);
+  });
+
+  it("should post a cancel order on exchange with v2 route", async () => {
+    const response = await client.postOrderV2({
+      symbol,
+      price: sellPrice + 2,
+      quantity: 0.1,
+      side: ORDER_SIDE.SELL,
+      leverage: defaultLeverage,
+      orderType: ORDER_TYPE.LIMIT,
+    });
+    expect(response.ok).to.be.equal(true);
+
+    // wait for 1 sec as room might not had been subscribed
+    setTimeout(1000).then(() => {
+      client.postCancelOrderV2({
+        symbol,
+        hashes: [response?.data?.hash as string],
+      });
+    });
+    
+  });
 
 });
 });
