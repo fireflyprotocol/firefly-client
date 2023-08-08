@@ -7,10 +7,12 @@ import {
   Networks,
   FireflyClient,
   MARKET_SYMBOLS,
+  GetOrderBookResponse,
   ORDER_SIDE,
-  PlaceOrderResponse,
   ORDER_TYPE,
+  PlaceOrderResponse
 } from "../index";
+
 
 async function main() {
   // no gas fee is required to create order signature.
@@ -20,27 +22,37 @@ async function main() {
   const client = new FireflyClient(true, Networks.TESTNET_ARBITRUM, dummyAccountKey); // passing isTermAccepted = true for compliance and authorizarion
   await client.init();
 
-  client.addMarket(MARKET_SYMBOLS.DOT);
+  client.addMarket(MARKET_SYMBOLS.ETH);
+  function connection_callback() {
+    console.log("Sockets connected");
+    // start listening to global market and local user events
+    client.sockets.subscribeGlobalUpdatesBySymbol(MARKET_SYMBOLS.ETH);
+    client.sockets.subscribeUserUpdateByToken();
+  }
+
+  function disconnection_callback() {
+    console.log("Sockets disconnected");
+    
+  }
 
   // create socket connection
-  client.sockets.open();
-
-  // start listening to global market and local user events
-  client.sockets.subscribeGlobalUpdatesBySymbol(MARKET_SYMBOLS.DOT);
-  client.sockets.subscribeUserUpdateByToken();
-
-  const callback = ({ order }: { order: PlaceOrderResponse }) => {
+  client.sockets.open(connection_callback,disconnection_callback);
+  const callbackOrderUpdates = ({ order }: { order: PlaceOrderResponse }) => {
     console.log(order);
 
+  };
+  const callbackOrderBookUpdates = ({ orderbook }: { orderbook: GetOrderBookResponse }) => {
+    console.log(orderbook);
     // kill sockets in order to stop script
     client.sockets.close();
   };
 
-  client.sockets.onUserOrderUpdate(callback);
+  client.sockets.onUserOrderUpdate(callbackOrderUpdates);
+  client.sockets.onOrderBookUpdate(callbackOrderBookUpdates);
 
   // post a market order
   await client.postOrder({
-    symbol: MARKET_SYMBOLS.DOT,
+    symbol: MARKET_SYMBOLS.ETH,
     price: 0,
     quantity: 0.5,
     side: ORDER_SIDE.BUY,

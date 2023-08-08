@@ -41,10 +41,13 @@ export class Sockets {
   /**
    * opens socket instance connection
    */
-  open() {
+  open(cbconnect?: any, cbDisconnect?:any) {
     this.socketInstance = io(this.url, {
       transports: ["websocket"],
     });
+
+    this.onConnect(cbconnect?cbconnect: null);
+    this.onDisconnect(cbDisconnect?cbDisconnect: null);
   }
 
   /**
@@ -118,7 +121,7 @@ export class Sockets {
   }
 
   // Emitted when any price bin on the oderbook is updated.
-  onOrderBookUpdate = (cb: ({ orderbook }: any) => void) => {
+  onOrderBookUpdate = (cb: ({ symbol, orderbook }: any) => void) => {
     this.socketInstance.on(SOCKET_EVENTS.OrderbookUpdateKey, cb);
   };
 
@@ -188,4 +191,33 @@ export class Sockets {
   ) => {
     this.socketInstance.on(SOCKET_EVENTS.AccountDataUpdateKey, cb);
   };
+
+  onConnect = (
+    cb?: () => void
+  ) => {
+    this.socketInstance.on('connect', () => {
+      console.log('Connected To Socket Server');
+
+      if (cb) {
+        setTimeout(async () => {
+          await cb();
+        }, 10000);
+      }
+    });
+  }
+  
+  onDisconnect = (
+    cb?: () => void
+  ) => {
+    this.socketInstance.on('disconnect', () => {
+      console.log('Disconnected From Socket Server');
+
+      if (cb) {
+        setTimeout(async () => {
+          await cb();
+        }, 10000);
+      }
+    });
+  }
+  
 }
