@@ -41,12 +41,12 @@ export class Sockets {
   /**
    * opens socket instance connection
    */
-  open(cbconnect?: any, cbDisconnect?:any) {
+  open(cbConnect?: any, cbDisconnect?:any) {
     this.socketInstance = io(this.url, {
       transports: ["websocket"],
     });
 
-    this.onConnect(cbconnect?cbconnect: null);
+    this.onConnect(cbConnect?cbConnect: null);
     this.onDisconnect(cbDisconnect?cbDisconnect: null);
   }
 
