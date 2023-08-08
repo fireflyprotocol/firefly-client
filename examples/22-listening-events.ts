@@ -34,19 +34,19 @@ async function main() {
 
   const disconnection_callback = () => {
     console.log("Sockets disconnected");
-    
+
   }
 
   // create socket connection
-  client.sockets.open(connection_callback,disconnection_callback);
+  client.sockets.open(connection_callback, disconnection_callback);
   const callbackOrderUpdates = ({ order }: { order: PlaceOrderResponse }) => {
     console.log(order);
+    // kill sockets in order to stop script
+    client.sockets.close();
 
   };
   const callbackOrderBookUpdates = ({ orderbook }: { orderbook: GetOrderBookResponse }) => {
     console.log(orderbook);
-    // kill sockets in order to stop script
-    client.sockets.close();
   };
 
   client.sockets.onUserOrderUpdate(callbackOrderUpdates);
