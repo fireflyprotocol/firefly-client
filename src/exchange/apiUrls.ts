@@ -28,6 +28,21 @@ export const SERVICE_URLS = {
     FUNDING_HISTORY: "/userFundingHistory",
     CANCEL_ON_DISCONNECT: "/dms-countdown"
   },
+  GROWTH: {
+    REFERRER_INFO: "/growth/getReferrerInfo",
+    CAMPAIGN_DETAILS: "/growth/campaignDetails",
+    CAMPAIGN_REWARDS: "/growth/campaignRewards",
+    AFFILIATE_PAYOUTS: "/growth/affiliate/payouts",
+    AFFILIATE_REFEREE_DETAILS: "/growth/affiliate/refereeDetails",
+    AFFILIATE_REFEREES_COUNT: "/growth/affiliate/refereesCount",
+    USER_REWARDS_HISTORY: "/growth/userRewards/history",
+    USER_REWARDS_SUMMARY: "/growth/userRewards/summary",
+    REWARDS_OVERVIEW: "/growth/tradeAndEarn/rewardsOverview",
+    REWARDS_DETAILS: "/growth/tradeAndEarn/rewardsDetail",
+    TOTAL_HISTORICAL_TRADING_REWARDS: "/growth/tradeAndEarn/totalHistoricalTradingRewards",
+    MAKER_REWARDS_SUMMARY: "/growth/marketMaker/maker-rewards-summary",
+    MAKER_REWARDS_DETAILS: "/growth/marketMaker/maker-rewards-detail"
+  },
   ORDERS: {
     ORDERS: "/orders",
     ORDERS_HASH: "/orders/hash",

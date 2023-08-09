@@ -500,3 +500,188 @@ export interface GetCountDownsResponse {
   countDowns: CountDown[];
   timestamp: number;
 }
+export interface GetReferrerInfoResponse {
+  isReferee: boolean;
+}
+export interface GetCampaignDetailsResponse {
+  id: number;
+  campaignName: string;
+  parentCampaignName?: string;
+  startDate: string;
+  endDate: string;
+  isActive: boolean;
+  epochDurationSeconds: number;
+  config: {
+    cashShare: string;
+    tokenShare: string;
+    shareOfFees: string;
+    refereeDiscount: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GetCampaignRewardsResponse {
+  campaignName: string;
+  campaignConfig: {
+    r: string;
+    excludedAccounts: string[];
+  };
+  cashReward: string;
+  tokenReward: string;
+}
+
+export interface GetAffiliatePayoutsResponse {
+  epStartDate: string;
+  epEndDate: string;
+  isActive: boolean;
+  totalReferralFees: string;
+  cashReward: string;
+  tokenReward: string;
+  epochNumber: string;
+}
+
+export interface GetAffiliateRefereeDetailsRequest {
+  campaignId: number;
+  pageNumber?: number;
+  pageSize?: number;
+}
+export interface GetAffiliateRefereeDetailsResponse {
+  data: AffiliateRefereeDetailsData[];
+  nextCursor: number;
+  isMoreDataAvailable: boolean;
+}
+interface AffiliateRefereeDetailsData {
+  userAddress: string;
+  lastTraded?: string;
+  dateJoined: string;
+  feesPaid: string;
+}
+
+export interface GetAffiliateRefereeCountResponse {
+  referralCode: string;
+  referralCount: number;
+}
+
+export interface GetUserRewardsHistoryRequest {
+  pageSize?: number
+  cursor?: number
+}
+export interface GetUserRewardsHistoryResponse {
+  data: UserRewardsHistoryData[];
+  nextCursor: number;
+  isMoreDataAvailable: boolean;
+}
+interface UserRewardsHistoryData {
+  programName: string;
+  parentProgramName?: string;
+  startDate: string;
+  endDate: string;
+  cashReward: string;
+  tokenReward: string;
+  isActive: boolean;
+  cursor: string;
+  epochNumber: string;
+}
+
+export interface GetUserRewardsSummaryResponse {
+  totalTokenReward: string;
+  totalCashReward: string;
+  campaignData: RewardsSummaryData[];
+}
+interface RewardsSummaryData {
+  campaignName: string;
+  totalCashReward: string;
+  totalTokenReward: string;
+}
+
+export interface GetTradeAndEarnRewardsOverviewResponse {
+  totalHistoricalRewards: string;
+  totalActiveRewards: string;
+  totalFeePaid: string;
+  latestEpochNumber: string;
+  latestEpochStart: number;
+  latestEpochEnd: number;
+  latestEpochTotalFee: string;
+  latestEpochTotalRewards: string;
+}
+
+export interface GetTradeAndEarnRewardsDetailRequest {
+  campaignId: number;
+  pageSize?: number
+  cursor?: number
+}
+
+export interface GetTradeAndEarnRewardsDetailResponse {
+  data: TradeAndEarnRewardsDetailData[];
+  nextCursor: string;
+  isMoreDataAvailable: boolean;
+}
+interface TradeAndEarnRewardsDetailData {
+  tradingRewards: string;
+  feePaid: string;
+  cursor: string;
+  id: number;
+  isActive: boolean;
+  startDate: string;
+  endDate: string;
+  epochNumber: string;
+}
+
+export interface GetTotalHistoricalTradingRewardsResponse{
+  totalTokenRewards: string;
+}
+
+export interface GetMakerRewardsSummaryResponse {
+  totalHistoricalRewardsBlue: string;
+  activeEpochRewardsBlue: string;
+  pendingEpochRewardsBlue: string
+  activeEpochNumber: number;
+  activeEpochStart: number;
+  activeEpochEnd: number;
+}
+export interface GetMakerRewardDetailsRequest {
+  symbol?: string;
+  pageSize?: number
+  cursor?: number
+}
+
+export interface GetMakerRewardDetailsResponse {
+  data: MakerRewardDetailsData[];
+  nextCursor: number;
+  isMoreDataAvailable: boolean;
+}
+interface MakerRewardDetailsData {
+  markets: MakerRewardDetailsMarket[],
+  cursor: string
+}
+interface MakerRewardDetailsMarket {
+  marketName: string;
+  epochs: MakerRewardDetailsEpoch[]
+}
+interface MakerRewardDetailsEpoch {
+  epochNumber: number;
+  status: string;
+  makerVolume: number;
+  liquidityScore: number;
+  uptime: number;
+  percentOfRewardPool: number;
+  makerRewards: number;
+  latestEpochStart: number;
+  latestEpochEnd: number;
+}
+export interface GenerateReferralCodeResponse {
+  referralAddress: string;
+  referralCode: string;
+  message?: string;
+}
+export interface LinkReferredUserResponse {
+  referralCode: string;
+  refereeAddress: string;
+  campaignId: number;
+  message?: string;
+}
+
+export interface WhitelistMarketMakerResponse {
+  successCount: number
+}
