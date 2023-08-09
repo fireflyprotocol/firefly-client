@@ -40,6 +40,8 @@ import {
   AuthorizeHashResponse,
   CancelOrderResponse,
   ExchangeInfo,
+  GenerateReferralCodeRequest,
+  GenerateReferralCodeResponse,
   GetAccountDataResponse,
   GetAffiliatePayoutsResponse,
   GetAffiliateRefereeCountResponse,
@@ -76,6 +78,8 @@ import {
   GetUserTradesResponse,
   GetUserTransactionHistoryResponse,
   GetUserTransferHistoryResponse,
+  LinkReferredUserRequest,
+  LinkReferredUserResponse,
   MarketData,
   MarketMeta,
   MasterInfo,
@@ -1360,6 +1364,34 @@ export class FireflyClient {
     });
     return response;
   };
+
+  /**
+   * Generates referral code
+   * @param params GenerateReferralCodeRequest
+   * @returns GenerateReferralCodeResponse
+   */
+  generateReferralCode = async (params: GenerateReferralCodeRequest) => {
+    const response = await this.apiService.post<GenerateReferralCodeResponse>(
+      SERVICE_URLS.GROWTH.GENERATE_CODE,
+      params,
+      { isAuthenticationRequired: true }
+    );
+    return response;
+  }
+
+  /**
+   * Links referred user
+   * @param params LinkReferredUserRequest
+   * @returns LinkReferredUserResponse
+   */
+  linkReferredUser = async (params: LinkReferredUserRequest) => {
+    const response = await this.apiService.post<LinkReferredUserResponse>(
+      SERVICE_URLS.GROWTH.LINK_REFERRED_USER,
+      params,
+      { isAuthenticationRequired: true }
+    );
+    return response;
+  }
 
   /**
    * Gets referrer Info

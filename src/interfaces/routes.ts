@@ -670,18 +670,24 @@ interface MakerRewardDetailsEpoch {
   latestEpochStart: number;
   latestEpochEnd: number;
 }
+
+export interface GenerateReferralCodeRequest {
+  referralCode: string;
+  campaignId: number;
+}
 export interface GenerateReferralCodeResponse {
   referralAddress: string;
   referralCode: string;
   message?: string;
+}
+
+export interface LinkReferredUserRequest {
+  referralCode: string;
+  campaignId: number;
 }
 export interface LinkReferredUserResponse {
   referralCode: string;
   refereeAddress: string;
   campaignId: number;
   message?: string;
-}
-
-export interface WhitelistMarketMakerResponse {
-  successCount: number
 }

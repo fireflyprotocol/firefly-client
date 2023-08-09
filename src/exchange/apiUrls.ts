@@ -41,7 +41,9 @@ export const SERVICE_URLS = {
     REWARDS_DETAILS: "/growth/tradeAndEarn/rewardsDetail",
     TOTAL_HISTORICAL_TRADING_REWARDS: "/growth/tradeAndEarn/totalHistoricalTradingRewards",
     MAKER_REWARDS_SUMMARY: "/growth/marketMaker/maker-rewards-summary",
-    MAKER_REWARDS_DETAILS: "/growth/marketMaker/maker-rewards-detail"
+    MAKER_REWARDS_DETAILS: "/growth/marketMaker/maker-rewards-detail",
+    GENERATE_CODE: "/growth/generateCode",
+    LINK_REFERRED_USER: "/growth/linkReferredUser"
   },
   ORDERS: {
     ORDERS: "/orders",

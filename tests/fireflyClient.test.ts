@@ -53,31 +53,31 @@ describe("FireflyClient", () => {
     await client.init();
     // TODO! uncomment when done testing specifically on BTC-PERP
     // const allSymbols = await client.getMarketSymbols();
-    // get first symbol to run tests on
+    // //get first symbol to run tests on
     // if (allSymbols.data) {
     //   symbol = allSymbols.data[0];
     // }
     // TODO! uncomment above code when done testing specifically on BTC-PERP
 
-    // console.log(`--- Trading symbol: ${symbol} ---`);
+    console.log(`--- Trading symbol: ${symbol} ---`);
 
-    // // get default leverage
-    // defaultLeverage = await client.getUserDefaultLeverage(symbol);
-    // console.log(`- on leverage: ${defaultLeverage}`);
+    // get default leverage
+    defaultLeverage = await client.getUserDefaultLeverage(symbol);
+    console.log(`- on leverage: ${defaultLeverage}`);
 
-    // // market data
-    // const marketData = await client.getMarketData(symbol);
-    // if (marketData.data && bnStrToBaseNumber(marketData.data.marketPrice) > 0) {
-    //   marketPrice = bnStrToBaseNumber(marketData.data.marketPrice);
-    //   indexPrice = bnStrToBaseNumber(marketData.data.indexPrice || "0");
-    //   const percentChange = 3 / 100; // 3%
-    //   buyPrice = Number((marketPrice - marketPrice * percentChange).toFixed(0));
-    //   sellPrice = Number(
-    //     (marketPrice + marketPrice * percentChange).toFixed(0)
-    //   );
-    //   console.log(`- market price: ${marketPrice}`);
-    //   console.log(`- index price: ${indexPrice}`);
-    // }
+    // market data
+    const marketData = await client.getMarketData(symbol);
+    if (marketData.data && bnStrToBaseNumber(marketData.data.marketPrice) > 0) {
+      marketPrice = bnStrToBaseNumber(marketData.data.marketPrice);
+      indexPrice = bnStrToBaseNumber(marketData.data.indexPrice || "0");
+      const percentChange = 3 / 100; // 3%
+      buyPrice = Number((marketPrice - marketPrice * percentChange).toFixed(0));
+      sellPrice = Number(
+        (marketPrice + marketPrice * percentChange).toFixed(0)
+      );
+      console.log(`- market price: ${marketPrice}`);
+      console.log(`- index price: ${indexPrice}`);
+    }
   });
 
   beforeEach(async () => {
@@ -841,60 +841,74 @@ describe("FireflyClient", () => {
   });
 
   describe("Growth Routes",async () => {
-    describe.only("Test with Bearer token", async () => {
-      it("should get referrer info", async () => {
-        const response = await client.getReferrerInfo(2);
-        expect(response.ok).to.be.equal(true);
+    it("should not generate referral code for non affiliated user", async () => {
+      const response = await client.generateReferralCode({
+        referralCode: "testReferCode",
+        campaignId: 2
       });
-      it("should get campaign details", async () => {
-        const response = await client.getCampaignDetails();
-        expect(response.ok).to.be.equal(true);
+      expect(response.ok).to.be.equal(false);
+      expect(((response?.data) as any).error?.code).to.be.equal(3078)
+    });
+    it("should not link referred user when given incorrect refer code", async () => {
+      const response = await client.linkReferredUser({
+        referralCode: "testReferCode",
+        campaignId: 2
       });
-      it("should get campaign rewards", async () => {
-        const response = await client.getCampaignRewards(3);
-        expect(response.ok).to.be.equal(true);
+      expect(response.ok).to.be.equal(false);
+      expect(((response?.data) as any).error?.code).to.be.equal(9000)
+    });
+    it("should get referrer info", async () => {
+      const response = await client.getReferrerInfo(2);
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should get campaign details", async () => {
+      const response = await client.getCampaignDetails();
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should get campaign rewards", async () => {
+      const response = await client.getCampaignRewards(3);
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should get user rewards history", async () => {
+      const response = await client.getUserRewardsHistory();
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should get user rewards summary", async () => {
+      const response = await client.getUserRewardsSummary();
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should get trade & earn rewards overview", async () => {
+      const response = await client.getTradeAndEarnRewardsOverview(2);
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should get trade & earn rewards details", async () => {
+      const response = await client.getTradeAndEarnRewardsDetail({
+        campaignId: 3
       });
-      it("should get user rewards history", async () => {
-        const response = await client.getUserRewardsHistory();
-        expect(response.ok).to.be.equal(true);
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should get trade & earn historical rewards total", async () => {
+      const response = await client.getTotalHistoricalTradingRewards();
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should not get affiliate payouts when user is not an affiliate", async () => {
+      const response = await client.getAffiliatePayouts(1);
+      expect(response.ok).to.be.equal(false);
+      expect(((response?.data) as any).error?.code).to.be.equal(3078)
+    });
+    it("should not get affiliate referee details when user is not an affiliate", async () => {
+      const response = await client.getAffiliateRefereeDetails({
+        campaignId: 2
       });
-      it("should get user rewards summary", async () => {
-        const response = await client.getUserRewardsSummary();
-        expect(response.ok).to.be.equal(true);
-      });
-      it("should get trade & earn rewards overview", async () => {
-        const response = await client.getTradeAndEarnRewardsOverview(2);
-        expect(response.ok).to.be.equal(true);
-      });
-      it("should get trade & earn rewards details", async () => {
-        const response = await client.getTradeAndEarnRewardsDetail({
-          campaignId: 3
-        });
-        expect(response.ok).to.be.equal(true);
-      });
-      it("should get trade & earn historical rewards total", async () => {
-        const response = await client.getTotalHistoricalTradingRewards();
-        expect(response.ok).to.be.equal(true);
-      });
-      it("should not get affiliate payouts when user is not an affiliate", async () => {
-        const response = await client.getAffiliatePayouts(1);
-        expect(response.ok).to.be.equal(false);
-        expect(((response?.data) as any).error?.code).to.be.equal(3078)
-      });
-      it("should not get affiliate referee details when user is not an affiliate", async () => {
-        const response = await client.getAffiliateRefereeDetails({
-          campaignId: 2
-        });
-        expect(response.ok).to.be.equal(false);
-        expect(((response?.data) as any).error?.code).to.be.equal(3078)
-      });
-      it("should not get affiliate count when user is not an affiliate", async () => {
-        const response = await client.getAffiliateRefereeCount(2);
-        expect(response.ok).to.be.equal(false);
-        expect(((response?.data) as any).error?.code).to.be.equal(3078)
-      });
-    })
-  })
+      expect(response.ok).to.be.equal(false);
+      expect(((response?.data) as any).error?.code).to.be.equal(3078)
+    });
+    it("should not get affiliate count when user is not an affiliate", async () => {
+      const response = await client.getAffiliateRefereeCount(2);
+      expect(response.ok).to.be.equal(false);
+      expect(((response?.data) as any).error?.code).to.be.equal(3078)
+    });
+  });
 
   it("should get contract address", async () => {
     const response = await client.getContractAddresses();
@@ -1690,6 +1704,76 @@ describe("FireflyClient via ReadOnlyToken", () => {
         action: "Withdraw",
       });
       expect(response.ok).to.be.equal(true);
+    });
+  });
+
+  describe("Growth Routes",async () => {
+    it("should not allow generate referral code on readOnlyToken", async () => {
+      const response = await client.generateReferralCode({
+        referralCode: "testReferCode",
+        campaignId: 2
+      });
+      expect(response.ok).to.be.equal(false);
+      expect(((response?.data) as any).error?.code).to.be.equal(3078)
+    });
+    it("should not allow link referred user on readOnlyToken", async () => {
+      const response = await client.linkReferredUser({
+        referralCode: "testReferCode",
+        campaignId: 2
+      });
+      expect(response.ok).to.be.equal(false);
+      expect(((response?.data) as any).error?.code).to.be.equal(9000)
+    });
+    it("should get referrer info", async () => {
+      const response = await client.getReferrerInfo(2);
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should get campaign details", async () => {
+      const response = await client.getCampaignDetails();
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should get campaign rewards", async () => {
+      const response = await client.getCampaignRewards(3);
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should get user rewards history", async () => {
+      const response = await client.getUserRewardsHistory();
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should get user rewards summary", async () => {
+      const response = await client.getUserRewardsSummary();
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should get trade & earn rewards overview", async () => {
+      const response = await client.getTradeAndEarnRewardsOverview(2);
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should get trade & earn rewards details", async () => {
+      const response = await client.getTradeAndEarnRewardsDetail({
+        campaignId: 3
+      });
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should get trade & earn historical rewards total", async () => {
+      const response = await client.getTotalHistoricalTradingRewards();
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should not get affiliate payouts when user is not an affiliate", async () => {
+      const response = await client.getAffiliatePayouts(1);
+      expect(response.ok).to.be.equal(false);
+      expect(((response?.data) as any).error?.code).to.be.equal(3078)
+    });
+    it("should not get affiliate referee details when user is not an affiliate", async () => {
+      const response = await client.getAffiliateRefereeDetails({
+        campaignId: 2
+      });
+      expect(response.ok).to.be.equal(false);
+      expect(((response?.data) as any).error?.code).to.be.equal(3078)
+    });
+    it("should not get affiliate count when user is not an affiliate", async () => {
+      const response = await client.getAffiliateRefereeCount(2);
+      expect(response.ok).to.be.equal(false);
+      expect(((response?.data) as any).error?.code).to.be.equal(3078)
     });
   });
 
