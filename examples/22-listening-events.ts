@@ -8,9 +8,9 @@ import {
   FireflyClient,
   MARKET_SYMBOLS,
   GetOrderBookResponse,
+  PlaceOrderResponse,
   ORDER_SIDE,
-  ORDER_TYPE,
-  PlaceOrderResponse
+  ORDER_TYPE
 } from "../index";
 
 
@@ -19,7 +19,7 @@ async function main() {
   const dummyAccountKey =
     "a182091b4d5a090b65d604e36f68629a692e3bf2aa864bd3f037854034cdd676";
 
-  const client = new FireflyClient(true, Networks.TESTNET_ARBITRUM, dummyAccountKey); // passing isTermAccepted = true for compliance and authorizarion
+  const client = new FireflyClient(true, Networks.PRODUCTION_ARBITRUM, dummyAccountKey); // passing isTermAccepted = true for compliance and authorizarion
   await client.init();
 
   client.addMarket(MARKET_SYMBOLS.ETH);
@@ -34,23 +34,34 @@ async function main() {
 
   const disconnection_callback = () => {
     console.log("Sockets disconnected");
+    client.cancelAllOpenOrders(MARKET_SYMBOLS.ETH);
 
   }
 
+  // adding listeners
+  await client.sockets.listen("connect",connection_callback);
+  await client.sockets.listen("disconnect",disconnection_callback);
+
   // create socket connection
-  client.sockets.open(connection_callback, disconnection_callback);
+  client.sockets.open();
   const callbackOrderUpdates = ({ order }: { order: PlaceOrderResponse }) => {
-    console.log(order);
+    console.log("OrderUpdate:", order);
     // kill sockets in order to stop script
     client.sockets.close();
 
   };
   const callbackOrderBookUpdates = ({ orderbook }: { orderbook: GetOrderBookResponse }) => {
-    console.log(orderbook);
+    console.log("OrderbookState:", orderbook);
   };
+
+  const callbackExchangeHealth = ({ isAlive }: { isAlive: boolean }) => {
+    console.log("Exchange Health:", isAlive);
+  };
+
 
   client.sockets.onUserOrderUpdate(callbackOrderUpdates);
   client.sockets.onOrderBookUpdate(callbackOrderBookUpdates);
+  client.sockets.onExchangeHealthChange(callbackExchangeHealth);
 
   // post a market order
   await client.postOrder({

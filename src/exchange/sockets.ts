@@ -18,12 +18,18 @@ import {
   TickerData,
 } from "../interfaces/routes";
 
+interface Callbacks {
+  [event: string]: Function;
+}
+
 export class Sockets {
   private socketInstance!: Socket;
 
   private url: string;
 
   private token: string;
+
+  static callbacks: Callbacks = {};
 
   constructor(url: string) {
     this.url = url;
@@ -39,15 +45,22 @@ export class Sockets {
   }
 
   /**
+     * Assigns callbacks to desired events
+     */
+  async listen(event: string, callback: Function): Promise<void> {
+    Sockets.callbacks[event] = callback;
+  }
+
+  /**
    * opens socket instance connection
    */
-  open(cbConnect?: any, cbDisconnect?:any) {
+  open() {
     this.socketInstance = io(this.url, {
       transports: ["websocket"],
     });
 
-    this.onConnect(cbConnect?cbConnect: null);
-    this.onDisconnect(cbDisconnect?cbDisconnect: null);
+    this.onConnect();
+    this.onDisconnect();
   }
 
   /**
@@ -192,32 +205,32 @@ export class Sockets {
     this.socketInstance.on(SOCKET_EVENTS.AccountDataUpdateKey, cb);
   };
 
-  onConnect = (
-    cb?: () => void
-  ) => {
-    this.socketInstance.on('connect', () => {
-      console.log('Connected To Socket Server');
 
-      if (cb) {
-        setTimeout(async () => {
-          await cb();
-        }, 10000);
-      }
-    });
-  }
-  
-  onDisconnect = (
-    cb?: () => void
-  ) => {
-    this.socketInstance.on('disconnect', () => {
+  async onDisconnect(): Promise<void> {
+    this.socketInstance.on("disconnect", async () => {
       console.log('Disconnected From Socket Server');
+      if ('disconnect' in Sockets.callbacks && typeof Sockets.callbacks['disconnect'] === 'function') {
+        await Sockets.callbacks['disconnect']();
+      }
+    });
 
-      if (cb) {
+  }
+
+  async onConnect(): Promise<void> {
+
+
+    this.socketInstance.on("connect", async () => {
+      console.log('Connected To Socket Server');
+      if ('connect' in Sockets.callbacks && typeof Sockets.callbacks['connect'] === 'function') {
+        // Add 10 seconds sleep using setTimeout
         setTimeout(async () => {
-          await cb();
+          await Sockets.callbacks['connect']();;
         }, 10000);
       }
     });
+
+
   }
-  
 }
+
+
