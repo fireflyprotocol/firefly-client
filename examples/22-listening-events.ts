@@ -25,16 +25,16 @@ async function main() {
   client.addMarket(MARKET_SYMBOLS.ETH);
 
 
-  const connection_callback = () => {
+  const connection_callback = async () => {
     console.log("Sockets connected");
     // start listening to global market and local user events
     client.sockets.subscribeGlobalUpdatesBySymbol(MARKET_SYMBOLS.ETH);
     client.sockets.subscribeUserUpdateByToken();
   }
 
-  const disconnection_callback = () => {
+  const disconnection_callback = async () => {
     console.log("Sockets disconnected");
-    client.cancelAllOpenOrders(MARKET_SYMBOLS.ETH);
+    await client.cancelAllOpenOrders(MARKET_SYMBOLS.ETH);
 
   }
 
