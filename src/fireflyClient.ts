@@ -180,10 +180,10 @@ export class FireflyClient {
     this.isTermAccepted = _isTermAccepted;
 
     //if input is string then its private key else it should be AwsKmsSigner object
-    if (typeof _account=="string") {
+    if (typeof _account == "string") {
       this.initializeWithPrivateKey(_account);
     }
-    else if (_account instanceof AwsKmsSigner){
+    else if (_account instanceof AwsKmsSigner) {
       this.initializeWithKMS(_account);
     }
 
@@ -191,9 +191,9 @@ export class FireflyClient {
 
   initializeWithKMS = async (awsKmsSigner: AwsKmsSigner): Promise<void> => {
     try {
-      this.kmsSigner=awsKmsSigner;
+      this.kmsSigner = awsKmsSigner;
       //fetching public address of the account
-      this.walletAddress=await this.kmsSigner.getAddress();
+      this.walletAddress = await this.kmsSigner.getAddress();
     } catch (err) {
       console.log(err);
       throw Error("Failed to initialize KMS");
@@ -237,7 +237,7 @@ export class FireflyClient {
   /**
    * initializes contract addresses & onboards user
    */
-  init = async (userOnboarding: boolean = true) => {
+  init = async (userOnboarding: boolean = true, apiToken: string = "",) => {
     // get contract addresses
     const addresses = await this.getContractAddresses();
     if (!addresses.ok) {
@@ -246,10 +246,18 @@ export class FireflyClient {
 
     this.contractAddresses = addresses.data;
 
+
+    if (apiToken) {
+      this.apiService.setAPIToken(apiToken);
+      // for socket
+      this.sockets.setAPIToken(apiToken);
+      this.webSockets?.setAPIToken(apiToken);
+    }
     // onboard user if not onboarded
-    if (userOnboarding) {
+    else if (userOnboarding) {
       await this.userOnBoarding();
     }
+
 
     // fetch gas limit
     this.maxBlockGasLimit = (await this.web3.eth.getBlock("latest")).gasLimit;
@@ -531,27 +539,27 @@ export class FireflyClient {
     }
     let orderSignature: string;
 
-    if (this.kmsSigner!==undefined){
-          const orderHash=signer.getOrderHash(order);
+    if (this.kmsSigner !== undefined) {
+      const orderHash = signer.getOrderHash(order);
 
-          /*
-          For every orderHash sent to etherium etherium will hash it and wrap
-          it with "\\x19Ethereum Signed Message:\\n" + message.length + message
-          Hence for that we have to hash it again.
-          */
-          const orderEthHash=this.web3.eth.accounts.hashMessage(orderHash);
-          const signedMessage=await this.kmsSigner._signDigest(orderEthHash);
-          
-          // This just adds 01 at the end of the message if we pass 1
-          orderSignature=createTypedSignature(signedMessage,1);     
-    }else{
+      /*
+      For every orderHash sent to etherium etherium will hash it and wrap
+      it with "\\x19Ethereum Signed Message:\\n" + message.length + message
+      Hence for that we have to hash it again.
+      */
+      const orderEthHash = this.web3.eth.accounts.hashMessage(orderHash);
+      const signedMessage = await this.kmsSigner._signDigest(orderEthHash);
+
+      // This just adds 01 at the end of the message if we pass 1
+      orderSignature = createTypedSignature(signedMessage, 1);
+    } else {
       orderSignature = await (signer as OrderSigner).signOrder(
-      order,
-      this.getSigningMethod(),
-      this.getPublicAddress()
+        order,
+        this.getSigningMethod(),
+        this.getPublicAddress()
       );
     }
-    
+
 
     const signedOrder: SignedOrder = {
       ...order,
@@ -862,6 +870,19 @@ export class FireflyClient {
   };
 
   /**
+   * Generate and receive readOnlyToken, this can only be accessed at the time of generation
+   * @returns readOnlyToken string
+   */
+  generateReadOnlyToken = async () => {
+    const response = await this.apiService.post<string>(
+      SERVICE_URLS.USER.GENERATE_READONLY_TOKEN,
+      {},
+      { isAuthenticationRequired: true }
+    );
+    return response;
+  };
+
+  /**
    * Gets Orders placed by the user. Returns the first 50 orders by default.
    * @param params of type OrderRequest,
    * @returns OrderResponse array
@@ -1160,24 +1181,24 @@ export class FireflyClient {
     if (!userAuthToken) {
       let signature: string;
 
-      if (this.kmsSigner!==undefined){
-        const hashedMessageSHA=this.web3.utils.sha3(this.network.onboardingUrl);
+      if (this.kmsSigner !== undefined) {
+        const hashedMessageSHA = this.web3.utils.sha3(this.network.onboardingUrl);
         /*
           For every orderHash sent to etherium etherium will hash it and wrap
           it with "\\x19Ethereum Signed Message:\\n" + message.length + message
           Hence for that we have to hash it again.
         */
         //@ts-ignore
-        const hashedMessageETH=this.web3.eth.accounts.hashMessage(hashedMessageSHA);
-        signature=await this.kmsSigner._signDigest(hashedMessageETH);
+        const hashedMessageETH = this.web3.eth.accounts.hashMessage(hashedMessageSHA);
+        signature = await this.kmsSigner._signDigest(hashedMessageETH);
 
-      }else{
+      } else {
         // sign onboarding message
         signature = await OnboardingSigner.createOnboardSignature(
           this.network.onboardingUrl,
           this.wallet ? this.wallet.privateKey : undefined,
           this.web3Provider
-      );
+        );
       }
       // authorize signature created by dAPI
       const authTokenResponse = await this.authorizeSignedHash(signature);
@@ -1447,6 +1468,92 @@ export class FireflyClient {
     if (response.status == 503) {
       throw Error(`Cancel on Disconnect (dead-mans-switch) feature is currently unavailable`);
     }
+    return response;
+  };
+
+    /**
+   * Places a signed order on firefly exchange
+   * @param params PlaceOrderRequest containing the signed order created using createSignedOrder
+   * @returns PlaceOrderResponse containing status and data. If status is not 201, order placement failed.
+   */
+    placeSignedOrderV2 = async (params: PlaceOrderRequest) => {
+      const response = await this.apiService.post<PlaceOrderResponse>(
+        SERVICE_URLS.V2_ORDERS.ORDERS,
+        {
+          symbol: params.symbol,
+          userAddress: params.maker,
+          orderType: params.orderType,
+          price: toBigNumberStr(params.price),
+          triggerPrice: toBigNumberStr(params.triggerPrice || "0"),
+          quantity: toBigNumberStr(params.quantity),
+          leverage: toBigNumberStr(params.leverage),
+          side: params.side,
+          reduceOnly: params.reduceOnly,
+          salt: params.salt,
+          expiration: params.expiration,
+          orderSignature: params.orderSignature,
+          timeInForce: params.timeInForce || TIME_IN_FORCE.GOOD_TILL_TIME,
+          postOnly: params.postOnly || false,
+          clientId: params.clientId
+            ? `firefly-client: ${params.clientId}`
+            : "firefly-client",
+        },
+        { isAuthenticationRequired: true }
+      );
+  
+      return response;
+    };
+  
+    /**
+     * Given an order payload, signs it on chain and submits to exchange for placement
+     * @param params PostOrderRequest
+     * @returns PlaceOrderResponse
+     */
+    postOrderV2 = async (params: PostOrderRequest) => {
+      const signedOrder = await this.createSignedOrder(params);
+      const response = await this.placeSignedOrderV2({
+        ...signedOrder,
+        timeInForce: params.timeInForce,
+        postOnly: params.postOnly,
+        clientId: params.clientId,
+      });
+  
+      return response;
+    };
+
+     /**
+   * Posts to exchange for cancellation of provided orders with signature
+   * @param params OrderCancellationRequest containing order hashes to be cancelled and cancellation signature
+   * @returns response from exchange server
+   */
+  placeCancelOrderV2 = async (params: OrderCancellationRequest) => {
+    const response = await this.apiService.delete<CancelOrderResponse>(
+      SERVICE_URLS.V2_ORDERS.ORDERS_HASH,
+      {
+        symbol: params.symbol,
+        orderHashes: params.hashes,
+        cancelSignature: params.signature,
+        parentAddress: params.parentAddress,
+      },
+      { isAuthenticationRequired: true }
+    );
+    return response;
+  };
+
+  /**
+   * Creates signature and posts order for cancellation on exchange of provided orders
+   * @param params OrderCancelSignatureRequest containing order hashes to be cancelled
+   * @returns response from exchange server
+   */
+  postCancelOrderV2 = async (params: OrderCancelSignatureRequest) => {
+    if (params.hashes.length <= 0) {
+      throw Error(`No orders to cancel`);
+    }
+    const signature = await this.createOrderCancellationSignature(params);
+    const response = await this.placeCancelOrderV2({
+      ...params,
+      signature,
+    });
     return response;
   };
 }
