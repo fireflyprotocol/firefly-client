@@ -217,8 +217,6 @@ export class Sockets {
   }
 
   async onConnect(): Promise<void> {
-
-
     this.socketInstance.on("connect", async () => {
       console.log('Connected To Socket Server');
       if ('connect' in Sockets.callbacks && typeof Sockets.callbacks['connect'] === 'function') {
