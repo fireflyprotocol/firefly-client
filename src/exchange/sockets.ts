@@ -18,11 +18,9 @@ import {
   TickerData,
   OrderSentForSettlementUpdateResponse,
   OrderRequeueUpdateResponse,
+  Callbacks,
 } from "../interfaces/routes";
 
-interface Callbacks {
-  [event: string]: Function;
-}
 
 export class Sockets {
   private socketInstance!: Socket;
@@ -30,7 +28,7 @@ export class Sockets {
   private url: string;
 
   private token: string;
-  static callbacks: Callbacks = {};
+  private callbacks: Callbacks = {};
   private apiToken: string;
 
   constructor(url: string) {
@@ -51,7 +49,7 @@ export class Sockets {
      * Assigns callbacks to desired events
      */
   async listen(event: string, callback: Function): Promise<void> {
-    Sockets.callbacks[event] = callback;
+    this.callbacks[event] = callback;
   }
 
   /**
@@ -228,8 +226,8 @@ export class Sockets {
   async onDisconnect(): Promise<void> {
     this.socketInstance.on("disconnect", async () => {
       console.log('Disconnected From Socket Server');
-      if ('disconnect' in Sockets.callbacks && typeof Sockets.callbacks['disconnect'] === 'function') {
-        await Sockets.callbacks['disconnect']();
+      if ('disconnect' in this.callbacks && typeof this.callbacks['disconnect'] === 'function') {
+        await this.callbacks['disconnect']();
       }
     });
 
@@ -238,8 +236,8 @@ export class Sockets {
   async onConnect(): Promise<void> {
     this.socketInstance.on("connect", async () => {
       console.log('Connected To Socket Server');
-      if ('connect' in Sockets.callbacks && typeof Sockets.callbacks['connect'] === 'function') {
-        await Sockets.callbacks['connect']();
+      if ('connect' in this.callbacks && typeof this.callbacks['connect'] === 'function') {
+        await this.callbacks['connect']();
       }
     });
 

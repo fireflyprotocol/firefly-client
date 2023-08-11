@@ -20,7 +20,7 @@ async function main() {
 
   const client = new FireflyClient(
     true,
-    Networks.PRODUCTION_ARBITRUM,
+    Networks.TESTNET_ARBITRUM,
     dummyAccountKey
   ); // passing isTermAccepted = true for compliance and authorizarion
   await client.init();
@@ -29,8 +29,9 @@ async function main() {
 
   const callbackOrderUpdates = ({ order }: { order: PlaceOrderResponse }) => {
     console.log("OrderUpdate:", order);
-    // kill sockets in order to stop script
-    client.sockets.close();
+
+      // kill sockets in order to stop script
+  client.sockets.close();
   };
   const callbackOrderBookUpdates = ({
     orderbook,
@@ -80,6 +81,8 @@ async function main() {
     side: ORDER_SIDE.BUY,
     orderType: ORDER_TYPE.MARKET,
   });
+
+
 }
 
 main().then().catch(console.warn);
