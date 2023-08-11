@@ -63,6 +63,7 @@ export class Sockets {
     });
 
     this.onConnect();
+    this.onDisconnect();
   }
 
   /**
@@ -125,7 +126,7 @@ export class Sockets {
     return true;
   }
 
-  
+
   unsubscribeUserUpdateByToken(callback?: UserSubscriptionAck): boolean {
     if (!this.socketInstance) return false;
     this.socketInstance.emit(
@@ -238,28 +239,9 @@ export class Sockets {
     this.socketInstance.on("connect", async () => {
       console.log('Connected To Socket Server');
       if ('connect' in Sockets.callbacks && typeof Sockets.callbacks['connect'] === 'function') {
-        // Add 10 seconds sleep using setTimeout
-        setTimeout(async () => {
-          await Sockets.callbacks['connect']();;
-        }, 10000);
+        await Sockets.callbacks['connect']();
       }
     });
-
-    this.socketInstance.onAny((event: string, data: any) => {
-      try {
-        const callbacks = Sockets.callbacks;
-        if (event in callbacks) {
-          callbacks[event](data);
-        } else if ("default" in callbacks) {
-          callbacks["default"]({ event, data });
-        } else {
-
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    });
-
 
   }
 }

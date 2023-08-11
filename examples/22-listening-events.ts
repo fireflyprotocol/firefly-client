@@ -10,8 +10,7 @@ import {
   GetOrderBookResponse,
   PlaceOrderResponse,
   ORDER_SIDE,
-  ORDER_TYPE,
-  SOCKET_EVENTS,
+  ORDER_TYPE
 } from "../index";
 
 async function main() {
@@ -21,7 +20,7 @@ async function main() {
 
   const client = new FireflyClient(
     true,
-    Networks.TESTNET_ARBITRUM,
+    Networks.PRODUCTION_ARBITRUM,
     dummyAccountKey
   ); // passing isTermAccepted = true for compliance and authorizarion
   await client.init();
@@ -51,9 +50,9 @@ async function main() {
     client.sockets.subscribeGlobalUpdatesBySymbol(MARKET_SYMBOLS.ETH);
     client.sockets.subscribeUserUpdateByToken();
 
-    await client.sockets.listen(SOCKET_EVENTS.OrderUpdateKey, callbackOrderUpdates);
-    await client.sockets.listen(SOCKET_EVENTS.OrderbookUpdateKey, callbackOrderBookUpdates);
-    await client.sockets.listen(SOCKET_EVENTS.ExchangeHealthKey, callbackExchangeHealth);
+    client.sockets.onUserOrderUpdate(callbackOrderUpdates);
+    client.sockets.onOrderBookUpdate(callbackOrderBookUpdates);
+    client.sockets.onExchangeHealthChange(callbackExchangeHealth);
 
   };
 
