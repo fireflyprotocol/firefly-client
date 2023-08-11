@@ -30,7 +30,6 @@ export class Sockets {
   private url: string;
 
   private token: string;
-
   static callbacks: Callbacks = {};
   private apiToken: string;
 
