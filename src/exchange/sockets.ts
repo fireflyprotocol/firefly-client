@@ -18,7 +18,9 @@ import {
   TickerData,
   OrderSentForSettlementUpdateResponse,
   OrderRequeueUpdateResponse,
+  Callbacks,
 } from "../interfaces/routes";
+
 
 export class Sockets {
   private socketInstance!: Socket;
@@ -26,7 +28,7 @@ export class Sockets {
   private url: string;
 
   private token: string;
-
+  private callbacks: Callbacks = {};
   private apiToken: string;
 
   constructor(url: string) {
@@ -44,12 +46,22 @@ export class Sockets {
   }
 
   /**
+     * Assigns callbacks to desired events
+     */
+  async listen(event: string, callback: Function): Promise<void> {
+    this.callbacks[event] = callback;
+  }
+
+  /**
    * opens socket instance connection
    */
   open() {
     this.socketInstance = io(this.url, {
       transports: ["websocket"],
     });
+
+    this.onConnect();
+    this.onDisconnect();
   }
 
   /**
@@ -112,7 +124,7 @@ export class Sockets {
     return true;
   }
 
-  
+
   unsubscribeUserUpdateByToken(callback?: UserSubscriptionAck): boolean {
     if (!this.socketInstance) return false;
     this.socketInstance.emit(
@@ -209,4 +221,27 @@ export class Sockets {
   ) => {
     this.socketInstance.on(SOCKET_EVENTS.AccountDataUpdateKey, cb);
   };
+
+
+  async onDisconnect(): Promise<void> {
+    this.socketInstance.on("disconnect", async () => {
+      console.log('Disconnected From Socket Server');
+      if ('disconnect' in this.callbacks && typeof this.callbacks['disconnect'] === 'function') {
+        await this.callbacks['disconnect']();
+      }
+    });
+
+  }
+
+  async onConnect(): Promise<void> {
+    this.socketInstance.on("connect", async () => {
+      console.log('Connected To Socket Server');
+      if ('connect' in this.callbacks && typeof this.callbacks['connect'] === 'function') {
+        await this.callbacks['connect']();
+      }
+    });
+
+  }
 }
+
+

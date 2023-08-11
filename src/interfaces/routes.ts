@@ -500,3 +500,7 @@ export interface GetCountDownsResponse {
   countDowns: CountDown[];
   timestamp: number;
 }
+
+export interface Callbacks {
+  [event: string]: Function;
+}
