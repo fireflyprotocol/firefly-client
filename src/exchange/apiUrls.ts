@@ -18,6 +18,7 @@ export const SERVICE_URLS = {
     USER_TRADES: "/userTrades",
     ORDERS: "/orders",
     ACCOUNT: "/account",
+    GENERATE_READONLY_TOKEN: "/generateReadOnlyToken",
     VERIFY_DEPOSIT: "/account/verifyDeposit",
     USER_TRANSACTION_HISTORY: "/userTransactionHistory",
     AUTHORIZE: "/authorize",
@@ -30,5 +31,9 @@ export const SERVICE_URLS = {
   ORDERS: {
     ORDERS: "/orders",
     ORDERS_HASH: "/orders/hash",
+  },
+  V2_ORDERS: {
+    ORDERS: "/v2/user/orders",
+    ORDERS_HASH: "/v2/user/orders/hash",
   },
 };

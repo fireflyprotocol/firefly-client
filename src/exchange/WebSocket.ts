@@ -14,6 +14,8 @@ import {
   GetAccountDataResponse,
   MarketData,
   TickerData,
+  OrderSentForSettlementUpdateResponse,
+  OrderRequeueUpdateResponse,
 } from "../interfaces/routes";
 
 // @ts-ignore
@@ -25,11 +27,14 @@ export class WebSockets {
 
   private token: string;
 
+  private apiToken: string;
+
   private url: string;
 
   constructor(url: string) {
     this.url = url;
     this.token = "";
+    this.apiToken = "";
   }
 
   createDynamicUrl(dynamicUrl: string, object: any) {
@@ -120,6 +125,7 @@ export class WebSockets {
         [
           {
             e: SOCKET_EVENTS.UserUpdatesRoom,
+            rt: this.apiToken? this.apiToken: "",
             t: this.token,
           },
         ],
@@ -148,8 +154,12 @@ export class WebSockets {
     this.token = token;
   };
 
+
+  setAPIToken = async (apiToken: string) => {
+    this.apiToken = apiToken;
+  };
   // Emitted when any price bin on the oderbook is updated.
-  onOrderBookUpdate = (cb: ({ orderbook }: any) => void) => {
+  onOrderBookUpdate = (cb: ({ symbol, orderbook }: any) => void) => {
     callbackListeners[SOCKET_EVENTS.OrderbookUpdateKey] = cb;
   };
 
@@ -199,6 +209,14 @@ export class WebSockets {
     cb: ({ order }: { order: PlaceOrderResponse }) => void
   ) => {
     callbackListeners[SOCKET_EVENTS.OrderUpdateKey] = cb;
+  };
+
+  onUserOrderSentForSettlementUpdate = (cb: (update: OrderSentForSettlementUpdateResponse) => void) => {
+    callbackListeners[SOCKET_EVENTS.OrderSentForSettlementUpdate] = cb;
+  };
+
+  onUserOrderRequeueUpdate = (cb: (update: OrderRequeueUpdateResponse) => void) => {
+    callbackListeners[SOCKET_EVENTS.OrderRequeueUpdate] = cb;
   };
 
   onUserPositionUpdate = (

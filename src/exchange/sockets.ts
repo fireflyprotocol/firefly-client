@@ -16,6 +16,8 @@ import {
   MarketData,
   UserSubscriptionAck,
   TickerData,
+  OrderSentForSettlementUpdateResponse,
+  OrderRequeueUpdateResponse,
 } from "../interfaces/routes";
 
 interface Callbacks {
@@ -30,10 +32,12 @@ export class Sockets {
   private token: string;
 
   static callbacks: Callbacks = {};
+  private apiToken: string;
 
   constructor(url: string) {
     this.url = url;
     this.token = "";
+    this.apiToken = "";
   }
 
   createDynamicUrl(dynamicUrl: string, object: any) {
@@ -99,6 +103,12 @@ export class Sockets {
     this.token = token;
   };
 
+
+  setAPIToken = async (apiToken: string) => {
+    this.apiToken = apiToken;
+  };
+
+
   subscribeUserUpdateByToken(callback?: UserSubscriptionAck): boolean {
     if (!this.socketInstance) return false;
     this.socketInstance.emit(
@@ -106,7 +116,8 @@ export class Sockets {
       [
         {
           e: SOCKET_EVENTS.UserUpdatesRoom,
-          t: this.token,
+          rt: this.apiToken ? this.apiToken : "",
+          t: this.token ? this.token : "",
         },
       ],
       (data: UserSubscriptionAck) => {
@@ -116,6 +127,7 @@ export class Sockets {
     return true;
   }
 
+  
   unsubscribeUserUpdateByToken(callback?: UserSubscriptionAck): boolean {
     if (!this.socketInstance) return false;
     this.socketInstance.emit(
@@ -185,6 +197,14 @@ export class Sockets {
     cb: ({ order }: { order: PlaceOrderResponse }) => void
   ) => {
     this.socketInstance.on(SOCKET_EVENTS.OrderUpdateKey, cb);
+  };
+
+  onUserOrderSentForSettlementUpdate = (cb: (update: OrderSentForSettlementUpdateResponse) => void) => {
+    this.socketInstance.on(SOCKET_EVENTS.OrderSentForSettlementUpdate, cb);
+  };
+
+  onUserOrderRequeueUpdate = (cb: (update: OrderRequeueUpdateResponse) => void) => {
+    this.socketInstance.on(SOCKET_EVENTS.OrderRequeueUpdate, cb);
   };
 
   onUserPositionUpdate = (
