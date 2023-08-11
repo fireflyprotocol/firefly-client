@@ -11,6 +11,7 @@ import {
   PlaceOrderResponse,
   ORDER_SIDE,
   ORDER_TYPE,
+  SOCKET_EVENTS,
 } from "../index";
 
 async function main() {
@@ -50,9 +51,10 @@ async function main() {
     client.sockets.subscribeGlobalUpdatesBySymbol(MARKET_SYMBOLS.ETH);
     client.sockets.subscribeUserUpdateByToken();
 
-    client.sockets.onUserOrderUpdate(callbackOrderUpdates);
-    client.sockets.onOrderBookUpdate(callbackOrderBookUpdates);
-    client.sockets.onExchangeHealthChange(callbackExchangeHealth);
+    await client.sockets.listen(SOCKET_EVENTS.OrderUpdateKey, callbackOrderUpdates);
+    await client.sockets.listen(SOCKET_EVENTS.OrderbookUpdateKey, callbackOrderBookUpdates);
+    await client.sockets.listen(SOCKET_EVENTS.ExchangeHealthKey, callbackExchangeHealth);
+
   };
 
   const disconnection_callback = async () => {

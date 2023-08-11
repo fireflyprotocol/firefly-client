@@ -63,7 +63,6 @@ export class Sockets {
     });
 
     this.onConnect();
-    this.onDisconnect();
   }
 
   /**
@@ -243,6 +242,21 @@ export class Sockets {
         setTimeout(async () => {
           await Sockets.callbacks['connect']();;
         }, 10000);
+      }
+    });
+
+    this.socketInstance.onAny((event: string, data: any) => {
+      try {
+        const callbacks = Sockets.callbacks;
+        if (event in callbacks) {
+          callbacks[event](data);
+        } else if ("default" in callbacks) {
+          callbacks["default"]({ event, data });
+        } else {
+
+        }
+      } catch (error) {
+        console.log(error);
       }
     });
 
