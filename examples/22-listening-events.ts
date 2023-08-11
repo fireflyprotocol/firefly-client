@@ -27,28 +27,6 @@ async function main() {
 
   client.addMarket(MARKET_SYMBOLS.ETH);
 
-  const connection_callback = async () => {
-    console.log("Sockets connected");
-    // start listening to global market and local user events
-    client.sockets.subscribeGlobalUpdatesBySymbol(MARKET_SYMBOLS.ETH);
-    client.sockets.subscribeUserUpdateByToken();
-  };
-
-  const disconnection_callback = async () => {
-    console.log("Sockets disconnected");
-    try {
-      await client.cancelAllOpenOrders(MARKET_SYMBOLS.ETH);
-    } catch (e) {
-      console.log(e);
-    }
-  };
-
-  // adding listeners
-  await client.sockets.listen("connect", connection_callback);
-  await client.sockets.listen("disconnect", disconnection_callback);
-
-  // create socket connection
-  client.sockets.open();
   const callbackOrderUpdates = ({ order }: { order: PlaceOrderResponse }) => {
     console.log("OrderUpdate:", order);
     // kill sockets in order to stop script
@@ -66,9 +44,32 @@ async function main() {
     console.log("Exchange Health:", isAlive);
   };
 
-  client.sockets.onUserOrderUpdate(callbackOrderUpdates);
-  client.sockets.onOrderBookUpdate(callbackOrderBookUpdates);
-  client.sockets.onExchangeHealthChange(callbackExchangeHealth);
+  const connection_callback = async () => {
+    console.log("Sockets connected");
+    // start listening to global market and local user events
+    client.sockets.subscribeGlobalUpdatesBySymbol(MARKET_SYMBOLS.ETH);
+    client.sockets.subscribeUserUpdateByToken();
+
+    client.sockets.onUserOrderUpdate(callbackOrderUpdates);
+    client.sockets.onOrderBookUpdate(callbackOrderBookUpdates);
+    client.sockets.onExchangeHealthChange(callbackExchangeHealth);
+  };
+
+  const disconnection_callback = async () => {
+    console.log("Sockets disconnected");
+    try {
+      await client.cancelAllOpenOrders(MARKET_SYMBOLS.ETH);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  // adding listeners
+  await client.sockets.listen("connect", connection_callback);
+  await client.sockets.listen("disconnect", disconnection_callback);
+
+  // create socket connection
+  client.sockets.open();
 
   // post a market order
   await client.postOrder({
