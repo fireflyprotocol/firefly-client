@@ -1,5 +1,5 @@
 on:
-    push:
+  push:
     branches: [main, talha/exc-1524-verify-and-fix-any-broken-build-on-public-repo-ts-clientsdk]
 name: Build
 jobs:
