@@ -1,8 +1,6 @@
 on:
-  pull_request:
+    push:
     branches: [main, talha/exc-1524-verify-and-fix-any-broken-build-on-public-repo-ts-clientsdk]
-    types:
-      - closed
 name: Build
 jobs:
   publish:
