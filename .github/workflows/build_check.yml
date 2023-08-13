@@ -1,0 +1,20 @@
+on:
+  pull_request:
+    branches: [main, talha/exc-1524-verify-and-fix-any-broken-build-on-public-repo-ts-clientsdk]
+    types:
+      - closed
+name: Build
+jobs:
+  publish:
+    # if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+          registry-url: https://registry.npmjs.org
+      - run: yarn install --immutable
+      - run: yarn build
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
