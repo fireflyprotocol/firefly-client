@@ -3,7 +3,7 @@ on:
     branches: [main, talha/exc-1524-verify-and-fix-any-broken-build-on-public-repo-ts-clientsdk]
 name: Build
 jobs:
-  publish:
+  build:
     # if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
