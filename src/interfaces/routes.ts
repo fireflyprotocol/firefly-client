@@ -524,8 +524,10 @@ export interface GetCampaignDetailsResponse {
 export interface GetCampaignRewardsResponse {
   campaignName: string;
   campaignConfig: {
-    r: string;
-    excludedAccounts: string[];
+    cashShare: string;
+    tokenShare: string;
+    shareOfFees: string;
+    refereeDiscount: string;
   };
   cashReward: string;
   tokenReward: string;
