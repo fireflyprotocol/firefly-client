@@ -635,12 +635,12 @@ export interface GetTotalHistoricalTradingRewardsResponse{
 }
 
 export interface GetMakerRewardsSummaryResponse {
-  totalHistoricalRewardsBlue: string;
-  activeEpochRewardsBlue: string;
-  pendingEpochRewardsBlue: string
-  activeEpochNumber: number;
-  activeEpochStart: number;
-  activeEpochEnd: number;
+  latestEpochStart: number;
+  latestEpochEnd: number;
+  latestEpochNumber: string;
+  latestEpochTotalRewards: string;
+  totalActiveRewards: string;
+  totalHistoricalRewards: string;
 }
 export interface GetMakerRewardDetailsRequest {
   symbol?: string;
