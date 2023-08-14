@@ -42,7 +42,6 @@ export const SERVICE_URLS = {
     TOTAL_HISTORICAL_TRADING_REWARDS: "/growth/tradeAndEarn/totalHistoricalTradingRewards",
     MAKER_REWARDS_SUMMARY: "/growth/marketMaker/maker-rewards-summary",
     MAKER_REWARDS_DETAILS: "/growth/marketMaker/maker-rewards-detail",
-    MAKER_WHITELIST_STATUS: "/growth/marketMaker/whitelist-status",
     GENERATE_CODE: "/growth/generateCode",
     LINK_REFERRED_USER: "/growth/linkReferredUser"
   },
