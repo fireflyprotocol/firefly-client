@@ -654,23 +654,17 @@ export interface GetMakerRewardDetailsResponse {
   isMoreDataAvailable: boolean;
 }
 interface MakerRewardDetailsData {
-  markets: MakerRewardDetailsMarket[],
-  cursor: string
-}
-interface MakerRewardDetailsMarket {
-  marketName: string;
-  epochs: MakerRewardDetailsEpoch[]
-}
-interface MakerRewardDetailsEpoch {
-  epochNumber: number;
+  latestEpochNumber: string;
   status: string;
-  makerVolume: number;
-  liquidityScore: number;
-  uptime: number;
-  percentOfRewardPool: number;
-  makerRewards: number;
-  latestEpochStart: number;
-  latestEpochEnd: number;
+  makerVolume: string;
+  volumePercentage: string;
+  rewardPoolPercentage: string;
+  makerRewards: string;
+  startDate: string;
+  endDate: string;
+  cursor: string;
+  liquidityScore?: string; //come if symbol provided in request
+  uptimePercentage?: string; //come if symbol provided in request
 }
 
 export interface GetUserWhiteListStatusForMarkeMakerResponse {

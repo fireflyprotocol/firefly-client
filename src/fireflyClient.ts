@@ -54,6 +54,7 @@ import {
   GetFundingHistoryRequest,
   GetFundingRateResponse,
   GetMakerRewardDetailsRequest,
+  GetMakerRewardDetailsResponse,
   GetMakerRewardsSummaryResponse,
   GetMarketRecentTradesRequest,
   GetMarketRecentTradesResponse,
@@ -1563,7 +1564,7 @@ export class FireflyClient {
    * @returns GetMakerRewardDetailsResponse
    */
   getMakerRewardDetails = async (params: GetMakerRewardDetailsRequest) => {
-    const response = await this.apiService.get<GetTradeAndEarnRewardsDetailResponse>(
+    const response = await this.apiService.get<GetMakerRewardDetailsResponse>(
       SERVICE_URLS.GROWTH.MAKER_REWARDS_DETAILS,
       params,
       { isAuthenticationRequired: true }
@@ -1575,7 +1576,7 @@ export class FireflyClient {
    * Gets market maker whitelist status
    * @returns GetUserWhiteListStatusForMarkeMaker
    */
-  getUserWhiteListStatusForMarkeMaker = async () => {
+  getUserWhiteListStatusForMarketMaker = async () => {
     const response = await this.apiService.get<GetUserWhiteListStatusForMarkeMakerResponse>(
       SERVICE_URLS.GROWTH.MAKER_WHITELIST_STATUS,
       {},
