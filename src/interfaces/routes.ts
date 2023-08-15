@@ -691,3 +691,7 @@ export interface LinkReferredUserResponse {
   campaignId: number;
   message?: string;
 }
+
+export interface Callbacks {
+  [event: string]: Function;
+}
