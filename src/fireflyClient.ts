@@ -78,6 +78,7 @@ import {
   GetUserTradesResponse,
   GetUserTransactionHistoryResponse,
   GetUserTransferHistoryResponse,
+  GetUserWhiteListStatusForMarkeMakerResponse,
   LinkReferredUserRequest,
   LinkReferredUserResponse,
   MarketData,
@@ -1565,6 +1566,19 @@ export class FireflyClient {
     const response = await this.apiService.get<GetTradeAndEarnRewardsDetailResponse>(
       SERVICE_URLS.GROWTH.MAKER_REWARDS_DETAILS,
       params,
+      { isAuthenticationRequired: true }
+    );
+    return response;
+  };
+
+  /**
+   * Gets market maker whitelist status
+   * @returns GetUserWhiteListStatusForMarkeMaker
+   */
+  getUserWhiteListStatusForMarkeMaker = async () => {
+    const response = await this.apiService.get<GetUserWhiteListStatusForMarkeMakerResponse>(
+      SERVICE_URLS.GROWTH.MAKER_WHITELIST_STATUS,
+      {},
       { isAuthenticationRequired: true }
     );
     return response;

@@ -673,6 +673,10 @@ interface MakerRewardDetailsEpoch {
   latestEpochEnd: number;
 }
 
+export interface GetUserWhiteListStatusForMarkeMakerResponse {
+  isWhitelist: boolean
+}
+
 export interface GenerateReferralCodeRequest {
   referralCode: string;
   campaignId: number;
