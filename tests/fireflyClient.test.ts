@@ -37,10 +37,10 @@ const testSubAccKey =
 const testSubAccPubAddr = "0xDa53d33E49F1f4689C3B9e1EB6E265244C77B92B";
 
 let client: FireflyClient;
+const network = Networks.TESTNET_ARBITRUM;
 
 describe("FireflyClient", () => {
   //* set environment from here
-  const network = Networks.TESTNET_ARBITRUM;
   const symbol = "BTC-PERP";
   let defaultLeverage = 3;
   let buyPrice = 18000;
@@ -53,7 +53,7 @@ describe("FireflyClient", () => {
     await client.init();
     // TODO! uncomment when done testing specifically on BTC-PERP
     // const allSymbols = await client.getMarketSymbols();
-    // get first symbol to run tests on
+    // //get first symbol to run tests on
     // if (allSymbols.data) {
     //   symbol = allSymbols.data[0];
     // }
@@ -840,6 +840,76 @@ describe("FireflyClient", () => {
     });
   });
 
+  describe("Growth Routes", async () => {
+    it("should not generate referral code for non affiliated user", async () => {
+      const response = await client.generateReferralCode({
+        referralCode: "testReferCode",
+        campaignId: 2,
+      });
+      expect(response.ok).to.be.equal(false);
+      expect((response?.data as any).error?.code).to.be.equal(3078);
+    });
+    it("should not link referred user when given incorrect refer code", async () => {
+      const response = await client.linkReferredUser({
+        referralCode: "testReferCode",
+        campaignId: 2,
+      });
+      expect(response.ok).to.be.equal(false);
+      expect((response?.data as any).error?.code).to.be.equal(9000);
+    });
+    it("should get referrer info", async () => {
+      const response = await client.getReferrerInfo(2);
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should get campaign details", async () => {
+      const response = await client.getCampaignDetails();
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should get campaign rewards", async () => {
+      const response = await client.getCampaignRewards(3);
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should get user rewards history", async () => {
+      const response = await client.getUserRewardsHistory();
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should get user rewards summary", async () => {
+      const response = await client.getUserRewardsSummary();
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should get trade & earn rewards overview", async () => {
+      const response = await client.getTradeAndEarnRewardsOverview(2);
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should get trade & earn rewards details", async () => {
+      const response = await client.getTradeAndEarnRewardsDetail({
+        campaignId: 3,
+      });
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should get trade & earn historical rewards total", async () => {
+      const response = await client.getTotalHistoricalTradingRewards();
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should not get affiliate payouts when user is not an affiliate", async () => {
+      const response = await client.getAffiliatePayouts(1);
+      expect(response.ok).to.be.equal(false);
+      expect((response?.data as any).error?.code).to.be.equal(3078);
+    });
+    it("should not get affiliate referee details when user is not an affiliate", async () => {
+      const response = await client.getAffiliateRefereeDetails({
+        campaignId: 2,
+      });
+      expect(response.ok).to.be.equal(false);
+      expect((response?.data as any).error?.code).to.be.equal(3078);
+    });
+    it("should not get affiliate count when user is not an affiliate", async () => {
+      const response = await client.getAffiliateRefereeCount(2);
+      expect(response.ok).to.be.equal(false);
+      expect((response?.data as any).error?.code).to.be.equal(3078);
+    });
+  });
+
   it("should get contract address", async () => {
     const response = await client.getContractAddresses();
     expect(response.ok).to.be.equal(true);
@@ -1385,7 +1455,6 @@ describe("FireflyClient", () => {
 
 describe("FireflyClient via ReadOnlyToken", () => {
   //* set environment from here
-  const network = Networks.TESTNET_ARBITRUM;
   const symbol = "ETH-PERP";
   let defaultLeverage = 3;
   let sellPrice = 20000;
@@ -1425,17 +1494,20 @@ describe("FireflyClient via ReadOnlyToken", () => {
       console.log(`- market price: ${marketPrice}`);
       console.log(`- index price: ${indexPrice}`);
     }
-      const response = await (await client.generateReadOnlyToken());
-      if(response.data)
-      {
-        readOnlyToken = response.data;
-      }
+    const response = await await client.generateReadOnlyToken();
+    if (response.data) {
+      readOnlyToken = response.data;
+    }
   });
 
   beforeEach(async () => {
     client = new FireflyClient(true, network, testAcctKey);
     await client.init();
     client.addMarket(symbol);
+
+    readOnlyClient = new FireflyClient(true, network);
+    await readOnlyClient.init(true, readOnlyToken);
+    readOnlyClient.addMarket(symbol);
   });
 
   afterEach(() => {
@@ -1448,7 +1520,6 @@ describe("FireflyClient via ReadOnlyToken", () => {
     readOnlyClient.addMarket(symbol);
     expect(readOnlyClient).to.be.not.eq(undefined);
   });
-
 
   describe("Get User Orders", () => {
     it("should get all open orders", async () => {
@@ -1468,7 +1539,6 @@ describe("FireflyClient via ReadOnlyToken", () => {
       expect(data.ok).to.be.equals(true);
       expect(data.response.data.length).to.be.gte(0);
     });
-
 
     it("should handle get open orders of non-existent hashes", async () => {
       const data = await readOnlyClient.getUserOrders({
@@ -1540,7 +1610,6 @@ describe("FireflyClient via ReadOnlyToken", () => {
     beforeEach(async () => {
       client.addMarket(symbol);
     });
-
 
     it("should get user's BTC-PERP Position", async () => {
       const response = await readOnlyClient.getUserPosition({
@@ -1637,6 +1706,76 @@ describe("FireflyClient via ReadOnlyToken", () => {
     });
   });
 
+  describe("Growth Routes", async () => {
+    it("should not allow generate referral code on readOnlyToken", async () => {
+      const response = await readOnlyClient.generateReferralCode({
+        referralCode: "testReferCode",
+        campaignId: 2,
+      });
+      expect(response.ok).to.be.equal(false);
+      expect((response?.data as any).error?.code).to.be.equal(2004);
+    });
+    it("should not allow link referred user on readOnlyToken", async () => {
+      const response = await readOnlyClient.linkReferredUser({
+        referralCode: "testReferCode",
+        campaignId: 2,
+      });
+      expect(response.ok).to.be.equal(false);
+      expect((response?.data as any).error?.code).to.be.equal(2004);
+    });
+    it("should get referrer info", async () => {
+      const response = await readOnlyClient.getReferrerInfo(2);
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should get campaign details", async () => {
+      const response = await readOnlyClient.getCampaignDetails();
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should get campaign rewards", async () => {
+      const response = await readOnlyClient.getCampaignRewards(3);
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should get user rewards history", async () => {
+      const response = await readOnlyClient.getUserRewardsHistory();
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should get user rewards summary", async () => {
+      const response = await readOnlyClient.getUserRewardsSummary();
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should get trade & earn rewards overview", async () => {
+      const response = await readOnlyClient.getTradeAndEarnRewardsOverview(2);
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should get trade & earn rewards details", async () => {
+      const response = await readOnlyClient.getTradeAndEarnRewardsDetail({
+        campaignId: 3,
+      });
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should get trade & earn historical rewards total", async () => {
+      const response = await readOnlyClient.getTotalHistoricalTradingRewards();
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should not get affiliate payouts when user is not an affiliate", async () => {
+      const response = await readOnlyClient.getAffiliatePayouts(1);
+      expect(response.ok).to.be.equal(false);
+      expect((response?.data as any).error?.code).to.be.equal(3078);
+    });
+    it("should not get affiliate referee details when user is not an affiliate", async () => {
+      const response = await readOnlyClient.getAffiliateRefereeDetails({
+        campaignId: 2,
+      });
+      expect(response.ok).to.be.equal(false);
+      expect((response?.data as any).error?.code).to.be.equal(3078);
+    });
+    it("should not get affiliate count when user is not an affiliate", async () => {
+      const response = await readOnlyClient.getAffiliateRefereeCount(2);
+      expect(response.ok).to.be.equal(false);
+      expect((response?.data as any).error?.code).to.be.equal(3078);
+    });
+  });
+
   it("should get contract address", async () => {
     const response = await readOnlyClient.getContractAddresses();
     expect(response.ok).to.be.equal(true);
@@ -1699,7 +1838,6 @@ describe("FireflyClient via ReadOnlyToken", () => {
     const response = await readOnlyClient.getMarketFundingRate(symbol);
     expect(response.ok).to.be.equal(true);
   });
-
 
   describe("Sockets", () => {
     beforeEach(async () => {
@@ -1860,12 +1998,12 @@ describe("FireflyClient via ReadOnlyToken", () => {
 
   describe("Post failure via read-only token", () => {
     it("should initialize the client with pvt and readonlytoken", async () => {
-      readOnlyClient = new FireflyClient(true, network,testAcctKey);
+      readOnlyClient = new FireflyClient(true, network, testAcctKey);
       await readOnlyClient.init(true, readOnlyToken);
       readOnlyClient.addMarket(symbol);
       expect(readOnlyClient).to.be.not.eq(undefined);
     });
-    
+
     it("should post a LIMIT order on exchange", async () => {
       const response = await readOnlyClient.postOrder({
         symbol,
@@ -1876,46 +2014,7 @@ describe("FireflyClient via ReadOnlyToken", () => {
         orderType: ORDER_TYPE.LIMIT,
         clientId: "Test limit order",
       });
-      expect(response.ok).to.be.equal(false); //forbidden
-  });
-});
-
-describe("Post And Delete Order v2 routes", () => {
-
-  it("should post a LIMIT order on exchange with v2 route", async () => {
-    const response = await client.postOrderV2({
-      symbol,
-      price: buyPrice,
-      quantity: 0.1,
-      side: ORDER_SIDE.BUY,
-      leverage: defaultLeverage,
-      orderType: ORDER_TYPE.LIMIT,
-      clientId: "Test limit order",
+      expect(response.ok).to.be.equal(false); // forbidden
     });
-
-    expect(response.ok).to.be.equal(true);
   });
-
-  it("should post a cancel order on exchange with v2 route", async () => {
-    const response = await client.postOrderV2({
-      symbol,
-      price: sellPrice + 2,
-      quantity: 0.1,
-      side: ORDER_SIDE.SELL,
-      leverage: defaultLeverage,
-      orderType: ORDER_TYPE.LIMIT,
-    });
-    expect(response.ok).to.be.equal(true);
-
-    // wait for 1 sec as room might not had been subscribed
-    setTimeout(1000).then(() => {
-      client.postCancelOrderV2({
-        symbol,
-        hashes: [response?.data?.hash as string],
-      });
-    });
-    
-  });
-
-});
 });

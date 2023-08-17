@@ -40,11 +40,22 @@ import {
   AuthorizeHashResponse,
   CancelOrderResponse,
   ExchangeInfo,
+  GenerateReferralCodeRequest,
+  GenerateReferralCodeResponse,
   GetAccountDataResponse,
+  GetAffiliatePayoutsResponse,
+  GetAffiliateRefereeCountResponse,
+  GetAffiliateRefereeDetailsRequest,
+  GetAffiliateRefereeDetailsResponse,
+  GetCampaignDetailsResponse,
+  GetCampaignRewardsResponse,
   GetCandleStickRequest,
   GetCountDownsResponse,
   GetFundingHistoryRequest,
   GetFundingRateResponse,
+  GetMakerRewardDetailsRequest,
+  GetMakerRewardDetailsResponse,
+  GetMakerRewardsSummaryResponse,
   GetMarketRecentTradesRequest,
   GetMarketRecentTradesResponse,
   GetOrderbookRequest,
@@ -53,13 +64,24 @@ import {
   GetOrderResponse,
   GetPositionRequest,
   GetPositionResponse,
+  GetReferrerInfoResponse,
+  GetTotalHistoricalTradingRewardsResponse,
+  GetTradeAndEarnRewardsDetailRequest,
+  GetTradeAndEarnRewardsDetailResponse,
+  GetTradeAndEarnRewardsOverviewResponse,
   GetTransactionHistoryRequest,
   GetTransferHistoryRequest,
   GetUserFundingHistoryResponse,
+  GetUserRewardsHistoryRequest,
+  GetUserRewardsHistoryResponse,
+  GetUserRewardsSummaryResponse,
   GetUserTradesRequest,
   GetUserTradesResponse,
   GetUserTransactionHistoryResponse,
   GetUserTransferHistoryResponse,
+  GetUserWhiteListStatusForMarkeMakerResponse,
+  LinkReferredUserRequest,
+  LinkReferredUserResponse,
   MarketData,
   MarketMeta,
   MasterInfo,
@@ -1220,6 +1242,263 @@ export class FireflyClient {
     return userAuthToken;
   };
 
+  /**
+   * Reset timer for cancel on disconnect for open orders
+   * @param params PostTimerAttributes containing the countdowns of all markets
+   * @returns PostTimerResponse containing accepted and failed countdowns. If status is not 201, request wasn't successful.
+   */
+  resetCancelOnDisconnectTimer = async (params: PostTimerAttributes) => {
+    const response = await this.apiService.post<PostTimerResponse>(
+      SERVICE_URLS.USER.CANCEL_ON_DISCONNECT,
+      params,
+      { isAuthenticationRequired: true },
+      this.network.dmsURL
+    );
+    if (response.status == 503) {
+      throw Error(`Cancel on Disconnect (dead-mans-switch) feature is currently unavailable`);
+
+    }
+    return response;
+  };
+
+  /**
+ * Gets user Cancel on Disconnect timer
+ * @returns GetCountDownsResponse
+ */
+  getCancelOnDisconnectTimer = async (symbol?: string, parentAddress?: string) => {
+    const response = await this.apiService.get<GetCountDownsResponse>(
+      SERVICE_URLS.USER.CANCEL_ON_DISCONNECT,
+      {
+        parentAddress,
+        symbol
+      },
+      { isAuthenticationRequired: true },
+      this.network.dmsURL
+    );
+    if (response.status == 503) {
+      throw Error(`Cancel on Disconnect (dead-mans-switch) feature is currently unavailable`);
+    }
+    return response;
+  };
+
+  /**
+   * Generates referral code
+   * @param params GenerateReferralCodeRequest
+   * @returns GenerateReferralCodeResponse
+   */
+  generateReferralCode = async (params: GenerateReferralCodeRequest) => {
+    const response = await this.apiService.post<GenerateReferralCodeResponse>(
+      SERVICE_URLS.GROWTH.GENERATE_CODE,
+      params,
+      { isAuthenticationRequired: true }
+    );
+    return response;
+  }
+
+  /**
+   * Links referred user
+   * @param params LinkReferredUserRequest
+   * @returns LinkReferredUserResponse
+   */
+  linkReferredUser = async (params: LinkReferredUserRequest) => {
+    const response = await this.apiService.post<LinkReferredUserResponse>(
+      SERVICE_URLS.GROWTH.LINK_REFERRED_USER,
+      params,
+      { isAuthenticationRequired: true }
+    );
+    return response;
+  }
+
+  /**
+   * Gets referrer Info
+   * @param campaignId
+   * @returns GetReferrerInfoResponse
+   */
+  getReferrerInfo = async (campaignId: number) => {
+    const response = await this.apiService.get<GetReferrerInfoResponse>(
+      SERVICE_URLS.GROWTH.REFERRER_INFO,
+      { campaignId },
+      { isAuthenticationRequired: true }
+    );
+    return response;
+  };
+
+  /**
+   * Gets campaign details
+   * @returns Array of GetCampaignDetailsResponse 
+   */
+  getCampaignDetails = async () => {
+    const response = await this.apiService.get<GetCampaignDetailsResponse[]>(
+      SERVICE_URLS.GROWTH.CAMPAIGN_DETAILS,
+    );
+    return response;
+  };
+
+  /**
+   * Gets campaign reward details
+   * @param campaignId
+   * @returns GetCampaignRewardsResponse
+   */
+  getCampaignRewards = async (campaignId: number) => {
+    const response = await this.apiService.get<GetCampaignRewardsResponse>(
+      SERVICE_URLS.GROWTH.CAMPAIGN_REWARDS,
+      { campaignId },
+      { isAuthenticationRequired: true }
+    );
+    return response;
+  };
+
+  /**
+   * Gets affiliate payout details
+   * @param campaignId
+   * @returns Array of GetAffiliatePayoutsResponse
+   */
+  getAffiliatePayouts = async (campaignId: number) => {
+    const response = await this.apiService.get<GetAffiliatePayoutsResponse[]>(
+      SERVICE_URLS.GROWTH.AFFILIATE_PAYOUTS,
+      { campaignId },
+      { isAuthenticationRequired: true }
+    );
+    return response;
+  };
+
+
+  /**
+   * Gets affiliate referree details
+   * @param GetAffiliateRefereeDetailsRequest
+   * @returns GetAffiliateRefereeDetailsResponse
+   */
+  getAffiliateRefereeDetails = async (params: GetAffiliateRefereeDetailsRequest) => {
+    const response = await this.apiService.get<GetAffiliateRefereeDetailsResponse>(
+      SERVICE_URLS.GROWTH.AFFILIATE_REFEREE_DETAILS,
+      params,
+      { isAuthenticationRequired: true }
+    );
+    return response;
+  };
+
+  /**
+   * Gets affiliate referree count
+   * @param campaignId
+   * @returns GetAffiliateRefereeCountResponse
+   */
+  getAffiliateRefereeCount = async (campaignId: number) => {
+    const response = await this.apiService.get<GetAffiliateRefereeCountResponse>(
+      SERVICE_URLS.GROWTH.AFFILIATE_REFEREES_COUNT,
+      { campaignId },
+      { isAuthenticationRequired: true }
+    );
+    return response;
+  };
+
+  /**
+   * Gets user rewards history
+   * @param optional params GetUserRewardsHistoryRequest
+   * @returns GetUserRewardsHistoryResponse
+   */
+  getUserRewardsHistory = async (params?: GetUserRewardsHistoryRequest) => {
+    const response = await this.apiService.get<GetUserRewardsHistoryResponse>(
+      SERVICE_URLS.GROWTH.USER_REWARDS_HISTORY,
+      params,
+      { isAuthenticationRequired: true }
+    );
+    return response;
+  };
+
+  /**
+   * Gets user rewards summary
+   * @returns GetUserRewardsSummaryResponse
+   */
+  getUserRewardsSummary = async () => {
+    const response = await this.apiService.get<GetUserRewardsSummaryResponse>(
+      SERVICE_URLS.GROWTH.USER_REWARDS_SUMMARY,
+      {},
+      { isAuthenticationRequired: true }
+    );
+    return response;
+  };
+
+  /**
+   * Gets rewards overview
+   * @param campaignId
+   * @returns GetTradeAndEarnRewardsOverviewResponse
+   */
+  getTradeAndEarnRewardsOverview = async (campaignId: number) => {
+    const response = await this.apiService.get<GetTradeAndEarnRewardsOverviewResponse>(
+      SERVICE_URLS.GROWTH.REWARDS_OVERVIEW,
+      { campaignId },
+      { isAuthenticationRequired: true }
+    );
+    return response;
+  };
+
+  /**
+   * Gets rewards details
+   * @param GetTradeAndEarnRewardsDetailRequest
+   * @returns GetTradeAndEarnRewardsDetailResponse
+   */
+  getTradeAndEarnRewardsDetail = async (params: GetTradeAndEarnRewardsDetailRequest) => {
+    const response = await this.apiService.get<GetTradeAndEarnRewardsDetailResponse>(
+      SERVICE_URLS.GROWTH.REWARDS_DETAILS,
+      params,
+      { isAuthenticationRequired: true }
+    );
+    return response;
+  };
+
+  /**
+   * Gets total historical trading reward details
+   * @returns GetTotalHistoricalTradingRewardsResponse
+   */
+  getTotalHistoricalTradingRewards = async () => {
+    const response = await this.apiService.get<GetTotalHistoricalTradingRewardsResponse>(
+      SERVICE_URLS.GROWTH.TOTAL_HISTORICAL_TRADING_REWARDS,
+      {},
+      { isAuthenticationRequired: true }
+    );
+    return response;
+  };
+
+  /**
+   * Gets maker rewards summary
+   * @returns GetMakerRewardsSummaryResponse
+   */
+  getMakerRewardsSummary = async () => {
+    const response = await this.apiService.get<GetMakerRewardsSummaryResponse>(
+      SERVICE_URLS.GROWTH.MAKER_REWARDS_SUMMARY,
+      {},
+      { isAuthenticationRequired: true }
+    );
+    return response;
+  };
+
+  /**
+   * Gets maker reward details
+   * @param GetMakerRewardDetailsRequest
+   * @returns GetMakerRewardDetailsResponse
+   */
+  getMakerRewardDetails = async (params: GetMakerRewardDetailsRequest) => {
+    const response = await this.apiService.get<GetMakerRewardDetailsResponse>(
+      SERVICE_URLS.GROWTH.MAKER_REWARDS_DETAILS,
+      params,
+      { isAuthenticationRequired: true }
+    );
+    return response;
+  };
+
+  /**
+   * Gets market maker whitelist status
+   * @returns GetUserWhiteListStatusForMarkeMaker
+   */
+  getUserWhiteListStatusForMarketMaker = async () => {
+    const response = await this.apiService.get<GetUserWhiteListStatusForMarkeMakerResponse>(
+      SERVICE_URLS.GROWTH.MAKER_WHITELIST_STATUS,
+      {},
+      { isAuthenticationRequired: true }
+    );
+    return response;
+  };
+
   //= ==============================================================//
   //                    PRIVATE HELPER FUNCTIONS
   //= ==============================================================//
@@ -1429,131 +1708,6 @@ export class FireflyClient {
       },
       { isAuthenticationRequired: true }
     );
-    return response;
-  };
-
-  /**
-   * Reset timer for cancel on disconnect for open orders
-   * @param params PostTimerAttributes containing the countdowns of all markets
-   * @returns PostTimerResponse containing accepted and failed countdowns. If status is not 201, request wasn't successful.
-   */
-  resetCancelOnDisconnectTimer = async (params: PostTimerAttributes) => {
-    const response = await this.apiService.post<PostTimerResponse>(
-      SERVICE_URLS.USER.CANCEL_ON_DISCONNECT,
-      params,
-      { isAuthenticationRequired: true },
-      this.network.dmsURL
-    );
-    if (response.status == 503) {
-      throw Error(`Cancel on Disconnect (dead-mans-switch) feature is currently unavailable`);
-
-    }
-    return response;
-  };
-
-  /**
- * Gets user Cancel on Disconnect timer
- * @returns GetCountDownsResponse
- */
-  getCancelOnDisconnectTimer = async (symbol?: string, parentAddress?: string) => {
-    const response = await this.apiService.get<GetCountDownsResponse>(
-      SERVICE_URLS.USER.CANCEL_ON_DISCONNECT,
-      {
-        parentAddress,
-        symbol
-      },
-      { isAuthenticationRequired: true },
-      this.network.dmsURL
-    );
-    if (response.status == 503) {
-      throw Error(`Cancel on Disconnect (dead-mans-switch) feature is currently unavailable`);
-    }
-    return response;
-  };
-
-    /**
-   * Places a signed order on firefly exchange
-   * @param params PlaceOrderRequest containing the signed order created using createSignedOrder
-   * @returns PlaceOrderResponse containing status and data. If status is not 201, order placement failed.
-   */
-    placeSignedOrderV2 = async (params: PlaceOrderRequest) => {
-      const response = await this.apiService.post<PlaceOrderResponse>(
-        SERVICE_URLS.V2_ORDERS.ORDERS,
-        {
-          symbol: params.symbol,
-          userAddress: params.maker,
-          orderType: params.orderType,
-          price: toBigNumberStr(params.price),
-          triggerPrice: toBigNumberStr(params.triggerPrice || "0"),
-          quantity: toBigNumberStr(params.quantity),
-          leverage: toBigNumberStr(params.leverage),
-          side: params.side,
-          reduceOnly: params.reduceOnly,
-          salt: params.salt,
-          expiration: params.expiration,
-          orderSignature: params.orderSignature,
-          timeInForce: params.timeInForce || TIME_IN_FORCE.GOOD_TILL_TIME,
-          postOnly: params.postOnly || false,
-          clientId: params.clientId
-            ? `firefly-client: ${params.clientId}`
-            : "firefly-client",
-        },
-        { isAuthenticationRequired: true }
-      );
-  
-      return response;
-    };
-  
-    /**
-     * Given an order payload, signs it on chain and submits to exchange for placement
-     * @param params PostOrderRequest
-     * @returns PlaceOrderResponse
-     */
-    postOrderV2 = async (params: PostOrderRequest) => {
-      const signedOrder = await this.createSignedOrder(params);
-      const response = await this.placeSignedOrderV2({
-        ...signedOrder,
-        timeInForce: params.timeInForce,
-        postOnly: params.postOnly,
-        clientId: params.clientId,
-      });
-  
-      return response;
-    };
-
-     /**
-   * Posts to exchange for cancellation of provided orders with signature
-   * @param params OrderCancellationRequest containing order hashes to be cancelled and cancellation signature
-   * @returns response from exchange server
-   */
-  placeCancelOrderV2 = async (params: OrderCancellationRequest) => {
-    const response = await this.apiService.delete<CancelOrderResponse>(
-      SERVICE_URLS.V2_ORDERS.ORDERS_HASH,
-      {
-        symbol: params.symbol,
-        orderHashes: params.hashes,
-        cancelSignature: params.signature,
-        parentAddress: params.parentAddress,
-      },
-      { isAuthenticationRequired: true }
-    );
-    return response;
-  };
-
-  /**
-   * Creates signature and posts order for cancellation on exchange of provided orders
-   * @param params OrderCancelSignatureRequest containing order hashes to be cancelled
-   * @returns response from exchange server
-   */
-  postCancelOrderV2 = async (params: OrderCancelSignatureRequest) => {
-    if (params.hashes.length <= 0) {
-      throw Error(`No orders to cancel`);
-    }
-    const signature = await this.createOrderCancellationSignature(params);
-    const response = await this.placeCancelOrderV2({
-      ...params,
-      signature,
-    });
     return response;
   };
 }
