@@ -20,27 +20,24 @@ export interface GetFundingHistoryRequest {
   symbol?: MarketSymbol; // will fetch orders of provided market
   pageSize?: number; // will get only provided number of orders must be <= 50
   cursor?: number; // will fetch particular page records. A single page contains 50 records.
-  parentAddress?:string;
+  parentAddress?: string;
 }
 
 export interface GetTransferHistoryRequest {
   pageSize?: number; // will get only provided number of orders must be <= 50
   cursor?: number; // will fetch particular page records. A single page contains 50 records.
-  action?: string; //Deposit / Withdraw
+  action?: string; // Deposit / Withdraw
 }
 export interface GetOrderRequest extends GetTransactionHistoryRequest {
-  symbol?: MarketSymbol;
   orderId?: number;
   orderHashes?: string[];
   statuses: ORDER_STATUS[]; // status of orders to be fetched
-  orderType?: ORDER_TYPE[]; //order type LIMIT / MARKET
-  pageSize?: number;
-  pageNumber?: number;
-  parentAddress?:string;
+  orderType?: ORDER_TYPE[]; // order type LIMIT / MARKET
+  parentAddress?: string;
 }
 
 export interface GetPositionRequest extends GetTransactionHistoryRequest {
-  parentAddress?:string;
+  parentAddress?: string;
 }
 
 export interface RequiredOrderFields {
@@ -49,7 +46,7 @@ export interface RequiredOrderFields {
   quantity: number; // quantity/size of order
   side: ORDER_SIDE; // BUY/SELL
   orderType: ORDER_TYPE; // MARKET/LIMIT
-  triggerPrice?: number; //optional, send triggerPrice for stop orders
+  triggerPrice?: number; // optional, send triggerPrice for stop orders
 }
 
 export interface OrderSignatureRequest extends RequiredOrderFields {
@@ -57,7 +54,7 @@ export interface OrderSignatureRequest extends RequiredOrderFields {
   reduceOnly?: boolean; // is order to be reduce only true/false, default its false
   salt?: number; // random number for uniqueness of order. Generated randomly if not provided
   expiration?: number; // time at which order will expire. Will be set to 1 month if not provided
-  maker?:address; //address of the parent account on behalf user wants to place the order
+  maker?: address; // address of the parent account on behalf user wants to place the order
 }
 
 export interface OrderSignatureResponse extends RequiredOrderFields {
@@ -66,7 +63,7 @@ export interface OrderSignatureResponse extends RequiredOrderFields {
   salt: number;
   expiration: number;
   orderSignature: string;
-  maker:address;
+  maker: address;
 }
 
 export interface PlaceOrderRequest extends OrderSignatureResponse {
@@ -214,7 +211,7 @@ export interface GetUserTradesRequest {
   pageSize?: number;
   pageNumber?: number;
   type?: ORDER_TYPE;
-  parentAddress?:string;
+  parentAddress?: string;
 }
 
 export interface GetUserTradesResponse {
@@ -321,7 +318,7 @@ export interface UserFundingHistoryResponse {
   oraclePrice: string;
   side: ORDER_SIDE;
   blockNumber: number;
-  isPositionPositive: boolean
+  isPositionPositive: boolean;
 }
 
 export interface GetMarketRecentTradesRequest {
@@ -382,7 +379,7 @@ export interface MarketData {
   lastPrice: string;
   _24hrHighPrice: string;
   _24hrLowPrice: string;
-  _24hrVolume: string; 
+  _24hrVolume: string;
   _24hrQuoteVolume: string;
   _24hrClosePrice: string;
   _24hrOpenPrice: string;
@@ -454,11 +451,11 @@ export interface AuthorizeHashResponse {
   token: string;
 }
 
-export interface adjustLeverageRequest{
-  symbol: MarketSymbol,
-  leverage: number,
-  perpetualAddress?: address,
-  parentAddress?:string
+export interface adjustLeverageRequest {
+  symbol: MarketSymbol;
+  leverage: number;
+  perpetualAddress?: address;
+  parentAddress?: string;
 }
 
 export interface AdjustLeverageResponse {
@@ -477,7 +474,7 @@ export interface UserSubscriptionAck {
   success: boolean;
   message: string;
 }
-export interface verifyDepositResponse{
+export interface verifyDepositResponse {
   verificationStatus: string;
 }
 export interface CountDown {
@@ -566,8 +563,8 @@ export interface GetAffiliateRefereeCountResponse {
 }
 
 export interface GetUserRewardsHistoryRequest {
-  pageSize?: number
-  cursor?: number
+  pageSize?: number;
+  cursor?: number;
 }
 export interface GetUserRewardsHistoryResponse {
   data: UserRewardsHistoryData[];
@@ -610,8 +607,8 @@ export interface GetTradeAndEarnRewardsOverviewResponse {
 
 export interface GetTradeAndEarnRewardsDetailRequest {
   campaignId: number;
-  pageSize?: number
-  cursor?: number
+  pageSize?: number;
+  cursor?: number;
 }
 
 export interface GetTradeAndEarnRewardsDetailResponse {
@@ -630,7 +627,7 @@ interface TradeAndEarnRewardsDetailData {
   epochNumber: string;
 }
 
-export interface GetTotalHistoricalTradingRewardsResponse{
+export interface GetTotalHistoricalTradingRewardsResponse {
   totalTokenRewards: string;
 }
 
@@ -644,8 +641,8 @@ export interface GetMakerRewardsSummaryResponse {
 }
 export interface GetMakerRewardDetailsRequest {
   symbol?: string;
-  pageSize?: number
-  cursor?: number
+  pageSize?: number;
+  cursor?: number;
 }
 
 export interface GetMakerRewardDetailsResponse {
@@ -663,12 +660,12 @@ interface MakerRewardDetailsData {
   startDate: string;
   endDate: string;
   cursor: string;
-  liquidityScore?: string; //come if symbol provided in request
-  uptimePercentage?: string; //come if symbol provided in request
+  liquidityScore?: string; // come if symbol provided in request
+  uptimePercentage?: string; // come if symbol provided in request
 }
 
 export interface GetUserWhiteListStatusForMarkeMakerResponse {
-  isWhitelist: boolean
+  isWhitelist: boolean;
 }
 
 export interface GenerateReferralCodeRequest {
@@ -694,4 +691,17 @@ export interface LinkReferredUserResponse {
 
 export interface Callbacks {
   [event: string]: Function;
+}
+
+export interface GetOpenOrderRequest {
+  symbol?: MarketSymbol;
+  parentAddress?: string;
+}
+
+export interface GetOrderByTypeRequest extends GetTransactionHistoryRequest {
+  orderId?: number;
+  orderHashes?: string[];
+  limitStatuses?: ORDER_STATUS[]; // status of orders to be fetched
+  marketStatuses?: ORDER_STATUS[]; // status of orders to be fetched
+  orderType?: ORDER_TYPE[]; // order type LIMIT / MARKET
 }

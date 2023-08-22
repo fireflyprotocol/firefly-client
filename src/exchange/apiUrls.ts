@@ -17,6 +17,8 @@ export const SERVICE_URLS = {
     USER_POSITIONS: "/userPosition",
     USER_TRADES: "/userTrades",
     ORDERS: "/orders",
+    OPEN_ORDERS: "/orders/open-orders",
+    ORDERS_BY_TYPE: "/orders/by-order-type",
     ACCOUNT: "/account",
     GENERATE_READONLY_TOKEN: "/generateReadOnlyToken",
     VERIFY_DEPOSIT: "/account/verifyDeposit",
