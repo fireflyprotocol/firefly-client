@@ -149,7 +149,7 @@ export class APIService {
       headers.Authorization = `Bearer ${this.token}`;
     }
 
-    if(this.uuid)
+    if(this.uuid && this.uuid!="")
     {
         headers["x-mm-id"] = this.uuid;
     }
