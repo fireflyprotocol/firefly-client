@@ -18,7 +18,7 @@ export const Networks = {
     dmsURL: "https://api.arbitrum-prod.firefly.exchange/dead-man-switch",
     webSocketURL: "wss://notifications.api.arbitrum-prod.firefly.exchange/",
     onboardingUrl: "https://trade-arb.firefly.exchange",
-    UUID: "uuid-default"
+    UUID: ""
   },
   PRODUCTION_ARBITRUM_INTERNAL: {
     url: "https://arb1.arbitrum.io/rpc/",
@@ -28,7 +28,7 @@ export const Networks = {
     dmsURL: "https://api.arbitrum-prod.int.firefly.exchange/dead-man-switch",
     webSocketURL: "wss://notifications.api.arbitrum-prod.int.firefly.exchange/",
     onboardingUrl: "https://trade-arb.firefly.exchange",
-    UUID: "uuid-default"
+    UUID: ""
   }
 };
 
