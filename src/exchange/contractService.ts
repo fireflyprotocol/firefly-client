@@ -224,3 +224,30 @@ export const depositToMarginBankContractCall = async (
     ).wait();
   }, interpolate(SuccessMessages.depositToBank, {amount: amount.toFixed(DEFAULT_PRECISION)}));
 };
+
+export const closePositionCall = async (
+  perpContract: any,
+  wallet: Signer | Wallet,
+  gasLimit: number,
+  networkName: string,
+  getPublicAddress: () => address
+) => {
+
+  return TransformToResponseSchema(async () => {
+    
+    const contract = mapContract(networkName, FactoryName.perpetual, perpContract).connect(wallet)
+
+    //estimate gas in case of ARBITRUM network because it doesn't work on max block gas limit
+    if (networkName == NETWORK_NAME.arbitrum) {
+      gasLimit = ((+await contract.estimateGas.closePosition(getPublicAddress()))*2) + EXTRA_FEES;
+    }
+
+    // close position of user
+    return (
+      await contract
+        .closePosition(getPublicAddress(), {
+          gasLimit: gasLimit,
+        })
+    ).wait();
+  }, interpolate(SuccessMessages.positionClosed, {address: getPublicAddress()}));
+};
