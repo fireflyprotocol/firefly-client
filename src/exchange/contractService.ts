@@ -239,7 +239,7 @@ export const closePositionCall = async (
 
     //estimate gas in case of ARBITRUM network because it doesn't work on max block gas limit
     if (networkName == NETWORK_NAME.arbitrum) {
-      gasLimit = (+await contract.estimateGas.closePosition(getPublicAddress())) + EXTRA_FEES;
+      gasLimit = ((+await contract.estimateGas.closePosition(getPublicAddress()))*2) + EXTRA_FEES;
     }
 
     // close position of user
