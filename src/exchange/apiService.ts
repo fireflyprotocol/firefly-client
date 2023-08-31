@@ -12,7 +12,7 @@ export class APIService {
 
   private walletAddress: string | undefined = undefined;
 
-  private uuid: string | undefined = undefined;
+  private uuid: string = "";
 
   private baseUrl: string | undefined = undefined;
   constructor(url: string) {
@@ -128,10 +128,7 @@ export class APIService {
   };
 
   setUUID = async (uuid: string) => {
-    if(uuid!="")
-    {
-      this.uuid = uuid;
-    }
+    this.uuid = uuid;
   };
 
   setWalletAddress = async (address: string) => {
@@ -149,11 +146,10 @@ export class APIService {
       headers.Authorization = `Bearer ${this.token}`;
     }
 
-    if(this.uuid && this.uuid!="")
-    {
-        headers["x-mm-id"] = this.uuid;
+    if (this.uuid && this.uuid != "") {
+      headers["x-mm-id"] = this.uuid;
     }
-    
+
     headers["x-wallet-address"] = this.walletAddress || "";
     return JSON.stringify(data);
   };

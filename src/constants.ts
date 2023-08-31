@@ -9,6 +9,7 @@ export const Networks = {
     socketURL: "wss://dapi.api.arbitrum-staging.firefly.exchange",
     webSocketURL: "wss://notifications.api.arbitrum-staging.firefly.exchange/",
     onboardingUrl: "https://testnet.firefly.exchange",
+    UUID: ""
   },
   PRODUCTION_ARBITRUM: {
     url: "https://arb1.arbitrum.io/rpc/",
@@ -40,4 +41,5 @@ export const EXTRA_FEES = 10000;
 export interface ExtendedNetwork extends Network {
   webSocketURL: string;
   dmsURL?: string;
+  UUID?: string;
 }

@@ -258,11 +258,10 @@ export class FireflyClient {
   /***
    * Set UUID to api headers for colocation partners
    */
-  setUUID = (uuid:string) => {
-       if(uuid!="")
-       {
-        this.apiService.setUUID(uuid);
-       }
+  setUUID = (uuid: string) => {
+    if (uuid != "") {
+      this.apiService.setUUID(uuid);
+    }
   };
 
   /**
@@ -287,6 +286,10 @@ export class FireflyClient {
     // onboard user if not onboarded
     else if (userOnboarding) {
       await this.userOnBoarding();
+    }
+
+    if (this.network.UUID) {
+      this.setUUID(this.network.UUID);
     }
 
 
