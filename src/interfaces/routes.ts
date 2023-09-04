@@ -693,11 +693,6 @@ export interface Callbacks {
   [event: string]: Function;
 }
 
-export interface GetOpenOrderRequest {
-  symbol?: MarketSymbol;
-  parentAddress?: string;
-}
-
 export interface GetOrderByTypeRequest extends GetTransactionHistoryRequest {
   orderId?: number;
   orderHashes?: string[];

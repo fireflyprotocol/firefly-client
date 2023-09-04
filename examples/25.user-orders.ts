@@ -20,18 +20,8 @@ async function main() {
   // load/init contract addresses
   await client.init();
 
-  // fetch open orders of all markets
-  let resp = await client.getUserOrders({
-    statuses: [ORDER_STATUS.OPEN, ORDER_STATUS.PARTIAL_FILLED],
-  });
-  console.log(resp.data);
-
-  // fetch open orders of all markets
-  resp = await client.getUserOpenOrders({});
-  console.log(resp.data);
-
-  // fetch open limit orders of all markets
-  resp = await client.getUserOrdersByType({
+ // fetch open limit orders of all markets
+  let resp = await client.getUserOrdersByType({
     limitStatuses: [ORDER_STATUS.OPEN, ORDER_STATUS.PARTIAL_FILLED],
   });
   console.log(resp.data);
