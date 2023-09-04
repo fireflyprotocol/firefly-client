@@ -58,7 +58,6 @@ import {
   GetMakerRewardsSummaryResponse,
   GetMarketRecentTradesRequest,
   GetMarketRecentTradesResponse,
-  GetOpenOrderRequest,
   GetOrderbookRequest,
   GetOrderBookResponse,
   GetOrderByTypeRequest,
@@ -914,22 +913,6 @@ export class FireflyClient {
   getUserOrders = async (params: GetOrderRequest) => {
     const response = await this.apiService.get<GetOrderResponse[]>(
       SERVICE_URLS.USER.ORDERS,
-      {
-        ...params,
-      },
-      { isAuthenticationRequired: true }
-    );
-    return response;
-  };
-
-  /**
-   * Gets Open Orders placed by the user. Returns the first 50 orders by default.
-   * @param params of type OpenOrderRequest,
-   * @returns OrderResponse array
-   */
-  getUserOpenOrders = async (params: GetOpenOrderRequest) => {
-    const response = await this.apiService.get<GetOrderResponse[]>(
-      SERVICE_URLS.USER.OPEN_ORDERS,
       {
         ...params,
       },

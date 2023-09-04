@@ -704,4 +704,5 @@ export interface GetOrderByTypeRequest extends GetTransactionHistoryRequest {
   limitStatuses?: ORDER_STATUS[]; // status of orders to be fetched
   marketStatuses?: ORDER_STATUS[]; // status of orders to be fetched
   orderType?: ORDER_TYPE[]; // order type LIMIT / MARKET
+  parentAddress?: string;
 }
