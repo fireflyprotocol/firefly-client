@@ -123,6 +123,7 @@ import {
   depositToMarginBankContractCall,
   withdrawFromMarginBankContractCall,
   setSubAccount,
+  closePositionCall,
 } from "./exchange/contractService";
 // @ts-ignore
 import { generateRandomNumber } from "../utils/utils";
@@ -525,6 +526,28 @@ export class FireflyClient {
       this.getMarginBankBalance,
       this.getPublicAddress,
       amount
+    );
+  };
+
+  /**
+     * @notice Withdraw the number of margin tokens equal to the value of the account at the time
+     *  perpetual was delisted. A position can only be closed once.
+     * @param symbol market on which to close position
+     * @param perpContract (optional) address of perpetual contract
+     * @returns boolean true if position is closed, false otherwise
+     */
+  closePosition = async (
+    symbol:string,
+    perpContract?: address
+  ): Promise<ResponseSchema> => {
+    const contract = this.getContract(this._perpetual, perpContract, symbol);
+
+    return await closePositionCall(
+      contract,
+      this.getWallet(),
+      this.maxBlockGasLimit,
+      this.networkName,
+      this.getPublicAddress
     );
   };
 
