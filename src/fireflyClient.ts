@@ -257,11 +257,17 @@ export class FireflyClient {
       new providers.JsonRpcProvider(this.network.url)
     );
   };
+  /***
+   * Set UUID to api headers for colocation partners
+   */
+  setUUID = (uuid: string) => {
+      this.apiService.setUUID(uuid);
+  };
 
   /**
    * initializes contract addresses & onboards user
    */
-  init = async (userOnboarding: boolean = true, apiToken: string = "",) => {
+  init = async (userOnboarding: boolean = true, apiToken: string = "") => {
     // get contract addresses
     const addresses = await this.getContractAddresses();
     if (!addresses.ok) {
@@ -280,6 +286,10 @@ export class FireflyClient {
     // onboard user if not onboarded
     else if (userOnboarding) {
       await this.userOnBoarding();
+    }
+
+    if (this.network.UUID) {
+      this.setUUID(this.network.UUID);
     }
 
 
