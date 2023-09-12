@@ -60,6 +60,7 @@ import {
   GetMarketRecentTradesResponse,
   GetOrderbookRequest,
   GetOrderBookResponse,
+  GetOrderByTypeRequest,
   GetOrderRequest,
   GetOrderResponse,
   GetPositionRequest,
@@ -122,6 +123,7 @@ import {
   depositToMarginBankContractCall,
   withdrawFromMarginBankContractCall,
   setSubAccount,
+  closePositionCall,
 } from "./exchange/contractService";
 // @ts-ignore
 import { generateRandomNumber } from "../utils/utils";
@@ -538,6 +540,28 @@ export class FireflyClient {
   };
 
   /**
+     * @notice Withdraw the number of margin tokens equal to the value of the account at the time
+     *  perpetual was delisted. A position can only be closed once.
+     * @param symbol market on which to close position
+     * @param perpContract (optional) address of perpetual contract
+     * @returns boolean true if position is closed, false otherwise
+     */
+  closePosition = async (
+    symbol:string,
+    perpContract?: address
+  ): Promise<ResponseSchema> => {
+    const contract = this.getContract(this._perpetual, perpContract, symbol);
+
+    return await closePositionCall(
+      contract,
+      this.getWallet(),
+      this.maxBlockGasLimit,
+      this.networkName,
+      this.getPublicAddress
+    );
+  };
+
+  /**
    * Gets balance of position open
    * @param symbol market symbol get information about
    * @param perpContract (address) address of Perpetual address comes in metaInfo
@@ -922,6 +946,22 @@ export class FireflyClient {
   getUserOrders = async (params: GetOrderRequest) => {
     const response = await this.apiService.get<GetOrderResponse[]>(
       SERVICE_URLS.USER.ORDERS,
+      {
+        ...params,
+      },
+      { isAuthenticationRequired: true }
+    );
+    return response;
+  };
+
+   /**
+   * Gets Orders by type and statuses. Returns the first 50 orders by default.
+   * @param params of type OrderByTypeRequest,
+   * @returns OrderResponse array
+   */
+   getUserOrdersByType = async (params: GetOrderByTypeRequest) => {
+    const response = await this.apiService.get<GetOrderResponse[]>(
+      SERVICE_URLS.USER.ORDERS_BY_TYPE,
       {
         ...params,
       },

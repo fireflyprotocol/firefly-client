@@ -1606,6 +1606,173 @@ describe("FireflyClient via ReadOnlyToken", () => {
     });
   });
 
+  describe("Get User Open Orders", () => {
+    it("should get all open orders", async () => {
+      const data = await readOnlyClient.getUserOrders({
+        statuses: [ORDER_STATUS.OPEN],
+        symbol,
+      });
+      expect(data.ok).to.be.equals(true);
+      expect(data.response.data.length).to.be.gte(0);
+    });
+  });
+
+  describe("Get User Orders By Type", () => {
+    it("should get all open market orders", async () => {
+      const data = await readOnlyClient.getUserOrdersByType({
+        marketStatuses: [ORDER_STATUS.OPEN],
+        symbol,
+      });
+      expect(data.ok).to.be.equals(true);
+      expect(data.response.data.length).to.be.gte(0);
+    });
+
+    it("should get all open limit orders", async () => {
+      const data = await readOnlyClient.getUserOrdersByType({
+        limitStatuses: [ORDER_STATUS.OPEN],
+        symbol,
+      });
+      expect(data.ok).to.be.equals(true);
+      expect(data.response.data.length).to.be.gte(0);
+    });
+
+    it("should get all stand by market stop orders", async () => {
+      const data = await readOnlyClient.getUserOrdersByType({
+        marketStatuses: [ORDER_STATUS.STAND_BY, ORDER_STATUS.STAND_BY_PENDING],
+        symbol,
+      });
+      expect(data.ok).to.be.equals(true);
+      expect(data.response.data.length).to.be.gte(0);
+    });
+
+    it("should get all stand by limit stop orders", async () => {
+      const data = await readOnlyClient.getUserOrdersByType({
+        limitStatuses: [ORDER_STATUS.STAND_BY, ORDER_STATUS.STAND_BY_PENDING],
+        symbol,
+      });
+      expect(data.ok).to.be.equals(true);
+      expect(data.response.data.length).to.be.gte(0);
+    });
+
+    it("should handle get open market orders of non-existent hashes", async () => {
+      const data = await readOnlyClient.getUserOrdersByType({
+        marketStatuses: [ORDER_STATUS.OPEN],
+        symbol,
+        orderHashes: ["test0"], // incorrect hash
+      });
+      expect(data.ok).to.be.equals(true);
+      expect(data.response.data.length).to.be.eq(0);
+    });
+
+    it("should handle get open limit orders of non-existent hashes", async () => {
+      const data = await readOnlyClient.getUserOrdersByType({
+        limitStatuses: [ORDER_STATUS.OPEN],
+        symbol,
+        orderHashes: ["test0"], // incorrect hash
+      });
+      expect(data.ok).to.be.equals(true);
+      expect(data.response.data.length).to.be.eq(0);
+    });
+
+    it("should get open market orders of specific hashes", async () => {
+      const data = await readOnlyClient.getUserOrdersByType({
+        marketStatuses: [ORDER_STATUS.OPEN],
+        symbol,
+      });
+      if (data.ok && data.data!.length > 0) {
+        const data1 = await client.getUserOrdersByType({
+          marketStatuses: [ORDER_STATUS.OPEN],
+          symbol,
+          orderHashes: data.response.data[0].hash,
+        });
+
+        expect(data1.ok).to.be.equals(true);
+        expect(data1.data!.length).to.be.eq(1);
+      }
+
+      expect(data.ok).to.be.equals(true);
+    });
+
+    it("should get open limit orders of specific hashes", async () => {
+      const data = await readOnlyClient.getUserOrdersByType({
+        limitStatuses: [ORDER_STATUS.OPEN],
+        symbol,
+      });
+      if (data.ok && data.data!.length > 0) {
+        const data1 = await client.getUserOrdersByType({
+          limitStatuses: [ORDER_STATUS.OPEN],
+          symbol,
+          orderHashes: data.response.data[0].hash,
+        });
+
+        expect(data1.ok).to.be.equals(true);
+        expect(data1.data!.length).to.be.eq(1);
+      }
+
+      expect(data.ok).to.be.equals(true);
+    });
+
+    it("should get all cancelled market orders", async () => {
+      const data = await readOnlyClient.getUserOrdersByType({
+        marketStatuses: [ORDER_STATUS.CANCELLED],
+        symbol,
+      });
+      expect(data.ok).to.be.equal(true);
+    });
+
+    it("should get all cancelled limit orders", async () => {
+      const data = await readOnlyClient.getUserOrdersByType({
+        limitStatuses: [ORDER_STATUS.CANCELLED],
+        symbol,
+      });
+      expect(data.ok).to.be.equal(true);
+    });
+
+    it("should get cancelled market orders", async () => {
+      const data = await readOnlyClient.getUserOrdersByType({
+        marketStatuses: [ORDER_STATUS.CANCELLED],
+        symbol,
+        pageSize: 1,
+      });
+      expect(data.ok).to.be.equals(true);
+    });
+
+    it("should get cancelled limit orders", async () => {
+      const data = await readOnlyClient.getUserOrdersByType({
+        limitStatuses: [ORDER_STATUS.CANCELLED],
+        symbol,
+        pageSize: 1,
+      });
+      expect(data.ok).to.be.equals(true);
+    });
+    it("should get 0 expired orders as page 10 does not exist for expired market orders", async () => {
+      const data = await readOnlyClient.getUserOrdersByType({
+        marketStatuses: [ORDER_STATUS.EXPIRED],
+        symbol,
+        pageNumber: 10,
+      });
+      expect(data.response.data.length).to.be.equals(0);
+    });
+
+    it("should get 0 expired orders as page 10 does not exist for expired limit orders", async () => {
+      const data = await readOnlyClient.getUserOrdersByType({
+        limitStatuses: [ORDER_STATUS.EXPIRED],
+        symbol,
+        pageNumber: 10,
+      });
+      expect(data.response.data.length).to.be.equals(0);
+    });
+
+    it("should get only LIMIT filled orders", async () => {
+      const data = await readOnlyClient.getUserOrdersByType({
+        limitStatuses: [ORDER_STATUS.FILLED],
+        symbol,
+      });
+      expect(data.ok).to.be.equals(true);
+      expect(data.response.data.length).to.be.gte(0);
+    });
+  });
+
   describe("Get User Position", () => {
     beforeEach(async () => {
       client.addMarket(symbol);
