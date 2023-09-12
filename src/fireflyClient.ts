@@ -254,7 +254,7 @@ export class FireflyClient {
     this.web3.eth.accounts.wallet.add(_acctPvtKey);
     this.wallet = new Wallet(
       _acctPvtKey,
-      new providers.JsonRpcProvider(this.network.url)
+      new providers.StaticJsonRpcProvider(this.network.url)
     );
   };
 
