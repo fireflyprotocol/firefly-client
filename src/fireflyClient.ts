@@ -76,6 +76,8 @@ import {
   GetUserRewardsHistoryRequest,
   GetUserRewardsHistoryResponse,
   GetUserRewardsSummaryResponse,
+  GetUserTradesHistoryRequest,
+  GetUserTradesHistoryResponse,
   GetUserTradesRequest,
   GetUserTradesResponse,
   GetUserTransactionHistoryResponse,
@@ -257,17 +259,18 @@ export class FireflyClient {
       new providers.JsonRpcProvider(this.network.url)
     );
   };
-  /***
+  
+/***
    * Set UUID to api headers for colocation partners
    */
-  setUUID = (uuid: string) => {
-      this.apiService.setUUID(uuid);
-  };
+setUUID = (uuid: string) => {
+  this.apiService.setUUID(uuid);
+};
 
   /**
    * initializes contract addresses & onboards user
    */
-  init = async (userOnboarding: boolean = true, apiToken: string = "") => {
+  init = async (userOnboarding: boolean = true, apiToken: string = "",) => {
     // get contract addresses
     const addresses = await this.getContractAddresses();
     if (!addresses.ok) {
@@ -286,10 +289,6 @@ export class FireflyClient {
     // onboard user if not onboarded
     else if (userOnboarding) {
       await this.userOnBoarding();
-    }
-
-    if (this.network.UUID) {
-      this.setUUID(this.network.UUID);
     }
 
 
@@ -1005,6 +1004,21 @@ export class FireflyClient {
    */
   getUserTrades = async (params: GetUserTradesRequest) => {
     const response = await this.apiService.get<GetUserTradesResponse>(
+      SERVICE_URLS.USER.USER_TRADES,
+      { ...params },
+      { isAuthenticationRequired: true }
+    );
+
+    return response;
+  };
+
+   /**
+   * Gets user trades
+   * @param params PlaceOrderResponse
+   * @returns GetUserTradesHistoryResponse
+   */
+   getUserTradesHistory = async (params: GetUserTradesHistoryRequest) => {
+    const response = await this.apiService.get<GetUserTradesHistoryResponse>(
       SERVICE_URLS.USER.USER_TRADES,
       { ...params },
       { isAuthenticationRequired: true }
