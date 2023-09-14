@@ -810,7 +810,6 @@ describe("FireflyClient", () => {
     });
     expect(response.ok).to.be.equal(true);
   });
-});
 
   describe("Get Market Orderbook", () => {
     it(`should get ${symbol} orderbook with best ask and bid`, async () => {
