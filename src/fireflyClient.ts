@@ -291,7 +291,10 @@ setUUID = (uuid: string) => {
       await this.userOnBoarding();
     }
 
-
+    if (this.network.UUID) {
+      this.setUUID(this.network.UUID);
+    }
+    
     // fetch gas limit
     this.maxBlockGasLimit = (await this.web3.eth.getBlock("latest")).gasLimit;
 
