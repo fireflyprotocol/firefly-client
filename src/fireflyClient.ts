@@ -1022,7 +1022,7 @@ setUUID = (uuid: string) => {
    */
    getUserTradesHistory = async (params: GetUserTradesHistoryRequest) => {
     const response = await this.apiService.get<GetUserTradesHistoryResponse>(
-      SERVICE_URLS.USER.USER_TRADES,
+      SERVICE_URLS.USER.USER_TRADES_HISTORY,
       { ...params },
       { isAuthenticationRequired: true }
     );
