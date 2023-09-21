@@ -792,7 +792,7 @@ describe("FireflyClient", () => {
 
       // Then
       expect(response.ok).to.be.equal(true);
-      expect(response.response.data.length).to.be.equal(0);
+      expect(response.response.data.data.length).to.be.equal(0);
       clientTemp.sockets.close();
     });
 
@@ -802,13 +802,13 @@ describe("FireflyClient", () => {
       });
       expect(response.ok).to.be.equal(true);
     });
-  });
 
-  it("should get user's BTC-PERP Trades", async () => {
-    const response = await client.getUserTradesHistory({
-      symbol,
+    it("should get user's BTC-PERP Trades History", async () => {
+      const response = await client.getUserTradesHistory({
+        symbol,
+      });
+      expect(response.ok).to.be.equal(true);
     });
-    expect(response.ok).to.be.equal(true);
   });
 
   describe("Get Market Orderbook", () => {
