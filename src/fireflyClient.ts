@@ -76,6 +76,8 @@ import {
   GetUserRewardsHistoryRequest,
   GetUserRewardsHistoryResponse,
   GetUserRewardsSummaryResponse,
+  GetUserTradesHistoryRequest,
+  GetUserTradesHistoryResponse,
   GetUserTradesRequest,
   GetUserTradesResponse,
   GetUserTransactionHistoryResponse,
@@ -257,12 +259,13 @@ export class FireflyClient {
       new providers.JsonRpcProvider(this.network.url)
     );
   };
-  /***
+  
+/***
    * Set UUID to api headers for colocation partners
    */
-  setUUID = (uuid: string) => {
-      this.apiService.setUUID(uuid);
-  };
+setUUID = (uuid: string) => {
+  this.apiService.setUUID(uuid);
+};
 
   /**
    * initializes contract addresses & onboards user
@@ -291,8 +294,7 @@ export class FireflyClient {
     if (this.network.UUID) {
       this.setUUID(this.network.UUID);
     }
-
-
+    
     // fetch gas limit
     this.maxBlockGasLimit = (await this.web3.eth.getBlock("latest")).gasLimit;
 
@@ -1006,6 +1008,21 @@ export class FireflyClient {
   getUserTrades = async (params: GetUserTradesRequest) => {
     const response = await this.apiService.get<GetUserTradesResponse>(
       SERVICE_URLS.USER.USER_TRADES,
+      { ...params },
+      { isAuthenticationRequired: true }
+    );
+
+    return response;
+  };
+
+   /**
+   * Gets user trades
+   * @param params PlaceOrderResponse
+   * @returns GetUserTradesHistoryResponse
+   */
+   getUserTradesHistory = async (params: GetUserTradesHistoryRequest) => {
+    const response = await this.apiService.get<GetUserTradesHistoryResponse>(
+      SERVICE_URLS.USER.USER_TRADES_HISTORY,
       { ...params },
       { isAuthenticationRequired: true }
     );

@@ -27,7 +27,8 @@ export const SERVICE_URLS = {
     FUND_GAS: "/account/fundGas",
     TRANSFER_HISTORY: "/userTransferHistory",
     FUNDING_HISTORY: "/userFundingHistory",
-    CANCEL_ON_DISCONNECT: "/dms-countdown"
+    CANCEL_ON_DISCONNECT: "/dms-countdown",
+    USER_TRADES_HISTORY: "/userTradesHistory"
   },
   GROWTH: {
     REFERRER_INFO: "/growth/getReferrerInfo",
