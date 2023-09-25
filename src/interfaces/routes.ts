@@ -207,6 +207,8 @@ export interface GetOrderBookResponse {
   bestAskQty: string;
   oraclePrice: string;
   oraclePriceLastUpdateAt: number;
+  firstUpdateId?: number;
+  lastUpdateId?: number;
 
   limit?: number;
 }
