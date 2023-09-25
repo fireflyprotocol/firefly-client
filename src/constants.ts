@@ -9,6 +9,7 @@ export const Networks = {
     socketURL: "wss://dapi.api.arbitrum-staging.firefly.exchange",
     webSocketURL: "wss://notifications.api.arbitrum-staging.firefly.exchange/",
     onboardingUrl: "https://testnet.firefly.exchange",
+    UUID: ""
   },
   PRODUCTION_ARBITRUM: {
     url: "https://arb1.arbitrum.io/rpc/",
@@ -18,7 +19,18 @@ export const Networks = {
     dmsURL: "https://api.arbitrum-prod.firefly.exchange/dead-man-switch",
     webSocketURL: "wss://notifications.api.arbitrum-prod.firefly.exchange/",
     onboardingUrl: "https://trade-arb.firefly.exchange",
+    UUID: ""
   },
+  PRODUCTION_ARBITRUM_INTERNAL: {
+    url: "https://arb1.arbitrum.io/rpc/",
+    chainId: 42161,
+    apiGateway: "https://dapi.api.arbitrum-prod.int.firefly.exchange",
+    socketURL: "wss://dapi.api.arbitrum-prod.int.firefly.exchange",
+    dmsURL: "https://api.arbitrum-prod.int.firefly.exchange/dead-man-switch",
+    webSocketURL: "wss://notifications.api.arbitrum-prod.int.firefly.exchange/",
+    onboardingUrl: "https://trade-arb.firefly.exchange",
+    UUID: ""
+  }
 };
 
 export const DEFAULT_PRECISION = 2;
@@ -29,4 +41,5 @@ export const EXTRA_FEES = 10000;
 export interface ExtendedNetwork extends Network {
   webSocketURL: string;
   dmsURL?: string;
+  UUID?: string;
 }

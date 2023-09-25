@@ -12,6 +12,8 @@ export class APIService {
 
   private walletAddress: string | undefined = undefined;
 
+  private uuid: string = "";
+
   private baseUrl: string | undefined = undefined;
   constructor(url: string) {
     this.baseUrl = url;
@@ -125,6 +127,10 @@ export class APIService {
     this.apiToken = apiToken;
   };
 
+  setUUID = async (uuid: string) => {
+    this.uuid = uuid;
+  };
+
   setWalletAddress = async (address: string) => {
     this.walletAddress = address;
   };
@@ -135,10 +141,13 @@ export class APIService {
   private transformRequest = (data: any, headers?: any) => {
     if (this.apiToken) {
       headers["x-api-token"] = this.apiToken;
-
     }
     else {
       headers.Authorization = `Bearer ${this.token}`;
+    }
+
+    if (this.uuid && this.uuid != "") {
+      headers["x-mm-id"] = this.uuid;
     }
 
     headers["x-wallet-address"] = this.walletAddress || "";
