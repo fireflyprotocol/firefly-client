@@ -69,12 +69,14 @@ export interface OrderSignatureResponse extends RequiredOrderFields {
 export interface PlaceOrderRequest extends OrderSignatureResponse {
   timeInForce?: TIME_IN_FORCE; // FOK/IOC/GTT by default all orders are GTT
   postOnly?: boolean; // true/false, default is true
+  cancelOnRevert?: boolean; // true/false, default is true
   clientId?: string;
 }
 
 export interface PostOrderRequest extends OrderSignatureRequest {
   timeInForce?: TIME_IN_FORCE;
   postOnly?: boolean;
+  cancelOnRevert?: boolean;
   clientId?: string;
 }
 
@@ -110,11 +112,13 @@ interface OrderResponse {
 export interface GetOrderResponse extends OrderResponse {
   fee: string;
   postOnly: boolean;
+  cancelOnRevert: boolean;
   triggerPrice: string;
   margin: string;
 }
 export interface PlaceOrderResponse extends OrderResponse {
   postOnly?: boolean;
+  cancelOnRevert?: boolean;
 }
 
 export interface MatchedOrderData {
