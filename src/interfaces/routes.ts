@@ -129,6 +129,7 @@ export interface OrderSentForSettlementUpdateResponse {
   quantitySentForSettlement: string;
   orderQuantity: string;
   isMaker: boolean;
+  isBuy: boolean;
   avgFillPrice: string;
   timestamp: number;
   matchedOrders: MatchedOrderData[];
@@ -139,6 +140,7 @@ export interface OrderRequeueUpdateResponse {
   userAddress: string;
   symbol: string;
   message: string;
+  isBuy: boolean;
   quantitySentForRequeue: string;
   timestamp: number;
 }
