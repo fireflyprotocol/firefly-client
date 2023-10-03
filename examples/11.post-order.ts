@@ -13,7 +13,6 @@ async function main() {
 
   const client = new FireflyClient(true, Networks.TESTNET_ARBITRUM, dummyAccountKey); //passing isTermAccepted = true for compliance and authorizarion
   await client.init()
-  console.log(client.getPublicAddress())
 
   client.addMarket(MARKET_SYMBOLS.ETH);
 
