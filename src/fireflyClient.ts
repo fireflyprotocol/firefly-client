@@ -664,8 +664,8 @@ setUUID = (uuid: string) => {
         expiration: params.expiration,
         orderSignature: params.orderSignature,
         timeInForce: params.timeInForce || TIME_IN_FORCE.GOOD_TILL_TIME,
-        postOnly: params.postOnly || false,
-        cancelOnRevert: params.cancelOnRevert || false,
+        postOnly: params.postOnly == true || false ,
+        cancelOnRevert: params.cancelOnRevert == true || false ,
         clientId: params.clientId
           ? `firefly-client: ${params.clientId}`
           : "firefly-client",
