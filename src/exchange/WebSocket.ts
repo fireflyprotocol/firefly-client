@@ -16,7 +16,7 @@ import {
   TickerData,
   OrderSentForSettlementUpdateResponse,
   OrderRequeueUpdateResponse,
-  OrderCancelledOnRevertUpdateResponse,
+  OrderCancellationUpdateResponse,
 } from "../interfaces/routes";
 
 // @ts-ignore
@@ -220,7 +220,7 @@ export class WebSockets {
     callbackListeners[SOCKET_EVENTS.OrderRequeueUpdate] = cb;
   };
 
-  onUserOrderCancelOnRevertUpdate = (cb: (update: OrderCancelledOnRevertUpdateResponse) => void) => {
+  onUserOrderCancelOnRevertUpdate = (cb: (update: OrderCancellationUpdateResponse) => void) => {
     callbackListeners[SOCKET_EVENTS.OrderCancelledOnReversionUpdate] = cb;
   };
 
