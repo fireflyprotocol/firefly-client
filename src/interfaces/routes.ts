@@ -143,6 +143,16 @@ export interface OrderRequeueUpdateResponse {
   timestamp: number;
 }
 
+export interface OrderCancellationUpdateResponse {
+  orderHash: string;
+  userAddress: string;
+  symbol: string;
+  message: string;
+  isBuy: boolean;
+  quantitySentForCancellation: string;
+  timestamp: number;
+}
+
 export interface OrderCancelSignatureRequest {
   symbol: MarketSymbol;
   hashes: string[];
