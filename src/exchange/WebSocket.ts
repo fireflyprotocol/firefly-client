@@ -16,7 +16,7 @@ import {
   TickerData,
   OrderSentForSettlementUpdateResponse,
   OrderRequeueUpdateResponse,
-  OrderCancellationUpdateResponse,
+  OrderCancellationOnReversionUpdateResponse,
 } from "../interfaces/routes";
 
 // @ts-ignore
