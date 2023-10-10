@@ -220,7 +220,7 @@ export class WebSockets {
     callbackListeners[SOCKET_EVENTS.OrderRequeueUpdate] = cb;
   };
 
-  onUserOrderCancelOnRevertUpdate = (cb: (update: OrderCancellationUpdateResponse) => void) => {
+  onUserOrderCancelOnRevertUpdate = (cb: (update: OrderCancellationOnReversionUpdateResponse) => void) => {
     callbackListeners[SOCKET_EVENTS.OrderCancelledOnReversionUpdate] = cb;
   };
 
