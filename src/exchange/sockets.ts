@@ -19,6 +19,7 @@ import {
   OrderSentForSettlementUpdateResponse,
   OrderRequeueUpdateResponse,
   Callbacks,
+  OrderCancellationOnReversionUpdateResponse,
 } from "../interfaces/routes";
 
 
@@ -202,6 +203,10 @@ export class Sockets {
 
   onUserOrderRequeueUpdate = (cb: (update: OrderRequeueUpdateResponse) => void) => {
     this.socketInstance.on(SOCKET_EVENTS.OrderRequeueUpdate, cb);
+  };
+
+  onUserOrderCancellationOnReversionUpdate = (cb: (update: OrderCancellationOnReversionUpdateResponse) => void) => {
+    this.socketInstance.on(SOCKET_EVENTS.OrderCancelledOnReversionUpdate, cb);
   };
 
   onUserPositionUpdate = (
