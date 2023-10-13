@@ -14,14 +14,15 @@ async function main() {
   const client = new FireflyClient(true, Networks.TESTNET_ARBITRUM, dummyAccountKey); //passing isTermAccepted = true for compliance and authorizarion
   await client.init()
 
-  client.addMarket(MARKET_SYMBOLS.DOT);
+  client.addMarket(MARKET_SYMBOLS.ETH);
 
   // will post a limit order of 0.5 quantity at price 11
   const response = await client.postOrder({
-    symbol: MARKET_SYMBOLS.DOT,
+    symbol: MARKET_SYMBOLS.ETH,
     price: 11,
     quantity: 0.5,
     side: ORDER_SIDE.BUY,
+    cancelOnRevert: true,
     orderType: ORDER_TYPE.LIMIT
   });
 

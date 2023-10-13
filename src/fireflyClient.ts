@@ -664,7 +664,8 @@ setUUID = (uuid: string) => {
         expiration: params.expiration,
         orderSignature: params.orderSignature,
         timeInForce: params.timeInForce || TIME_IN_FORCE.GOOD_TILL_TIME,
-        postOnly: params.postOnly || false,
+        postOnly: params.postOnly == true,
+        cancelOnRevert: params.cancelOnRevert == true,
         clientId: params.clientId
           ? `firefly-client: ${params.clientId}`
           : "firefly-client",
@@ -686,6 +687,7 @@ setUUID = (uuid: string) => {
       ...signedOrder,
       timeInForce: params.timeInForce,
       postOnly: params.postOnly,
+      cancelOnRevert: params.cancelOnRevert,
       clientId: params.clientId,
     });
 
@@ -1731,7 +1733,7 @@ setUUID = (uuid: string) => {
       maker: parentAddress
         ? parentAddress
         : this.getPublicAddress().toLocaleLowerCase(),
-      reduceOnly: params.reduceOnly || false,
+      reduceOnly: params.reduceOnly == true,
       triggerPrice: isStopOrder(params.orderType)
         ? toBigNumber(params.triggerPrice || "0")
         : toBigNumber(0),
