@@ -150,7 +150,7 @@ export class Sockets {
   onOrderBookPartialDepthUpdate = (
     cb: ({ symbol, orderbook }: any) => void
   ) => {
-    this.socketInstance.on(SOCKET_EVENTS.OrderbookUpdateKey, cb);
+    this.socketInstance.on(SOCKET_EVENTS.OrderbookDepthUpdateKey, cb);
   };
 
   onMarketDataUpdate = (
