@@ -232,6 +232,35 @@ export interface GetOrderBookResponse {
   limit?: number;
 }
 
+export interface OrderBookPartialDepth {
+  symbol: string;
+  orderbookUpdateId: number;
+  depth: number;
+  asks: string[][];
+  bids: string[][];
+}
+
+export interface GetOrderBookResponse {
+  asks: string[][];
+  bids: string[][];
+  midPrice: string;
+  symbol: MarketSymbol;
+  lastUpdatedAt: number;
+  orderbookUpdateId: number;
+  responseSentAt: number;
+
+  bestBidPrice: string;
+  bestBidQty: string;
+  bestAskPrice: string;
+  bestAskQty: string;
+  oraclePrice: string;
+  oraclePriceLastUpdateAt: number;
+  firstUpdateId?: number;
+  lastUpdateId?: number;
+
+  limit?: number;
+}
+
 export interface GetUserTradesRequest {
   symbol?: MarketSymbol;
   maker?: boolean;

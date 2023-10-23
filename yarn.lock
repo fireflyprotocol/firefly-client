@@ -414,10 +414,10 @@
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
 
-"@firefly-exchange/library@^1.2.18":
-  version "1.2.18"
-  resolved "https://registry.yarnpkg.com/@firefly-exchange/library/-/library-1.2.18.tgz#85e790b0645e33819204b03308c3718927a749bb"
-  integrity sha512-6+uXKk4T/rF5Vau8oauQSEB/Lx84WwmHDcpUky1DmPC1sgJh2+YIQ0CrqSF034aZxStb7tA94clYGzzMspuwZw==
+"@firefly-exchange/library@^1.2.19":
+  version "1.2.19"
+  resolved "https://registry.yarnpkg.com/@firefly-exchange/library/-/library-1.2.19.tgz#2da68789542100d791bd1e8612308891730bf8a2"
+  integrity sha512-4EqmpTLbPgoJrsjNERggn6xXWBu5A7mfjV1pvu4lFbNLmbMMulgP2U/CwpxpwuDNFnvuASC7i/AsQIK62JsErA==
   dependencies:
     "@typescript-eslint/eslint-plugin" "^5.47.1"
     "@typescript-eslint/parser" "^5.47.1"
