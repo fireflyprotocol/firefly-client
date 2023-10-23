@@ -20,6 +20,7 @@ import {
   OrderRequeueUpdateResponse,
   Callbacks,
   OrderCancellationOnReversionUpdateResponse,
+  OrderBookPartialDepth,
 } from "../interfaces/routes";
 
 export class Sockets {
@@ -98,25 +99,31 @@ export class Sockets {
     return true;
   }
 
-  subscribeOrderBookDepthStreamBySymbol(symbol: MarketSymbol, depth=""): boolean {
+  subscribeOrderBookDepthStreamBySymbol(
+    symbol: MarketSymbol,
+    depth = ""
+  ): boolean {
     if (!this.socketInstance) return false;
     this.socketInstance.emit("SUBSCRIBE", [
       {
         e: SOCKET_EVENTS.ORDERBOOK_DEPTH_STREAM_ROOM,
         p: symbol,
-        d: depth
+        d: depth,
       },
     ]);
     return true;
   }
 
-  unsubscribeOrderBookDepthStreamBySymbol(symbol: MarketSymbol, depth=""): boolean {
+  unsubscribeOrderBookDepthStreamBySymbol(
+    symbol: MarketSymbol,
+    depth = ""
+  ): boolean {
     if (!this.socketInstance) return false;
     this.socketInstance.emit("UNSUBSCRIBE", [
       {
         e: SOCKET_EVENTS.ORDERBOOK_DEPTH_STREAM_ROOM,
         p: symbol,
-        d: depth
+        d: depth,
       },
     ]);
     return true;
@@ -172,7 +179,7 @@ export class Sockets {
 
   // Emitted when any price bin on the oderbook is updated.
   onOrderBookPartialDepthUpdate = (
-    cb: ({ symbol, orderbookPartialDepth }: any) => void
+    cb: (payload: OrderBookPartialDepth) => void
   ) => {
     this.socketInstance.on(SOCKET_EVENTS.OrderbookDepthUpdateKey, cb);
   };
