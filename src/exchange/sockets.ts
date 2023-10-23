@@ -22,14 +22,15 @@ import {
   OrderCancellationOnReversionUpdateResponse,
 } from "../interfaces/routes";
 
-
 export class Sockets {
   private socketInstance!: Socket;
 
   private url: string;
 
   private token: string;
+
   private callbacks: Callbacks = {};
+
   private apiToken: string;
 
   constructor(url: string) {
@@ -47,8 +48,8 @@ export class Sockets {
   }
 
   /**
-     * Assigns callbacks to desired events
-     */
+   * Assigns callbacks to desired events
+   */
   async listen(event: string, callback: Function): Promise<void> {
     this.callbacks[event] = callback;
   }
@@ -101,11 +102,9 @@ export class Sockets {
     this.token = token;
   };
 
-
   setAPIToken = async (apiToken: string) => {
     this.apiToken = apiToken;
   };
-
 
   subscribeUserUpdateByToken(callback?: UserSubscriptionAck): boolean {
     if (!this.socketInstance) return false;
@@ -124,7 +123,6 @@ export class Sockets {
     );
     return true;
   }
-
 
   unsubscribeUserUpdateByToken(callback?: UserSubscriptionAck): boolean {
     if (!this.socketInstance) return false;
@@ -145,6 +143,13 @@ export class Sockets {
 
   // Emitted when any price bin on the oderbook is updated.
   onOrderBookUpdate = (cb: ({ symbol, orderbook }: any) => void) => {
+    this.socketInstance.on(SOCKET_EVENTS.OrderbookUpdateKey, cb);
+  };
+
+  // Emitted when any price bin on the oderbook is updated.
+  onOrderBookPartialDepthUpdate = (
+    cb: ({ symbol, orderbook }: any) => void
+  ) => {
     this.socketInstance.on(SOCKET_EVENTS.OrderbookUpdateKey, cb);
   };
 
@@ -197,15 +202,21 @@ export class Sockets {
     this.socketInstance.on(SOCKET_EVENTS.OrderUpdateKey, cb);
   };
 
-  onUserOrderSentForSettlementUpdate = (cb: (update: OrderSentForSettlementUpdateResponse) => void) => {
+  onUserOrderSentForSettlementUpdate = (
+    cb: (update: OrderSentForSettlementUpdateResponse) => void
+  ) => {
     this.socketInstance.on(SOCKET_EVENTS.OrderSentForSettlementUpdate, cb);
   };
 
-  onUserOrderRequeueUpdate = (cb: (update: OrderRequeueUpdateResponse) => void) => {
+  onUserOrderRequeueUpdate = (
+    cb: (update: OrderRequeueUpdateResponse) => void
+  ) => {
     this.socketInstance.on(SOCKET_EVENTS.OrderRequeueUpdate, cb);
   };
 
-  onUserOrderCancellationOnReversionUpdate = (cb: (update: OrderCancellationOnReversionUpdateResponse) => void) => {
+  onUserOrderCancellationOnReversionUpdate = (
+    cb: (update: OrderCancellationOnReversionUpdateResponse) => void
+  ) => {
     this.socketInstance.on(SOCKET_EVENTS.OrderCancelledOnReversionUpdate, cb);
   };
 
@@ -227,26 +238,27 @@ export class Sockets {
     this.socketInstance.on(SOCKET_EVENTS.AccountDataUpdateKey, cb);
   };
 
-
   async onDisconnect(): Promise<void> {
     this.socketInstance.on("disconnect", async () => {
-      console.log('Disconnected From Socket Server');
-      if ('disconnect' in this.callbacks && typeof this.callbacks['disconnect'] === 'function') {
-        await this.callbacks['disconnect']();
+      console.log("Disconnected From Socket Server");
+      if (
+        "disconnect" in this.callbacks &&
+        typeof this.callbacks.disconnect === "function"
+      ) {
+        await this.callbacks.disconnect();
       }
     });
-
   }
 
   async onConnect(): Promise<void> {
     this.socketInstance.on("connect", async () => {
-      console.log('Connected To Socket Server');
-      if ('connect' in this.callbacks && typeof this.callbacks['connect'] === 'function') {
-        await this.callbacks['connect']();
+      console.log("Connected To Socket Server");
+      if (
+        "connect" in this.callbacks &&
+        typeof this.callbacks.connect === "function"
+      ) {
+        await this.callbacks.connect();
       }
     });
-
   }
 }
-
-
