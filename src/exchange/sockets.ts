@@ -177,7 +177,6 @@ export class Sockets {
     this.socketInstance.on(SOCKET_EVENTS.OrderbookUpdateKey, cb);
   };
 
-  // Emitted when any price bin on the oderbook is updated.
   onOrderBookPartialDepthUpdate = (
     cb: (payload: OrderBookPartialDepth) => void
   ) => {
