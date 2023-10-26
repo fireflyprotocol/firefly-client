@@ -15,7 +15,7 @@ import {
 async function main() {
   // no gas fee is required to create order signature.
   const dummyAccountKey =
-    "a182091b4d5a090b65d604e36f68629a692e3bf2aa864bd3f037854034cdd676";
+    "c6fa38ca12f7ab92622a96887675d872e6fb61e1b7a5870df31bb863344295be";
 
   const client = new FireflyClient(
     true,
@@ -40,7 +40,7 @@ async function main() {
     client.sockets.subscribeUserUpdateByToken();
 
     // triggered when order updates are received
-    client.sockets.onUserOrderUpdate(callback);
+    client.sockets.onUserOrderCancellationFailed(callback);
   };
 
   const disconnection_callback = async () => {

@@ -177,6 +177,12 @@ export class Sockets {
     this.socketInstance.on(SOCKET_EVENTS.OrderbookUpdateKey, cb);
   };
 
+  onUserOrderCancellationFailed = (
+    cb: ({ order }: { order: PlaceOrderResponse }) => void
+  ) => {
+    this.socketInstance.on(SOCKET_EVENTS.OrderCancellationFailedKey, cb);
+  };
+
   onOrderBookPartialDepthUpdate = (
     cb: (payload: OrderBookPartialDepth) => void
   ) => {
