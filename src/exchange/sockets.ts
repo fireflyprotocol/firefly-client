@@ -183,6 +183,10 @@ export class Sockets {
     this.socketInstance.on(SOCKET_EVENTS.OrderCancellationFailedKey, cb);
   };
 
+  onCustomEvent = (cb: (payload: any) => void, customEventKey: string) => {
+    this.socketInstance.on(customEventKey, cb);
+  };
+
   onOrderBookPartialDepthUpdate = (
     cb: (payload: OrderBookPartialDepth) => void
   ) => {
