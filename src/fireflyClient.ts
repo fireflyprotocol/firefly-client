@@ -1423,6 +1423,11 @@ export class FireflyClient {
   };
 
   //Open referral Program
+  /**
+   * get open referral referee details
+   * @param payload
+   * @returns OpenReferralRefereeDetails
+   */
   getOpenReferralRefereeDetails = async (payload: {
     cursor: string;
     pageSize: number;
@@ -1437,6 +1442,11 @@ export class FireflyClient {
     return response;
   };
 
+  /**
+   * get open referral payouts
+   * @param payload
+   * @returns OpenReferralDetails
+   */
   getOpenReferralDetails = async (payload: { campaignId: number }) => {
     const response = await this.apiService.get<OpenReferralDetails>(
       SERVICE_URLS.GROWTH.OPEN_REFERRAL_REFEREES_COUNT,
@@ -1445,7 +1455,11 @@ export class FireflyClient {
     );
     return response;
   };
-
+  /**
+   * get open referral payouts
+   * @param payload
+   * @returns OpenReferralPayoutList
+   */
   getOpenReferralPayouts = async (payload: {
     cursor: string;
     pageSize: number;
@@ -1460,6 +1474,11 @@ export class FireflyClient {
     return response;
   };
 
+  /**
+   * generate open referral code
+   * @param campaignId
+   * @returns OpenReferralOverview
+   */
   generateOpenReferralReferralCode = async (payload: {
     campaignId: string;
   }) => {
@@ -1473,6 +1492,10 @@ export class FireflyClient {
     return response;
   };
 
+  /**
+   * get open referral overview
+   * @returns OpenReferralOverview
+   */
   getOpenReferralOverview = async () => {
     const response = await this.apiService.get<OpenReferralOverview>(
       SERVICE_URLS.GROWTH.OPEN_REFERRAL_OVERVIEW,
@@ -1483,6 +1506,12 @@ export class FireflyClient {
     );
     return response;
   };
+
+  /**
+   * Link open referral
+   * @param referralCode
+   * @returns boolean
+   */
 
   openReferralLinkReferredUser = async (payload: { referralCode: string }) => {
     const response = await this.apiService.post(
