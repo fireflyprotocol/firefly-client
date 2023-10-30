@@ -1573,6 +1573,21 @@ export class FireflyClient {
   };
 
   /**
+   * Gets affiliate referree count
+   * @param campaignId
+   * @returns GetAffiliateRefereeCountResponse
+   */
+  getRefereeCount = async (campaignId: number) => {
+    const response =
+      await this.apiService.get<GetAffiliateRefereeCountResponse>(
+        SERVICE_URLS.GROWTH.GROWTH_REFEREES_COUNT,
+        { campaignId },
+        { isAuthenticationRequired: true }
+      );
+    return response;
+  };
+
+  /**
    * Gets user rewards history
    * @param optional params GetUserRewardsHistoryRequest
    * @returns GetUserRewardsHistoryResponse
