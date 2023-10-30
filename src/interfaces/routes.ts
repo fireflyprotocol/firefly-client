@@ -309,7 +309,6 @@ export interface GetUserTradesHistoryResponse {
   isMoreDataAvailable: boolean;
 }
 
-
 export interface MarketAccountData {
   symbol: MarketSymbol;
   positionQtyReduced: string;
@@ -779,3 +778,45 @@ export interface GetOrderByTypeRequest extends GetTransactionHistoryRequest {
   orderType?: ORDER_TYPE[]; // order type LIMIT / MARKET
   parentAddress?: string;
 }
+
+export type OpenReferralPayout = {
+  epochNumber: number;
+  epStartDate: string;
+  epEndDate: string;
+  isActive: true;
+  referralPoints: string;
+  referralTradeAndEarnPoints: string;
+  rewardedPoints: string;
+  cursor: string;
+};
+export type OpenReferralPayoutList = OpenReferralPayout[];
+
+export type OpenReferralOverview = {
+  totalHistoricalRewardedPoints: string;
+  totalHistoricalRefereePoints: string;
+  totalHistoricalReferralPoints: string;
+  totalActiveRewardedPoints: string;
+  totalActiveRefereePoints: string;
+  totalActiveReferralPoints: string;
+  latestEpochNumber: number;
+  latestEpochStart: string;
+  latestEpochEnd: string;
+  latestEpochReferralMultiplier: string;
+  latestEpochRefereeMultiplier: string;
+};
+
+export type OpenReferralRefereeDetail = {
+  refereeAddress: string;
+  tradeAndEarnPoints: string;
+  refereePoints: string;
+  rewardedPoints: string; // as a referrer,
+  lastTraded: string;
+  dateJoined: string;
+};
+
+export type OpenReferralRefereeDetails = OpenReferralRefereeDetail[];
+
+export type OpenReferralDetails = {
+  referralCode: string;
+  referralCount: number;
+};
