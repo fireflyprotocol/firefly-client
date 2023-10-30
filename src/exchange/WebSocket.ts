@@ -17,6 +17,7 @@ import {
   OrderSentForSettlementUpdateResponse,
   OrderRequeueUpdateResponse,
   OrderCancellationOnReversionUpdateResponse,
+  OrderBookPartialDepth,
 } from "../interfaces/routes";
 
 // @ts-ignore
@@ -117,6 +118,46 @@ export class WebSockets {
     return true;
   }
 
+  subscribeOrderBookDepthStreamBySymbol(
+    symbol: MarketSymbol,
+    depth = ""
+  ): boolean {
+    if (!this.socketInstance) return false;
+    this.socketInstance.send(
+      JSON.stringify([
+        "SUBSCRIBE",
+        [
+          {
+            e: SOCKET_EVENTS.ORDERBOOK_DEPTH_STREAM_ROOM,
+            p: symbol,
+            d: depth,
+          },
+        ],
+      ])
+    );
+    return true;
+  }
+
+  unsubscribeOrderBookDepthStreamBySymbol(
+    symbol: MarketSymbol,
+    depth = ""
+  ): boolean {
+    if (!this.socketInstance) return false;
+    this.socketInstance.send(
+      JSON.stringify([
+        "UNSUBSCRIBE",
+        [
+          {
+            e: SOCKET_EVENTS.ORDERBOOK_DEPTH_STREAM_ROOM,
+            p: symbol,
+            d: depth,
+          },
+        ],
+      ])
+    );
+    return true;
+  }
+
   subscribeUserUpdateByToken(): boolean {
     if (!this.socketInstance) return false;
 
@@ -126,7 +167,7 @@ export class WebSockets {
         [
           {
             e: SOCKET_EVENTS.UserUpdatesRoom,
-            rt: this.apiToken? this.apiToken: "",
+            rt: this.apiToken ? this.apiToken : "",
             t: this.token,
           },
         ],
@@ -155,13 +196,19 @@ export class WebSockets {
     this.token = token;
   };
 
-
   setAPIToken = async (apiToken: string) => {
     this.apiToken = apiToken;
   };
+
   // Emitted when any price bin on the oderbook is updated.
   onOrderBookUpdate = (cb: ({ symbol, orderbook }: any) => void) => {
     callbackListeners[SOCKET_EVENTS.OrderbookUpdateKey] = cb;
+  };
+
+  onOrderBookPartialDepthUpdate = (
+    cb: (payload: OrderBookPartialDepth) => void
+  ) => {
+    callbackListeners[SOCKET_EVENTS.OrderbookDepthUpdateKey] = cb;
   };
 
   onMarketDataUpdate = (
@@ -212,15 +259,21 @@ export class WebSockets {
     callbackListeners[SOCKET_EVENTS.OrderUpdateKey] = cb;
   };
 
-  onUserOrderSentForSettlementUpdate = (cb: (update: OrderSentForSettlementUpdateResponse) => void) => {
+  onUserOrderSentForSettlementUpdate = (
+    cb: (update: OrderSentForSettlementUpdateResponse) => void
+  ) => {
     callbackListeners[SOCKET_EVENTS.OrderSentForSettlementUpdate] = cb;
   };
 
-  onUserOrderRequeueUpdate = (cb: (update: OrderRequeueUpdateResponse) => void) => {
+  onUserOrderRequeueUpdate = (
+    cb: (update: OrderRequeueUpdateResponse) => void
+  ) => {
     callbackListeners[SOCKET_EVENTS.OrderRequeueUpdate] = cb;
   };
 
-  onUserOrderCancelOnRevertUpdate = (cb: (update: OrderCancellationOnReversionUpdateResponse) => void) => {
+  onUserOrderCancelOnRevertUpdate = (
+    cb: (update: OrderCancellationOnReversionUpdateResponse) => void
+  ) => {
     callbackListeners[SOCKET_EVENTS.OrderCancelledOnReversionUpdate] = cb;
   };
 
