@@ -1,6 +1,5 @@
 /* eslint-disable prettier/prettier */
 
-
 import { AwsKmsSigner } from "ethers-aws-kms-signer";
 
 import { Contract, ethers, providers, Signer, Wallet } from "ethers";
@@ -88,6 +87,10 @@ import {
   MarketData,
   MarketMeta,
   MasterInfo,
+  OpenReferralDetails,
+  OpenReferralOverview,
+  OpenReferralPayoutList,
+  OpenReferralRefereeDetails,
   OrderCancellationRequest,
   OrderCancelSignatureRequest,
   OrderSignatureRequest,
@@ -145,7 +148,6 @@ export class FireflyClient {
   public sockets: Sockets;
   public webSockets: WebSockets | undefined;
   public kmsSigner: AwsKmsSigner | undefined;
-
 
   public marketSymbols: string[] = []; // to save array market symbols [DOT-PERP, SOL-PERP]
 
@@ -208,11 +210,9 @@ export class FireflyClient {
     //if input is string then its private key else it should be AwsKmsSigner object
     if (typeof _account == "string") {
       this.initializeWithPrivateKey(_account);
-    }
-    else if (_account instanceof AwsKmsSigner) {
+    } else if (_account instanceof AwsKmsSigner) {
       this.initializeWithKMS(_account);
     }
-
   }
 
   initializeWithKMS = async (awsKmsSigner: AwsKmsSigner): Promise<void> => {
@@ -224,8 +224,7 @@ export class FireflyClient {
       console.log(err);
       throw Error("Failed to initialize KMS");
     }
-
-  }
+  };
 
   /**
    * initializes web3 with the given provider and creates a signer to sign transactions like placing order
@@ -259,13 +258,13 @@ export class FireflyClient {
       new providers.StaticJsonRpcProvider(this.network.url)
     );
   };
-  
-/***
+
+  /***
    * Set UUID to api headers for colocation partners
    */
-setUUID = (uuid: string) => {
-  this.apiService.setUUID(uuid);
-};
+  setUUID = (uuid: string) => {
+    this.apiService.setUUID(uuid);
+  };
 
   /**
    * initializes contract addresses & onboards user
@@ -278,7 +277,6 @@ setUUID = (uuid: string) => {
     }
 
     this.contractAddresses = addresses.data;
-
 
     if (apiToken) {
       this.apiService.setAPIToken(apiToken);
@@ -294,7 +292,7 @@ setUUID = (uuid: string) => {
     if (this.network.UUID) {
       this.setUUID(this.network.UUID);
     }
-    
+
     // fetch gas limit
     this.maxBlockGasLimit = (await this.web3.eth.getBlock("latest")).gasLimit;
 
@@ -498,7 +496,7 @@ setUUID = (uuid: string) => {
     if (
       apiResponse.response.data.verificationStatus &&
       apiResponse.response.data.verificationStatus.toLowerCase() !=
-      VerificationStatus.Success
+        VerificationStatus.Success
     ) {
       apiResponse.ok = false;
       apiResponse.status = 5001;
@@ -542,14 +540,14 @@ setUUID = (uuid: string) => {
   };
 
   /**
-     * @notice Withdraw the number of margin tokens equal to the value of the account at the time
-     *  perpetual was delisted. A position can only be closed once.
-     * @param symbol market on which to close position
-     * @param perpContract (optional) address of perpetual contract
-     * @returns boolean true if position is closed, false otherwise
-     */
+   * @notice Withdraw the number of margin tokens equal to the value of the account at the time
+   *  perpetual was delisted. A position can only be closed once.
+   * @param symbol market on which to close position
+   * @param perpContract (optional) address of perpetual contract
+   * @returns boolean true if position is closed, false otherwise
+   */
   closePosition = async (
-    symbol:string,
+    symbol: string,
     perpContract?: address
   ): Promise<ResponseSchema> => {
     const contract = this.getContract(this._perpetual, perpContract, symbol);
@@ -617,7 +615,6 @@ setUUID = (uuid: string) => {
         this.getPublicAddress()
       );
     }
-
 
     const signedOrder: SignedOrder = {
       ...order,
@@ -850,8 +847,8 @@ setUUID = (uuid: string) => {
         this.networkName,
         params.parentAddress
           ? () => {
-            return params.parentAddress!;
-          }
+              return params.parentAddress!;
+            }
           : this.getPublicAddress
       );
     }
@@ -958,12 +955,12 @@ setUUID = (uuid: string) => {
     return response;
   };
 
-   /**
+  /**
    * Gets Orders by type and statuses. Returns the first 50 orders by default.
    * @param params of type OrderByTypeRequest,
    * @returns OrderResponse array
    */
-   getUserOrdersByType = async (params: GetOrderByTypeRequest) => {
+  getUserOrdersByType = async (params: GetOrderByTypeRequest) => {
     const response = await this.apiService.get<GetOrderResponse[]>(
       SERVICE_URLS.USER.ORDERS_BY_TYPE,
       {
@@ -1017,12 +1014,12 @@ setUUID = (uuid: string) => {
     return response;
   };
 
-   /**
+  /**
    * Gets user trades
    * @param params PlaceOrderResponse
    * @returns GetUserTradesHistoryResponse
    */
-   getUserTradesHistory = async (params: GetUserTradesHistoryRequest) => {
+  getUserTradesHistory = async (params: GetUserTradesHistoryRequest) => {
     const response = await this.apiService.get<GetUserTradesHistoryResponse>(
       SERVICE_URLS.USER.USER_TRADES_HISTORY,
       { ...params },
@@ -1273,16 +1270,18 @@ setUUID = (uuid: string) => {
       let signature: string;
 
       if (this.kmsSigner !== undefined) {
-        const hashedMessageSHA = this.web3.utils.sha3(this.network.onboardingUrl);
+        const hashedMessageSHA = this.web3.utils.sha3(
+          this.network.onboardingUrl
+        );
         /*
           For every orderHash sent to etherium etherium will hash it and wrap
           it with "\\x19Ethereum Signed Message:\\n" + message.length + message
           Hence for that we have to hash it again.
         */
         //@ts-ignore
-        const hashedMessageETH = this.web3.eth.accounts.hashMessage(hashedMessageSHA);
+        const hashedMessageETH =
+          this.web3.eth.accounts.hashMessage(hashedMessageSHA);
         signature = await this.kmsSigner._signDigest(hashedMessageETH);
-
       } else {
         // sign onboarding message
         signature = await OnboardingSigner.createOnboardSignature(
@@ -1324,28 +1323,34 @@ setUUID = (uuid: string) => {
       this.network.dmsURL
     );
     if (response.status == 503) {
-      throw Error(`Cancel on Disconnect (dead-mans-switch) feature is currently unavailable`);
-
+      throw Error(
+        `Cancel on Disconnect (dead-mans-switch) feature is currently unavailable`
+      );
     }
     return response;
   };
 
   /**
- * Gets user Cancel on Disconnect timer
- * @returns GetCountDownsResponse
- */
-  getCancelOnDisconnectTimer = async (symbol?: string, parentAddress?: string) => {
+   * Gets user Cancel on Disconnect timer
+   * @returns GetCountDownsResponse
+   */
+  getCancelOnDisconnectTimer = async (
+    symbol?: string,
+    parentAddress?: string
+  ) => {
     const response = await this.apiService.get<GetCountDownsResponse>(
       SERVICE_URLS.USER.CANCEL_ON_DISCONNECT,
       {
         parentAddress,
-        symbol
+        symbol,
       },
       { isAuthenticationRequired: true },
       this.network.dmsURL
     );
     if (response.status == 503) {
-      throw Error(`Cancel on Disconnect (dead-mans-switch) feature is currently unavailable`);
+      throw Error(
+        `Cancel on Disconnect (dead-mans-switch) feature is currently unavailable`
+      );
     }
     return response;
   };
@@ -1362,7 +1367,7 @@ setUUID = (uuid: string) => {
       { isAuthenticationRequired: true }
     );
     return response;
-  }
+  };
 
   /**
    * Links referred user
@@ -1376,7 +1381,7 @@ setUUID = (uuid: string) => {
       { isAuthenticationRequired: true }
     );
     return response;
-  }
+  };
 
   /**
    * Gets referrer Info
@@ -1394,11 +1399,11 @@ setUUID = (uuid: string) => {
 
   /**
    * Gets campaign details
-   * @returns Array of GetCampaignDetailsResponse 
+   * @returns Array of GetCampaignDetailsResponse
    */
   getCampaignDetails = async () => {
     const response = await this.apiService.get<GetCampaignDetailsResponse[]>(
-      SERVICE_URLS.GROWTH.CAMPAIGN_DETAILS,
+      SERVICE_URLS.GROWTH.CAMPAIGN_DETAILS
     );
     return response;
   };
@@ -1417,6 +1422,110 @@ setUUID = (uuid: string) => {
     return response;
   };
 
+  //Open referral Program
+  /**
+   * get open referral referee details
+   * @param payload
+   * @returns OpenReferralRefereeDetails
+   */
+  getOpenReferralRefereeDetails = async (payload: {
+    cursor: string;
+    pageSize: number;
+  }) => {
+    const response = await this.apiService.get<{
+      data: OpenReferralRefereeDetails;
+      nextCursor: string;
+      isMoreDataAvailable: boolean;
+    }>(SERVICE_URLS.GROWTH.OPEN_REFERRAL_REFEREE_DETAILS, payload, {
+      isAuthenticationRequired: true,
+    });
+    return response;
+  };
+
+  /**
+   * get open referral payouts
+   * @param payload
+   * @returns OpenReferralDetails
+   */
+  getOpenReferralDetails = async (payload: { campaignId: number }) => {
+    const response = await this.apiService.get<OpenReferralDetails>(
+      SERVICE_URLS.GROWTH.OPEN_REFERRAL_REFEREES_COUNT,
+      payload,
+      { isAuthenticationRequired: true }
+    );
+    return response;
+  };
+  /**
+   * get open referral payouts
+   * @param payload
+   * @returns OpenReferralPayoutList
+   */
+  getOpenReferralPayouts = async (payload: {
+    cursor: string;
+    pageSize: number;
+  }) => {
+    const response = await this.apiService.get<{
+      data: OpenReferralPayoutList;
+      nextCursor: string;
+      isMoreDataAvailable: boolean;
+    }>(SERVICE_URLS.GROWTH.OPEN_REFERRAL_PAYOUTS, payload, {
+      isAuthenticationRequired: true,
+    });
+    return response;
+  };
+
+  /**
+   * generate open referral code
+   * @param campaignId
+   * @returns OpenReferralOverview
+   */
+  generateOpenReferralReferralCode = async (payload: {
+    campaignId: string;
+  }) => {
+    const response = await this.apiService.post<{
+      referralAddress: string;
+      referralCode: string;
+      message: string;
+    }>(SERVICE_URLS.GROWTH.OPEN_REFERRAL_GENERATE_CODE, payload, {
+      isAuthenticationRequired: true,
+    });
+    return response;
+  };
+
+  /**
+   * get open referral overview
+   * @returns OpenReferralOverview
+   */
+  getOpenReferralOverview = async () => {
+    const response = await this.apiService.get<OpenReferralOverview>(
+      SERVICE_URLS.GROWTH.OPEN_REFERRAL_OVERVIEW,
+      undefined,
+      {
+        isAuthenticationRequired: true,
+      }
+    );
+    return response;
+  };
+
+  /**
+   * Link open referral
+   * @param referralCode
+   * @returns boolean
+   */
+
+  openReferralLinkReferredUser = async (payload: { referralCode: string }) => {
+    const response = await this.apiService.post(
+      SERVICE_URLS.GROWTH.OPEN_REFERRAL_LINK_REFERRED_USER,
+      payload,
+      {
+        isAuthenticationRequired: true,
+      }
+    );
+    return response;
+  };
+
+  //Open referral Program
+
   /**
    * Gets affiliate payout details
    * @param campaignId
@@ -1431,18 +1540,20 @@ setUUID = (uuid: string) => {
     return response;
   };
 
-
   /**
    * Gets affiliate referree details
    * @param GetAffiliateRefereeDetailsRequest
    * @returns GetAffiliateRefereeDetailsResponse
    */
-  getAffiliateRefereeDetails = async (params: GetAffiliateRefereeDetailsRequest) => {
-    const response = await this.apiService.get<GetAffiliateRefereeDetailsResponse>(
-      SERVICE_URLS.GROWTH.AFFILIATE_REFEREE_DETAILS,
-      params,
-      { isAuthenticationRequired: true }
-    );
+  getAffiliateRefereeDetails = async (
+    params: GetAffiliateRefereeDetailsRequest
+  ) => {
+    const response =
+      await this.apiService.get<GetAffiliateRefereeDetailsResponse>(
+        SERVICE_URLS.GROWTH.AFFILIATE_REFEREE_DETAILS,
+        params,
+        { isAuthenticationRequired: true }
+      );
     return response;
   };
 
@@ -1452,11 +1563,27 @@ setUUID = (uuid: string) => {
    * @returns GetAffiliateRefereeCountResponse
    */
   getAffiliateRefereeCount = async (campaignId: number) => {
-    const response = await this.apiService.get<GetAffiliateRefereeCountResponse>(
-      SERVICE_URLS.GROWTH.AFFILIATE_REFEREES_COUNT,
-      { campaignId },
-      { isAuthenticationRequired: true }
-    );
+    const response =
+      await this.apiService.get<GetAffiliateRefereeCountResponse>(
+        SERVICE_URLS.GROWTH.GROWTH_REFEREES_COUNT,
+        { campaignId },
+        { isAuthenticationRequired: true }
+      );
+    return response;
+  };
+
+  /**
+   * Gets affiliate referree count
+   * @param campaignId
+   * @returns GetAffiliateRefereeCountResponse
+   */
+  getRefereeCount = async (campaignId: number) => {
+    const response =
+      await this.apiService.get<GetAffiliateRefereeCountResponse>(
+        SERVICE_URLS.GROWTH.GROWTH_REFEREES_COUNT,
+        { campaignId },
+        { isAuthenticationRequired: true }
+      );
     return response;
   };
 
@@ -1493,11 +1620,12 @@ setUUID = (uuid: string) => {
    * @returns GetTradeAndEarnRewardsOverviewResponse
    */
   getTradeAndEarnRewardsOverview = async (campaignId: number) => {
-    const response = await this.apiService.get<GetTradeAndEarnRewardsOverviewResponse>(
-      SERVICE_URLS.GROWTH.REWARDS_OVERVIEW,
-      { campaignId },
-      { isAuthenticationRequired: true }
-    );
+    const response =
+      await this.apiService.get<GetTradeAndEarnRewardsOverviewResponse>(
+        SERVICE_URLS.GROWTH.REWARDS_OVERVIEW,
+        { campaignId },
+        { isAuthenticationRequired: true }
+      );
     return response;
   };
 
@@ -1506,12 +1634,15 @@ setUUID = (uuid: string) => {
    * @param GetTradeAndEarnRewardsDetailRequest
    * @returns GetTradeAndEarnRewardsDetailResponse
    */
-  getTradeAndEarnRewardsDetail = async (params: GetTradeAndEarnRewardsDetailRequest) => {
-    const response = await this.apiService.get<GetTradeAndEarnRewardsDetailResponse>(
-      SERVICE_URLS.GROWTH.REWARDS_DETAILS,
-      params,
-      { isAuthenticationRequired: true }
-    );
+  getTradeAndEarnRewardsDetail = async (
+    params: GetTradeAndEarnRewardsDetailRequest
+  ) => {
+    const response =
+      await this.apiService.get<GetTradeAndEarnRewardsDetailResponse>(
+        SERVICE_URLS.GROWTH.REWARDS_DETAILS,
+        params,
+        { isAuthenticationRequired: true }
+      );
     return response;
   };
 
@@ -1520,11 +1651,12 @@ setUUID = (uuid: string) => {
    * @returns GetTotalHistoricalTradingRewardsResponse
    */
   getTotalHistoricalTradingRewards = async () => {
-    const response = await this.apiService.get<GetTotalHistoricalTradingRewardsResponse>(
-      SERVICE_URLS.GROWTH.TOTAL_HISTORICAL_TRADING_REWARDS,
-      {},
-      { isAuthenticationRequired: true }
-    );
+    const response =
+      await this.apiService.get<GetTotalHistoricalTradingRewardsResponse>(
+        SERVICE_URLS.GROWTH.TOTAL_HISTORICAL_TRADING_REWARDS,
+        {},
+        { isAuthenticationRequired: true }
+      );
     return response;
   };
 
@@ -1560,11 +1692,12 @@ setUUID = (uuid: string) => {
    * @returns GetUserWhiteListStatusForMarkeMaker
    */
   getUserWhiteListStatusForMarketMaker = async () => {
-    const response = await this.apiService.get<GetUserWhiteListStatusForMarkeMakerResponse>(
-      SERVICE_URLS.GROWTH.MAKER_WHITELIST_STATUS,
-      {},
-      { isAuthenticationRequired: true }
-    );
+    const response =
+      await this.apiService.get<GetUserWhiteListStatusForMarkeMakerResponse>(
+        SERVICE_URLS.GROWTH.MAKER_WHITELIST_STATUS,
+        {},
+        { isAuthenticationRequired: true }
+      );
     return response;
   };
 

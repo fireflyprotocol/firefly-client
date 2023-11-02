@@ -11,7 +11,7 @@ export const SERVICE_URLS = {
     CONTRACT_ADDRESSES: "/marketData/contractAddresses",
     TICKER: "/ticker",
     MASTER_INFO: "/masterInfo",
-    FUNDING_RATE: "/fundingRate"
+    FUNDING_RATE: "/fundingRate",
   },
   USER: {
     USER_POSITIONS: "/userPosition",
@@ -28,7 +28,7 @@ export const SERVICE_URLS = {
     TRANSFER_HISTORY: "/userTransferHistory",
     FUNDING_HISTORY: "/userFundingHistory",
     CANCEL_ON_DISCONNECT: "/dms-countdown",
-    USER_TRADES_HISTORY: "/userTradesHistory"
+    USER_TRADES_HISTORY: "/userTradesHistory",
   },
   GROWTH: {
     REFERRER_INFO: "/growth/getReferrerInfo",
@@ -36,20 +36,28 @@ export const SERVICE_URLS = {
     CAMPAIGN_REWARDS: "/growth/campaignRewards",
     AFFILIATE_PAYOUTS: "/growth/affiliate/payouts",
     AFFILIATE_REFEREE_DETAILS: "/growth/affiliate/refereeDetails",
-    AFFILIATE_REFEREES_COUNT: "/growth/affiliate/refereesCount",
+    GROWTH_REFEREES_COUNT: "/growth/refereesCount",
     USER_REWARDS_HISTORY: "/growth/userRewards/history",
     USER_REWARDS_SUMMARY: "/growth/userRewards/summary",
     REWARDS_OVERVIEW: "/growth/tradeAndEarn/rewardsOverview",
     REWARDS_DETAILS: "/growth/tradeAndEarn/rewardsDetail",
-    TOTAL_HISTORICAL_TRADING_REWARDS: "/growth/tradeAndEarn/totalHistoricalTradingRewards",
+    TOTAL_HISTORICAL_TRADING_REWARDS:
+      "/growth/tradeAndEarn/totalHistoricalTradingRewards",
     MAKER_REWARDS_SUMMARY: "/growth/marketMaker/maker-rewards-summary",
     MAKER_REWARDS_DETAILS: "/growth/marketMaker/maker-rewards-detail",
     MAKER_WHITELIST_STATUS: "/growth/marketMaker/whitelist-status",
     GENERATE_CODE: "/growth/generateCode",
-    LINK_REFERRED_USER: "/growth/linkReferredUser"
+    LINK_REFERRED_USER: "/growth/linkReferredUser",
+
+    OPEN_REFERRAL_REFEREE_DETAILS: "/growth/openReferral/refereeDetails",
+    OPEN_REFERRAL_PAYOUTS: "/growth/openReferral/payoutsHistory",
+    OPEN_REFERRAL_GENERATE_CODE: "/growth/generateAutoReferralCode",
+    OPEN_REFERRAL_LINK_REFERRED_USER: "growth/openReferral/linkReferree",
+    OPEN_REFERRAL_OVERVIEW: "/growth/openReferral/rewardsOverview",
+    OPEN_REFERRAL_REFEREES_COUNT: "/growth/refereesCount",
   },
   ORDERS: {
     ORDERS: "/orders",
     ORDERS_HASH: "/orders/hash",
-  }
+  },
 };
