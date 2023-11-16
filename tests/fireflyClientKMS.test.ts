@@ -145,7 +145,88 @@ describe("FireflyClient", () => {
 
       expect(response.ok).to.be.equal(true);
     });
-
   });
 
+  describe.only("Reproduce Invalid Signature test", async () => {
+    it("should post a LIMIT order on exchange from KMS initialized sub account", async () => {
+
+      //KMS Signer Account
+      const kmsSigner= new AwsKmsSigner({region: 'ap-northeast-1', keyId: 'arn:aws:kms:ap-northeast-1xxxxx'})      
+      const subAcc = new FireflyClient(true, network, kmsSigner);
+      await subAcc.init();
+      subAcc.addMarket(symbol);
+  
+      //THIS IS MAIN ACC - parent account
+      const mainAccPvt = "" //acc5
+      const mainAcc = new FireflyClient(true, network, mainAccPvt);
+      await mainAcc.init();
+      mainAcc.addMarket(symbol);
+
+      //Making sub account
+      const resp = await mainAcc.setSubAccount(
+        subAcc.getPublicAddress().toLowerCase(),
+        symbol,
+        true
+      );
+      if (!resp.ok) {
+        throw Error(resp.message);
+      }
+      const mainAccLeverage = await mainAcc.getUserDefaultLeverage(symbol)
+
+      //place order from KMS client for MAIN acc
+      const response = await subAcc.postOrder({
+        symbol,
+        price: 24775,
+        quantity: 0.001,
+        side: ORDER_SIDE.SELL,
+        leverage: mainAccLeverage,
+        orderType: ORDER_TYPE.LIMIT,
+        clientId: "Test limit order KMS SIGNER sub-acc",
+        // parent account
+        maker: mainAcc.getPublicAddress(),
+      });
+      console.log("res: ", response)
+
+      expect(response.ok).to.be.equal(true);
+    });
+    it("should post a LIMIT order on exchange from Private key initialized sub account", async () => {
+            
+      const subAccPvt = ""
+      const subAcc = new FireflyClient(true, network,subAccPvt);
+      await subAcc.init();
+      subAcc.addMarket(symbol);
+
+      //THIS IS MAIN ACC - parent account
+      const mainAccPvt = ""
+      const mainAcc = new FireflyClient(true, network, mainAccPvt);
+      await mainAcc.init();
+      mainAcc.addMarket(symbol);
+
+      //Making sub account
+      const resp = await mainAcc.setSubAccount(
+        subAcc.getPublicAddress().toLowerCase(),
+        symbol,
+        true
+      );
+      if (!resp.ok) {
+        throw Error(resp.message);
+      }
+      const mainAccLeverage = await mainAcc.getUserDefaultLeverage(symbol)
+
+      //place order from KMS client for MAIN acc
+      const response = await subAcc.postOrder({
+        symbol,
+        price: 24775,
+        quantity: 0.001,
+        side: ORDER_SIDE.SELL,
+        leverage: mainAccLeverage,
+        orderType: ORDER_TYPE.LIMIT,
+        clientId: "Test limit order Private Key sub-acc",
+        // parent account
+        maker: mainAcc.getPublicAddress(),
+      });
+
+      expect(response.ok).to.be.equal(true);
+    });
+  })
 });
