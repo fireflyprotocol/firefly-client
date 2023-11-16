@@ -185,8 +185,7 @@ describe("FireflyClient", () => {
         // parent account
         maker: mainAcc.getPublicAddress(),
       });
-      console.log("res: ", response)
-
+      
       expect(response.ok).to.be.equal(true);
     });
     it("should post a LIMIT order on exchange from Private key initialized sub account", async () => {
