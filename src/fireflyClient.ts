@@ -129,6 +129,7 @@ import {
   withdrawFromMarginBankContractCall,
   setSubAccount,
   closePositionCall,
+  adjustLeverageContractCallRawTransaction,
 } from "./exchange/contractService";
 // @ts-ignore
 import { generateRandomNumber } from "../utils/utils";
@@ -812,9 +813,7 @@ export class FireflyClient {
 
   /**
    * Updates user's leverage to given leverage
-   * @param symbol market symbol get information about
-   * @param leverage new leverage you want to change to
-   * @param perpetualAddress (address) address of Perpetual contract
+   * @param adjustLeverageRequest
    * @returns ResponseSchema
    */
   adjustLeverage = async (
@@ -838,6 +837,41 @@ export class FireflyClient {
         params.perpetualAddress,
         params.symbol
       );
+
+      //Adjust leverage V2 implementation only works on Wallet
+      //Create signed tx to pass to api call
+      if (this.getWallet() instanceof Wallet) {
+        const signedTx = await adjustLeverageContractCallRawTransaction(
+          perpContract,
+          this.getWallet() as Wallet,
+          params.leverage,
+          this.maxBlockGasLimit,
+          this.networkName,
+          params.parentAddress
+            ? () => {
+              return params.parentAddress!;
+            }
+            : this.getPublicAddress
+        );
+
+        // call API to update leverage
+        const {
+          ok,
+          data,
+          response: { errorCode, message },
+        } = await this.updateLeverage({
+          symbol: params.symbol,
+          leverage: params.leverage,
+          parentAddress: params.parentAddress,
+          signedTransaction: signedTx
+        });
+        const response: ResponseSchema = { ok, data, code: errorCode, message };
+
+        //If API is successful return response else make direct contract call to update the leverage
+        if(response.ok){
+          return response
+        }
+      }
 
       return await adjustLeverageContractCall(
         perpContract,
@@ -1274,13 +1308,13 @@ export class FireflyClient {
           this.network.onboardingUrl
         );
         /*
-          For every orderHash sent to etherium etherium will hash it and wrap
+          For every orderHash sent to etherium, etherium will hash it and wrap
           it with "\\x19Ethereum Signed Message:\\n" + message.length + message
           Hence for that we have to hash it again.
         */
         //@ts-ignore
         const hashedMessageETH =
-          this.web3.eth.accounts.hashMessage(hashedMessageSHA);
+          this.web3.eth.accounts.hashMessage(hashedMessageSHA || "");
         signature = await this.kmsSigner._signDigest(hashedMessageETH);
       } else {
         // sign onboarding message
@@ -1907,6 +1941,7 @@ export class FireflyClient {
           : this.getPublicAddress(),
         leverage: toBigNumberStr(params.leverage),
         marginType: MARGIN_TYPE.ISOLATED,
+        signedTransaction: params.signedTransaction
       },
       { isAuthenticationRequired: true }
     );

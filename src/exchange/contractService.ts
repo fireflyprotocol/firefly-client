@@ -7,8 +7,8 @@ import {
   toBigNumberStr,
 } from "@firefly-exchange/library";
 
-import { Contract, Signer, Wallet } from "ethers";
-import { DEFAULT_PRECISION, EXTRA_FEES } from "../constants";
+import { Contract, ethers, Signer, Wallet } from "ethers";
+import { DEFAULT_PRECISION, EXTRA_FEES, Networks } from "../constants";
 import { SuccessMessages, TransformToResponseSchema } from "./contractErrorHandling.service";
 //@ts-ignore
 import { default as interpolate } from "interpolate";
@@ -37,6 +37,44 @@ export const adjustLeverageContractCall = async (
 
     return tx;
   }, interpolate(SuccessMessages.adjustLeverage, {leverage}));
+};
+
+export const adjustLeverageContractCallRawTransaction = async (
+  perpContract: any,
+  wallet: Wallet, //expecting only Wallet because raw transaction creation is not supported by Metamask
+  leverage: number,
+  gasLimit: number,
+  networkName: string,
+  getPublicAddress: () => address,
+): Promise<string> => {
+  const contract = mapContract(networkName, FactoryName.perpetual, perpContract).connect(wallet)
+
+  //estimate gas in case of ARBITRUM network because it doesn't work on max block gas limit
+  if (networkName == NETWORK_NAME.arbitrum) {
+    gasLimit = (+await contract.estimateGas.adjustLeverage(getPublicAddress(), toBigNumberStr(leverage))) + EXTRA_FEES;    
+  }
+  const provider = new ethers.providers.JsonRpcProvider(Networks.TESTNET_ARBITRUM.url);
+
+  const to = contract.address;
+  const data = contract.interface.encodeFunctionData('adjustLeverage', [getPublicAddress(), toBigNumberStr(leverage)]);
+  const nonce = await provider.getTransactionCount(await wallet.getAddress(), 'latest'); //this address should be sub account address if he's making adjust leverage for parent address
+  const gasPrice = await provider.getGasPrice();
+
+  try {
+    const rawTx = {
+      to,
+      data,
+      nonce,
+      gasLimit,
+      gasPrice,
+      chainId: Networks.TESTNET_ARBITRUM.chainId
+    };
+    const signedTransaction = await wallet.signTransaction(rawTx);
+    return signedTransaction
+  }
+  catch(e){
+    throw e
+  }
 };
 
 export const setSubAccount=async (

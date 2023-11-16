@@ -533,6 +533,7 @@ export interface adjustLeverageRequest {
   leverage: number;
   perpetualAddress?: address;
   parentAddress?: string;
+  signedTransaction?: string;
 }
 
 export interface AdjustLeverageResponse {
