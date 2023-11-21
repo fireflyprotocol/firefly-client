@@ -622,6 +622,7 @@ export interface GetAffiliateRefereeDetailsRequest {
   campaignId: number;
   pageNumber?: number;
   pageSize?: number;
+  parentAddress?: string;
 }
 export interface GetAffiliateRefereeDetailsResponse {
   data: AffiliateRefereeDetailsData[];
@@ -643,6 +644,7 @@ export interface GetAffiliateRefereeCountResponse {
 export interface GetUserRewardsHistoryRequest {
   pageSize?: number;
   cursor?: number;
+  parentAddress?: string;
 }
 export interface GetUserRewardsHistoryResponse {
   data: UserRewardsHistoryData[];
@@ -687,6 +689,7 @@ export interface GetTradeAndEarnRewardsDetailRequest {
   campaignId: number;
   pageSize?: number;
   cursor?: number;
+  parentAddress?: string;
 }
 
 export interface GetTradeAndEarnRewardsDetailResponse {
@@ -721,6 +724,7 @@ export interface GetMakerRewardDetailsRequest {
   symbol?: string;
   pageSize?: number;
   cursor?: number;
+  parentAddress?: string;
 }
 
 export interface GetMakerRewardDetailsResponse {
