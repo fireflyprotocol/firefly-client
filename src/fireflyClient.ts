@@ -1408,9 +1408,9 @@ export class FireflyClient {
    * @param params LinkReferredUserRequest
    * @returns LinkReferredUserResponse
    */
-  linkReferredUser = async (params: LinkReferredUserRequest) => {
+  affiliateLinkReferredUser = async (params: LinkReferredUserRequest) => {
     const response = await this.apiService.post<LinkReferredUserResponse>(
-      SERVICE_URLS.GROWTH.LINK_REFERRED_USER,
+      SERVICE_URLS.GROWTH.AFFILIATE_LINK_REFERRED_USER,
       params,
       { isAuthenticationRequired: true }
     );
@@ -1422,10 +1422,10 @@ export class FireflyClient {
    * @param campaignId
    * @returns GetReferrerInfoResponse
    */
-  getReferrerInfo = async (campaignId: number) => {
+  getReferrerInfo = async () => {
     const response = await this.apiService.get<GetReferrerInfoResponse>(
       SERVICE_URLS.GROWTH.REFERRER_INFO,
-      { campaignId },
+      undefined,
       { isAuthenticationRequired: true }
     );
     return response;

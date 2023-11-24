@@ -886,15 +886,14 @@ describe("FireflyClient", () => {
       expect((response?.data as any).error?.code).to.be.equal(3078);
     });
     it("should not link referred user when given incorrect refer code", async () => {
-      const response = await client.linkReferredUser({
-        referralCode: "testReferCode",
-        campaignId: 2,
+      const response = await client.affiliateLinkReferredUser({
+        referralCode: "testReferCode"
       });
       expect(response.ok).to.be.equal(false);
       expect((response?.data as any).error?.code).to.be.equal(9000);
     });
     it("should get referrer info", async () => {
-      const response = await client.getReferrerInfo(2);
+      const response = await client.getReferrerInfo();
       expect(response.ok).to.be.equal(true);
     });
     it("should get campaign details", async () => {
@@ -1926,15 +1925,14 @@ describe("FireflyClient via ReadOnlyToken", () => {
       expect((response?.data as any).error?.code).to.be.equal(2004);
     });
     it("should not allow link referred user on readOnlyToken", async () => {
-      const response = await readOnlyClient.linkReferredUser({
-        referralCode: "testReferCode",
-        campaignId: 2,
+      const response = await readOnlyClient.affiliateLinkReferredUser({
+        referralCode: "testReferCode"
       });
       expect(response.ok).to.be.equal(false);
       expect((response?.data as any).error?.code).to.be.equal(2004);
     });
     it("should get referrer info", async () => {
-      const response = await readOnlyClient.getReferrerInfo(2);
+      const response = await readOnlyClient.getReferrerInfo();
       expect(response.ok).to.be.equal(true);
     });
     it("should get campaign details", async () => {
