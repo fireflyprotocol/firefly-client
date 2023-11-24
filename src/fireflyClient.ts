@@ -1421,6 +1421,7 @@ export class FireflyClient {
   /**
    * Gets referrer Info
    * @param campaignId
+   * @param parentAddress
    * @returns GetReferrerInfoResponse
    */
   getReferrerInfo = async (campaignId: number, parentAddress?: string) => {
@@ -1445,6 +1446,7 @@ export class FireflyClient {
   /**
    * Gets campaign reward details
    * @param campaignId
+   * @param parentAddress
    * @returns GetCampaignRewardsResponse
    */
   getCampaignRewards = async (campaignId: number, parentAddress?: string) => {
@@ -1516,6 +1518,7 @@ export class FireflyClient {
   /**
    * generate open referral code
    * @param campaignId
+   * @param parentAddress
    * @returns OpenReferralOverview
    */
   generateOpenReferralReferralCode = async (payload: {
@@ -1566,6 +1569,7 @@ export class FireflyClient {
   /**
    * Gets affiliate payout details
    * @param campaignId
+   * @param parentAddress
    * @returns Array of GetAffiliatePayoutsResponse
    */
   getAffiliatePayouts = async (campaignId: number, parentAddress?: string) => {
@@ -1598,6 +1602,7 @@ export class FireflyClient {
   /**
    * Gets affiliate referree count
    * @param campaignId
+   * @param parentAddress
    * @returns GetAffiliateRefereeCountResponse
    */
   getAffiliateRefereeCount = async (
@@ -1615,6 +1620,7 @@ export class FireflyClient {
   /**
    * Gets affiliate referree count
    * @param campaignId
+   * @param parentAddress
    * @returns GetAffiliateRefereeCountResponse
    */
   getRefereeCount = async (campaignId: number, parentAddress?: string) => {
@@ -1657,6 +1663,7 @@ export class FireflyClient {
   /**
  * Gets rewards overview
  * @param campaignId
+ * @param parentAddress
  * @returns GetTradeAndEarnRewardsOverviewResponse
  */
   getTradeAndEarnRewardsOverview = async (
