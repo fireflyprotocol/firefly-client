@@ -18,7 +18,7 @@ import {
   GenerateReferralCodeRequest,
   GenerateReferralCodeResponse,
   GetAccountDataResponse,
-  GetAffiliatePayoutsResponse, GetAffiliateRefereeDetailsRequest,
+  GetAffiliatePayoutsResponse, GetAffiliateRefereeCountResponse, GetAffiliateRefereeDetailsRequest,
   GetAffiliateRefereeDetailsResponse,
   GetCampaignDetailsResponse,
   GetCampaignRewardsResponse,
@@ -38,7 +38,6 @@ import {
   GetOrderResponse,
   GetPositionRequest,
   GetPositionResponse,
-  GetRefereeCountResponse,
   GetReferrerInfoResponse,
   GetTotalHistoricalTradingRewardsResponse,
   GetTradeAndEarnRewardsDetailRequest,
@@ -1563,12 +1562,12 @@ export class FireflyClient {
   /**
    * Gets referree count
    * @param campaignId
-   * @returns GetRefereeCountResponse
+   * @returns GetAffiliateRefereeCountResponse
    */
-  getRefereeCount = async (campaignId: number) => {
+  getAffiliateRefereeCount = async (campaignId: number) => {
     const response =
-      await this.apiService.get<GetRefereeCountResponse>(
-        SERVICE_URLS.GROWTH.GROWTH_REFEREES_COUNT,
+      await this.apiService.get<GetAffiliateRefereeCountResponse>(
+        SERVICE_URLS.GROWTH.AFFILIATE_REFEREES_COUNT,
         { campaignId },
         { isAuthenticationRequired: true }
       );
