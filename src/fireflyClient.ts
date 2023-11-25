@@ -5,33 +5,9 @@ import { AwsKmsSigner } from "ethers-aws-kms-signer";
 import { Contract, ethers, providers, Signer, Wallet } from "ethers";
 
 import {
-  bigNumber,
-  toBigNumber,
-  ORDER_SIDE,
-  ORDER_TYPE,
-  TIME_IN_FORCE,
-  SigningMethod,
-  MarketSymbol,
-  address,
-  DAPIKlineResponse,
-  ORDER_STATUS,
-  SignedOrder,
-  Order,
-  OrderSigner,
-  contracts_exchange_boba,
-  contracts_exchange_arbitrum,
-  bnStrToBaseNumber,
-  MARGIN_TYPE,
-  bnToString,
-  Web3,
-  ADJUST_MARGIN,
-  OnboardingSigner,
-  NETWORK_NAME,
-  mapContract,
-  FactoryName,
-  getFactory,
-  toBigNumberStr,
-  isStopOrder,
+  address, ADJUST_MARGIN, bigNumber, bnStrToBaseNumber, bnToString, contracts_exchange_arbitrum, contracts_exchange_boba, DAPIKlineResponse, FactoryName,
+  getFactory, isStopOrder, mapContract, MARGIN_TYPE, MarketSymbol, NETWORK_NAME, OnboardingSigner, Order,
+  OrderSigner, ORDER_SIDE, ORDER_STATUS, ORDER_TYPE, SignedOrder, SigningMethod, TIME_IN_FORCE, toBigNumber, toBigNumberStr, Web3
 } from "@firefly-exchange/library";
 import {
   adjustLeverageRequest,
@@ -42,9 +18,7 @@ import {
   GenerateReferralCodeRequest,
   GenerateReferralCodeResponse,
   GetAccountDataResponse,
-  GetAffiliatePayoutsResponse,
-  GetAffiliateRefereeCountResponse,
-  GetAffiliateRefereeDetailsRequest,
+  GetAffiliatePayoutsResponse, GetAffiliateRefereeDetailsRequest,
   GetAffiliateRefereeDetailsResponse,
   GetCampaignDetailsResponse,
   GetCampaignRewardsResponse,
@@ -64,6 +38,7 @@ import {
   GetOrderResponse,
   GetPositionRequest,
   GetPositionResponse,
+  GetRefereeCountResponse,
   GetReferrerInfoResponse,
   GetTotalHistoricalTradingRewardsResponse,
   GetTradeAndEarnRewardsDetailRequest,
@@ -102,35 +77,29 @@ import {
   PostTimerResponse,
   StatusResponse,
   TickerData,
-  verifyDepositResponse,
+  verifyDepositResponse
 } from "./interfaces/routes";
 
 import { createTypedSignature } from "@firefly-exchange/library";
 
+import {
+  ARBITRUM_NETWROK,
+  ExtendedNetwork,
+  EXTRA_FEES,
+  Networks
+} from "./constants";
 import { APIService } from "./exchange/apiService";
 import { SERVICE_URLS } from "./exchange/apiUrls";
 import {
   APIErrorMessages,
   ResponseSchema,
-  VerificationStatus,
+  VerificationStatus
 } from "./exchange/contractErrorHandling.service";
-import { Sockets } from "./exchange/sockets";
 import {
-  ARBITRUM_NETWROK,
-  ExtendedNetwork,
-  EXTRA_FEES,
-  Networks,
-} from "./constants";
-import {
-  adjustLeverageContractCall,
-  adjustMarginContractCall,
-  approvalFromUSDCContractCall,
-  depositToMarginBankContractCall,
-  withdrawFromMarginBankContractCall,
-  setSubAccount,
-  closePositionCall,
-  adjustLeverageContractCallRawTransaction,
+  adjustLeverageContractCall, adjustLeverageContractCallRawTransaction, adjustMarginContractCall,
+  approvalFromUSDCContractCall, closePositionCall, depositToMarginBankContractCall, setSubAccount, withdrawFromMarginBankContractCall
 } from "./exchange/contractService";
+import { Sockets } from "./exchange/sockets";
 // @ts-ignore
 import { generateRandomNumber } from "../utils/utils";
 import { WebSockets } from "./exchange/WebSocket";
@@ -1592,28 +1561,13 @@ export class FireflyClient {
   };
 
   /**
-   * Gets affiliate referree count
+   * Gets referree count
    * @param campaignId
-   * @returns GetAffiliateRefereeCountResponse
-   */
-  getAffiliateRefereeCount = async (campaignId: number) => {
-    const response =
-      await this.apiService.get<GetAffiliateRefereeCountResponse>(
-        SERVICE_URLS.GROWTH.GROWTH_REFEREES_COUNT,
-        { campaignId },
-        { isAuthenticationRequired: true }
-      );
-    return response;
-  };
-
-  /**
-   * Gets affiliate referree count
-   * @param campaignId
-   * @returns GetAffiliateRefereeCountResponse
+   * @returns GetRefereeCountResponse
    */
   getRefereeCount = async (campaignId: number) => {
     const response =
-      await this.apiService.get<GetAffiliateRefereeCountResponse>(
+      await this.apiService.get<GetRefereeCountResponse>(
         SERVICE_URLS.GROWTH.GROWTH_REFEREES_COUNT,
         { campaignId },
         { isAuthenticationRequired: true }
