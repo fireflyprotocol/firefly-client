@@ -5,33 +5,9 @@ import { AwsKmsSigner } from "ethers-aws-kms-signer";
 import { Contract, ethers, providers, Signer, Wallet } from "ethers";
 
 import {
-  bigNumber,
-  toBigNumber,
-  ORDER_SIDE,
-  ORDER_TYPE,
-  TIME_IN_FORCE,
-  SigningMethod,
-  MarketSymbol,
-  address,
-  DAPIKlineResponse,
-  ORDER_STATUS,
-  SignedOrder,
-  Order,
-  OrderSigner,
-  contracts_exchange_boba,
-  contracts_exchange_arbitrum,
-  bnStrToBaseNumber,
-  MARGIN_TYPE,
-  bnToString,
-  Web3,
-  ADJUST_MARGIN,
-  OnboardingSigner,
-  NETWORK_NAME,
-  mapContract,
-  FactoryName,
-  getFactory,
-  toBigNumberStr,
-  isStopOrder,
+  address, ADJUST_MARGIN, bigNumber, bnStrToBaseNumber, bnToString, contracts_exchange_arbitrum, contracts_exchange_boba, DAPIKlineResponse, FactoryName,
+  getFactory, isStopOrder, mapContract, MARGIN_TYPE, MarketSymbol, NETWORK_NAME, OnboardingSigner, Order,
+  OrderSigner, ORDER_SIDE, ORDER_STATUS, ORDER_TYPE, SignedOrder, SigningMethod, TIME_IN_FORCE, toBigNumber, toBigNumberStr, Web3
 } from "@firefly-exchange/library";
 import {
   adjustLeverageRequest,
@@ -42,9 +18,7 @@ import {
   GenerateReferralCodeRequest,
   GenerateReferralCodeResponse,
   GetAccountDataResponse,
-  GetAffiliatePayoutsResponse,
-  GetAffiliateRefereeCountResponse,
-  GetAffiliateRefereeDetailsRequest,
+  GetAffiliatePayoutsResponse, GetAffiliateRefereeCountResponse, GetAffiliateRefereeDetailsRequest,
   GetAffiliateRefereeDetailsResponse,
   GetCampaignDetailsResponse,
   GetCampaignRewardsResponse,
@@ -102,35 +76,29 @@ import {
   PostTimerResponse,
   StatusResponse,
   TickerData,
-  verifyDepositResponse,
+  verifyDepositResponse
 } from "./interfaces/routes";
 
 import { createTypedSignature } from "@firefly-exchange/library";
 
+import {
+  ARBITRUM_NETWROK,
+  ExtendedNetwork,
+  EXTRA_FEES,
+  Networks
+} from "./constants";
 import { APIService } from "./exchange/apiService";
 import { SERVICE_URLS } from "./exchange/apiUrls";
 import {
   APIErrorMessages,
   ResponseSchema,
-  VerificationStatus,
+  VerificationStatus
 } from "./exchange/contractErrorHandling.service";
-import { Sockets } from "./exchange/sockets";
 import {
-  ARBITRUM_NETWROK,
-  ExtendedNetwork,
-  EXTRA_FEES,
-  Networks,
-} from "./constants";
-import {
-  adjustLeverageContractCall,
-  adjustMarginContractCall,
-  approvalFromUSDCContractCall,
-  depositToMarginBankContractCall,
-  withdrawFromMarginBankContractCall,
-  setSubAccount,
-  closePositionCall,
-  adjustLeverageContractCallRawTransaction,
+  adjustLeverageContractCall, adjustLeverageContractCallRawTransaction, adjustMarginContractCall,
+  approvalFromUSDCContractCall, closePositionCall, depositToMarginBankContractCall, setSubAccount, withdrawFromMarginBankContractCall
 } from "./exchange/contractService";
+import { Sockets } from "./exchange/sockets";
 // @ts-ignore
 import { generateRandomNumber } from "../utils/utils";
 import { WebSockets } from "./exchange/WebSocket";
@@ -1409,9 +1377,9 @@ export class FireflyClient {
    * @param params LinkReferredUserRequest
    * @returns LinkReferredUserResponse
    */
-  linkReferredUser = async (params: LinkReferredUserRequest) => {
+  affiliateLinkReferredUser = async (params: LinkReferredUserRequest) => {
     const response = await this.apiService.post<LinkReferredUserResponse>(
-      SERVICE_URLS.GROWTH.LINK_REFERRED_USER,
+      SERVICE_URLS.GROWTH.AFFILIATE_LINK_REFERRED_USER,
       params,
       { isAuthenticationRequired: true }
     );
@@ -1420,14 +1388,13 @@ export class FireflyClient {
 
   /**
    * Gets referrer Info
-   * @param campaignId
    * @param parentAddress
    * @returns GetReferrerInfoResponse
    */
-  getReferrerInfo = async (campaignId: number, parentAddress?: string) => {
+  getReferrerInfo = async (parentAddress?: string) => {
     const response = await this.apiService.get<GetReferrerInfoResponse>(
       SERVICE_URLS.GROWTH.REFERRER_INFO,
-      { campaignId, parentAddress },
+      { parentAddress },
       { isAuthenticationRequired: true }
     );
     return response;
@@ -1598,7 +1565,6 @@ export class FireflyClient {
     return response;
   };
 
-
   /**
    * Gets affiliate referree count
    * @param campaignId
@@ -1611,22 +1577,7 @@ export class FireflyClient {
   ) => {
     const response =
       await this.apiService.get<GetAffiliateRefereeCountResponse>(
-        SERVICE_URLS.GROWTH.GROWTH_REFEREES_COUNT,
-        { campaignId, parentAddress },
-        { isAuthenticationRequired: true }
-      );
-    return response;
-  };
-  /**
-   * Gets affiliate referree count
-   * @param campaignId
-   * @param parentAddress
-   * @returns GetAffiliateRefereeCountResponse
-   */
-  getRefereeCount = async (campaignId: number, parentAddress?: string) => {
-    const response =
-      await this.apiService.get<GetAffiliateRefereeCountResponse>(
-        SERVICE_URLS.GROWTH.GROWTH_REFEREES_COUNT,
+        SERVICE_URLS.GROWTH.AFFILIATE_REFEREES_COUNT,
         { campaignId, parentAddress },
         { isAuthenticationRequired: true }
       );

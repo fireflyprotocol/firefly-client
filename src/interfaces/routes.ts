@@ -762,7 +762,6 @@ export interface GenerateReferralCodeResponse {
 
 export interface LinkReferredUserRequest {
   referralCode: string;
-  campaignId: number;
 }
 export interface LinkReferredUserResponse {
   referralCode: string;
